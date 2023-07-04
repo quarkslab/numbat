@@ -22,3 +22,7 @@ The following tasks need to be done:
    we would display relation with the functions within the binaries. For example, the function
    ``printf`` inside ``ls`` will have a reference to the function ``memset`` of the binary ``libc.6.so`` 
 
+Here is an overview of sourcetrail databases, the main component is the element table which is used
+by almost all the other elements for simple cross referencing between tables. 
+
+<img align="right" src="https://gitlab.qb/sbabigeon/numbat/-/raw/main/sourcetrail_db.png">

@@ -1,6 +1,6 @@
 # Numbat
 
-<img align="right" src="" width="250" heigh="250">
+<img align="right" src="https://gitlab.qb/sbabigeon/numbat/-/raw/main/numbat.png" width="250" heigh="250">
 
 ## Introduction
 

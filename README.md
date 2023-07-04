@@ -25,4 +25,4 @@ The following tasks need to be done:
 Here is an overview of sourcetrail databases, the main component is the element table which is used
 by almost all the other elements for simple cross referencing between tables. 
 
-<img align="right" src="https://gitlab.qb/sbabigeon/numbat/-/raw/main/sourcetrail_db.png">
+![Sourcetrail Database]("https://gitlab.qb/sbabigeon/numbat/-/raw/main/sourcetrail_db.png")

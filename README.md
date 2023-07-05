@@ -11,7 +11,7 @@ The goal of this tool will be to list all the relation between binaries (much li
 more information. In particular, we would be able to get the disassembly / decompiled code of all the 
 binaries and display them in sourcetrail UI.
 
-## TODO
+## Generals Ideas  
 
 The following tasks need to be done:
 
@@ -26,3 +26,8 @@ Here is an overview of sourcetrail databases, the main component is the element 
 by almost all the other elements for simple cross referencing between tables. 
 
 ![Sourcetrail Database](https://gitlab.qb/sbabigeon/numbat/-/raw/main/sourcetrail_db.png)
+
+## TODO
+
+The first thing to do is to define an API for the user, then actually implement the API,
+then try the API on simple use case.

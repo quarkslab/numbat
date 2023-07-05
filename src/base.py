@@ -14,6 +14,15 @@ class Element(object):
     def __init__(self, id_: int = 0) -> None:
         self.id = id_ 
 
+class ElementComponentType(enum.Enum):
+    """
+        Internal class that represent an ElementComponent type 
+        inside the sourcetrail database    
+    """
+ 
+    NONE         = 0
+    IS_AMBIGUOUS = 1
+
 class ElementComponent(Element):
     """ 
         Wrapper class for sourcetrail element_component table:
@@ -28,7 +37,8 @@ class ElementComponent(Element):
         )
     """
  
-    def __init__(self, id_: int = 0, elem_id: int = 0, type_:int = 0, 
+    def __init__(self, id_: int = 0, elem_id: int = 0, 
+            type_: ElementComponentType = ElementComponentType.NONE, 
             data: str = '') -> None:
 
         super().__init__(id_)
@@ -41,20 +51,20 @@ class EdgeType(enum.Enum):
         Internal class that represent a Edge type inside the 
         sourcetrail database    
     """
-    EDGE_UNDEFINED = 0
-    EDGE_MEMBER = 1 << 0
-    EDGE_TYPE_USAGE = 1 << 1
-    EDGE_USAGE = 1 << 2
-    EDGE_CALL = 1 << 3
-    EDGE_INHERITANCE = 1 << 4
-    EDGE_OVERRIDE = 1 << 5
-    EDGE_TYPE_ARGUMENT = 1 << 6
+    EDGE_UNDEFINED               = 0
+    EDGE_MEMBER                  = 1 << 0
+    EDGE_TYPE_USAGE              = 1 << 1
+    EDGE_USAGE                   = 1 << 2
+    EDGE_CALL                    = 1 << 3
+    EDGE_INHERITANCE             = 1 << 4
+    EDGE_OVERRIDE                = 1 << 5
+    EDGE_TYPE_ARGUMENT           = 1 << 6
     EDGE_TEMPLATE_SPECIALIZATION = 1 << 7
-    EDGE_INCLUDE = 1 << 8
-    EDGE_IMPORT = 1 << 9
-    EDGE_BUNDLED_EDGES = 1 << 10
-    EDGE_MACRO_USAGE = 1 << 11
-    EDGE_ANNOTATION_USAGE = 1 << 12
+    EDGE_INCLUDE                 = 1 << 8
+    EDGE_IMPORT                  = 1 << 9
+    EDGE_BUNDLED_EDGES           = 1 << 10
+    EDGE_MACRO_USAGE             = 1 << 11
+    EDGE_ANNOTATION_USAGE        = 1 << 12
 
 class Edge(Element):
     """ 
@@ -85,27 +95,27 @@ class NodeType(enum.Enum):
         Internal class that represent a Edge type inside the 
         sourcetrail database    
     """
-    NODE_SYMBOL = 1 << 0
-    NODE_TYPE = 1 << 1
-    NODE_BUILTIN_TYPE = 1 << 2
-    NODE_MODULE = 1 << 3
-    NODE_NAMESPACE = 1 << 4
-    NODE_PACKAGE = 1 << 5
-    NODE_STRUCT = 1 << 6
-    NODE_CLASS = 1 << 7
-    NODE_INTERFACE = 1 << 8
-    NODE_ANNOTATION = 1 << 9
+    NODE_SYMBOL          = 1 << 0
+    NODE_TYPE            = 1 << 1
+    NODE_BUILTIN_TYPE    = 1 << 2
+    NODE_MODULE          = 1 << 3
+    NODE_NAMESPACE       = 1 << 4
+    NODE_PACKAGE         = 1 << 5
+    NODE_STRUCT          = 1 << 6
+    NODE_CLASS           = 1 << 7
+    NODE_INTERFACE       = 1 << 8
+    NODE_ANNOTATION      = 1 << 9
     NODE_GLOBAL_VARIABLE = 1 << 10
-    NODE_FIELD = 1 << 11
-    NODE_FUNCTION = 1 << 12
-    NODE_METHOD = 1 << 13
-    NODE_ENUM = 1 << 14
-    NODE_ENUM_CONSTANT = 1 << 15
-    NODE_TYPEDEF = 1 << 16
-    NODE_TYPE_PARAMETER = 1 << 17
-    NODE_FILE = 1 << 18
-    NODE_MACRO = 1 << 19
-    NODE_UNION = 1 << 20
+    NODE_FIELD           = 1 << 11
+    NODE_FUNCTION        = 1 << 12
+    NODE_METHOD          = 1 << 13
+    NODE_ENUM            = 1 << 14
+    NODE_ENUM_CONSTANT   = 1 << 15
+    NODE_TYPEDEF         = 1 << 16
+    NODE_TYPE_PARAMETER  = 1 << 17
+    NODE_FILE            = 1 << 18
+    NODE_MACRO           = 1 << 19
+    NODE_UNION           = 1 << 20
 
 class Node(Element):
     """
@@ -120,11 +130,21 @@ class Node(Element):
         ) 
     """
 
-    def __init__(self, id_: int = 0, type_: NodeType = NodeType.NODE_TYPE, name: str = '') -> None:
+    def __init__(self, id_: int = 0, type_: NodeType = NodeType.NODE_TYPE, 
+            name: str = '') -> None:
 
         super().__init__(id_)  
         self.type = type_
         self.name = name
+
+class SymbolType(enum.Enum):
+    """
+        Internal class that represent a Symbol type inside the 
+        sourcetrail database    
+    """
+    NONE     = 0
+    IMPLICIT = 1
+    EXPLICIT = 2 
 
 class Symbol(Element):
     """
@@ -138,7 +158,7 @@ class Symbol(Element):
         ) 
     """
 
-    def __init__(self, id_: int = 0, definition: int = 0) -> None:
+    def __init__(self, id_: int = 0, definition: SymbolType = SymbolType.NONE) -> None:
 
         super().__init__(id_)  
         self.definition_kind = definition
@@ -254,6 +274,19 @@ class Occurrence(object):
         self.element_id = elem_id
         self.source_location_id = source_location_id
 
+class ComponentAccessType(enum.Enum):
+    """
+        Internal class that represent a ComponentAccess type inside 
+        the sourcetrail database    
+    """
+    NONE               = 0
+    PUBLIC             = 1
+    PROTECTED          = 2
+    PRIVATE            = 3
+    DEFAULT            = 4
+    TEMPLATE_PARAMETER = 5
+    TYPE_PARAMETER     = 6
+
 class ComponentAccess(object):
     """
         Wrapper class for sourcetrail component_access table:
@@ -266,7 +299,8 @@ class ComponentAccess(object):
         )
     """  
 
-    def __init__(self, node_id: int = 0, type_: int = 0) -> None:
+    def __init__(self, node_id: int = 0, 
+        type_: ComponentAccessType = ComponentAccessType.NONE) -> None:
         
         self.node_id = node_id
         self.type    = type_
@@ -295,5 +329,3 @@ class Error(Element):
         self.indexed          = indexed
         self.translation_unit = translation_unit 
 
-if __name__ == '__main__':
-    main()

@@ -1,851 +1,8 @@
 import os 
 import sys
 import base
-import sqlite3
+import dao
 from collections.abc import Callable
-
-class SqliteHelper(object):
-    """
-        Helper class for sqlite operation
-    """
-        
-    @staticmethod 
-    def exec(database: sqlite3.Connection, request: str, 
-            parameters: tuple = ()) -> int:
-        """
-            Execute the sqlite request without returning the result 
-        """
-
-        if not database:
-            raise Exception('Invalid database handle')
-
-        cur = database.cursor()
-        cur.execute(request, parameters)
-        cur.close()
-        return cur.lastrowid
-
-    def fetch(database: sqlite3.Connection, request: str, 
-            parameters: tuple = ()) -> list:
-        """
-            Return the result of the sqlite request as list 
-        """
-
-        if not database:
-            raise Exception('Invalid database handle')
-
-        cur = database.cursor()
-        cur.execute(request, parameters)
-        result = cur.fetchall()
-        cur.close()
-
-        return result
-        
-class ElementDAO(object):
-     
-    @staticmethod
-    def create_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''    
-            CREATE TABLE IF NOT EXISTS element(
-                id INTEGER,                         
-                PRIMARY KEY(id));'''
-        )
- 
-    @staticmethod 
-    def delete_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''
-            DROP TABLE IF EXISTS main.element;'''
-        )
-        
-    @staticmethod
-    def new(database: sqlite3.Connection, obj: base.Element) -> int:
-        return SqliteHelper.exec(database, '''
-            INSERT INTO element(id) VALUES (NULL);'''
-        )
-    
-    @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.Element) -> None:
-        SqliteHelper.exec(database, '''
-            DELETE FROM element WHERE id = ?;''', (obj.id,)
-        )
-   
-    @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.Element:
-        out = SqliteHelper.fetch(database, '''
-            SELECT * FROM element WHERE id = ?;''', (elem_id,)
-        ) 
-
-        if len(out) == 1:
-            return base.Element(*out[0])
-
-    @staticmethod
-    def update(database: sqlite3.Connection, obj: base.Element) -> None:
-        # Since the Element object does only contains a primary key
-        # it can't be updated
-        pass
-
-    @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.Element]:
-        rows = SqliteHelper.fetch(database, '''
-            SELECT * FROM element;'''
-        ) 
-
-        result = list()
-        for row in rows:
-            result.append(base.Element(*row))
-
-        return result
-
-class ElementComponentDAO(object):
- 
-    @staticmethod
-    def create_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''    
-            CREATE TABLE IF NOT EXISTS element_component(
-                id INTEGER, 
-                element_id INTEGER, 
-                type INTEGER, 
-                data TEXT, 
-                PRIMARY KEY(id), 
-                FOREIGN KEY(element_id) REFERENCES element(id) ON DELETE CASCADE
-            );'''
-        )
-       
-    @staticmethod 
-    def delete_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''
-            DROP TABLE IF EXISTS main.element_component;'''
-        )
- 
-    @staticmethod
-    def new(database: sqlite3.Connection, obj: base.ElementComponent) -> int:
-        return SqliteHelper.exec(database, '''
-            INSERT INTO element_component(
-                id, element_id, type, data
-            ) VALUES(?, ?, ?, ?);''', (obj.id, obj.elem_id, obj.type.value, obj.data)
-        )
- 
-    @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.ElementComponent) -> None:
-        SqliteHelper.exec(database, '''
-            DELETE FROM element_component WHERE id = ?;''', (obj.id,)
-        )
-         
-    @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.ElementComponent:
-        out = SqliteHelper.fetch(database, '''
-            SELECT * FROM element_component WHERE id = ?;''', (elem_id,)
-        ) 
-   
-        if len(out) == 1:
-            return base.ElementComponent(*out[0])
-     
-    @staticmethod
-    def update(database: sqlite3.Connection, obj: base.ElementComponent) -> None:
-        SqliteHelper.exec(database, '''
-            UPDATE element_component SET
-                element_id = ?, 
-                type = ?, 
-                data = ?
-            WHERE
-                id = ?;''', (obj.elem_id, obj.type.value, obj.data, obj.id)
-        )
- 
-    @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.ElementComponent]:
-        rows = SqliteHelper.fetch(database, '''
-            SELECT * FROM element_component;'''
-        ) 
-  
-        result = list()
-        for row in rows:
-            result.append(base.ElementComponent(*row))
-        
-        return result
-    
-class EdgeDAO(object):
- 
-    @staticmethod
-    def create_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''    
-            CREATE TABLE IF NOT EXISTS edge(
-                id INTEGER NOT NULL, 
-                type INTEGER NOT NULL, 
-                source_node_id INTEGER NOT NULL, 
-                target_node_id INTEGER NOT NULL, 
-                PRIMARY KEY(id), 
-                FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE, 
-                FOREIGN KEY(source_node_id) REFERENCES node(id) ON DELETE CASCADE, 
-                FOREIGN KEY(target_node_id) REFERENCES node(id) ON DELETE CASCADE
-            );'''
-        )
-       
-    @staticmethod 
-    def delete_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''
-            DROP TABLE IF EXISTS main.edge;'''
-        )
- 
-    @staticmethod
-    def new(database: sqlite3.Connection, obj: base.Edge) -> int:
-        return SqliteHelper.exec(database, '''
-            INSERT INTO edge(
-                id, type, source_node_id, target_node_id
-            ) VALUES(?, ?, ?, ?);''', (obj.id, obj.type.value, obj.src, obj.dst)
-        )
- 
-    @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.Edge) -> None:
-        SqliteHelper.exec(database, '''
-            DELETE FROM edge WHERE id = ?;''', (obj.id,)
-        )
-         
-    @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.Edge:
-        out = SqliteHelper.fetch(database, '''
-            SELECT * FROM edge WHERE id = ?;''', (elem_id,)
-        ) 
-   
-        if len(out) == 1:
-            return base.Edge(*out[0])
-
-    @staticmethod
-    def update(database: sqlite3.Connection, obj: base.Edge) -> None:
-        SqliteHelper.exec(database, '''
-            UPDATE edge SET
-                type = ?, 
-                source_node_id = ?,
-                target_node_id = ?
-            WHERE
-                id = ?;''', (obj.type.value, obj.src, obj.dst, obj.id)
-        )
- 
-    @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.Edge]:
-        rows = SqliteHelper.fetch(database, '''
-            SELECT * FROM edge;'''
-        ) 
-  
-        result = list()
-        for row in rows:
-            result.append(base.Edge(*row))
-        
-        return result
-
-class NodeDAO(object):
- 
-    @staticmethod
-    def create_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''    
-            CREATE TABLE IF NOT EXISTS node(
-                id INTEGER NOT NULL, 
-                type INTEGER NOT NULL, 
-                serialized_name TEXT, 
-                PRIMARY KEY(id), 
-                FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
-            );'''
-        )
-       
-    @staticmethod 
-    def delete_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''
-            DROP TABLE IF EXISTS main.node;'''
-        )
- 
-    @staticmethod
-    def new(database: sqlite3.Connection, obj: base.Node) -> int:
-        return SqliteHelper.exec(database, '''
-            INSERT INTO node(
-                id, type, serialized_name 
-            ) VALUES(?, ?, ?);''', (obj.id, obj.type.value, obj.name)
-        )
- 
-    @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.Node) -> None:
-        SqliteHelper.exec(database, '''
-            DELETE FROM node WHERE id = ?;''', (obj.id,)
-        )
-         
-    @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.Node:
-        out = SqliteHelper.fetch(database, '''
-            SELECT * FROM node WHERE id = ?;''', (elem_id,)
-        ) 
-   
-        if len(out) == 1:
-            return base.Node(*out[0])
- 
-    @staticmethod
-    def update(database: sqlite3.Connection, obj: base.Node) -> None:
-        SqliteHelper.exec(database, '''
-            UPDATE node SET
-                type = ?, 
-                serialized_name = ?
-            WHERE
-                id = ?;''', (obj.type.value, obj.name, obj.id)
-        )
-
-    @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.Node]:
-        rows = SqliteHelper.fetch(database, '''
-            SELECT * FROM node;'''
-        ) 
-  
-        result = list()
-        for row in rows:
-            result.append(base.Node(*row))
-        
-        return result
-
-class SymbolDAO(object):
- 
-    @staticmethod
-    def create_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''    
-            CREATE TABLE symbol(
-                id INTEGER NOT NULL, 
-                definition_kind INTEGER NOT NULL, 
-                PRIMARY KEY(id), 
-                FOREIGN KEY(id) REFERENCES node(id) ON DELETE CASCADE
-            );'''
-        )
-       
-    @staticmethod 
-    def delete_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''
-            DROP TABLE IF EXISTS main.symbol;'''
-        )
- 
-    @staticmethod
-    def new(database: sqlite3.Connection, obj: base.Symbol) -> int:
-        return SqliteHelper.exec(database, '''
-            INSERT INTO symbol(
-                id, definition_kind 
-            ) VALUES(?, ?);''', (obj.id, obj.definition_kind.value)
-        )
- 
-    @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.Symbol) -> None:
-        SqliteHelper.exec(database, '''
-            DELETE FROM symbol WHERE id = ?;''', (obj.id,)
-        )
-         
-    @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.Symbol:
-        out = SqliteHelper.fetch(database, '''
-            SELECT * FROM symbol WHERE id = ?;''', (elem_id,)
-        ) 
-   
-        if len(out) == 1:
-            return base.Symbol(*out[0])
- 
-    @staticmethod
-    def update(database: sqlite3.Connection, obj: base.Symbol) -> None:
-        SqliteHelper.exec(database, '''
-            UPDATE symbol SET
-                definition_kind = ?
-            WHERE
-                id = ?;''', (obj.definition_kind.value, obj.id)
-        )
-
-    @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.Symbol]:
-        rows = SqliteHelper.fetch(database, '''
-            SELECT * FROM symbol;'''
-        ) 
-  
-        result = list()
-        for row in rows:
-            result.append(base.Symbol(*row))
-        
-        return result
-
-class FileDAO(object):
- 
-    @staticmethod
-    def create_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''    
-            CREATE TABLE file(
-                id INTEGER NOT NULL, 
-                path TEXT, 
-                language TEXT, 
-                modification_time TEXT, 
-                indexed INTEGER, 
-                complete INTEGER, 
-                line_count INTEGER, 
-                PRIMARY KEY(id), 
-                FOREIGN KEY(id) REFERENCES node(id) ON DELETE CASCADE
-            );'''
-        )
-       
-    @staticmethod 
-    def delete_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''
-            DROP TABLE IF EXISTS main.file;'''
-        )
- 
-    @staticmethod
-    def new(database: sqlite3.Connection, obj: base.File) -> int:
-        return SqliteHelper.exec(database, '''
-            INSERT INTO file(
-                id, path, language, modification_time, indexed, complete, line_count 
-            ) VALUES(?, ?, ?, ?, ?, ?, ?);''', (
-                obj.id, obj.path, obj.language, obj.modification_time, 
-                obj.indexed, obj.complete, obj.line_count
-            )
-        )
- 
-    @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.File) -> None:
-        SqliteHelper.exec(database, '''
-            DELETE FROM file WHERE id = ?;''', (obj.id,)
-        )
-         
-    @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.File:
-        out = SqliteHelper.fetch(database, '''
-            SELECT * FROM file WHERE id = ?;''', (elem_id,)
-        ) 
-   
-        if len(out) == 1:
-            return base.File(*out[0])
- 
-    @staticmethod
-    def update(database: sqlite3.Connection, obj: base.File) -> None:
-        SqliteHelper.exec(database, '''
-            UPDATE file SET
-                path = ?,
-                language = ?,
-                modification_time = ?,
-                indexed = ?,
-                complete = ?,
-                line_count = ? 
-            WHERE
-                id = ?;''', (
-                    obj.path, obj.language, obj.modification_time, 
-                    obj.indexed, obj.complete, obj.line_count, obj.id
-                )
-        )
-
-    @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.File]:
-        rows = SqliteHelper.fetch(database, '''
-            SELECT * FROM file;'''
-        ) 
-  
-        result = list()
-        for row in rows:
-            result.append(base.File(*row))
-        
-        return result
- 
-class FileContentDAO(object):
- 
-    @staticmethod
-    def create_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''    
-            CREATE TABLE filecontent(
-                id INTEGER, 
-                content TEXT, 
-                PRIMARY KEY(id), 
-                FOREIGN KEY(id) REFERENCES file(id)ON DELETE CASCADE ON UPDATE CASCADE
-            );'''
-        )
-       
-    @staticmethod 
-    def delete_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''
-            DROP TABLE IF EXISTS main.filecontent;'''
-        )
- 
-    @staticmethod
-    def new(database: sqlite3.Connection, obj: base.FileContent) -> int:
-        return SqliteHelper.exec(database, '''
-            INSERT INTO filecontent(
-                id, content 
-            ) VALUES(?, ?);''', (obj.id, obj.content)
-        )
- 
-    @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.FileContent) -> None:
-        SqliteHelper.exec(database, '''
-            DELETE FROM filecontent WHERE id = ?;''', (obj.id,)
-        )
-         
-    @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.FileContent:
-        out = SqliteHelper.fetch(database, '''
-            SELECT * FROM filecontent WHERE id = ?;''', (elem_id,)
-        ) 
-   
-        if len(out) == 1:
-            return base.FileContent(*out[0])
-
-    @staticmethod
-    def update(database: sqlite3.Connection, obj: base.FileContent) -> None:
-        SqliteHelper.exec(database, '''
-            UPDATE filecontent SET
-                content = ? 
-            WHERE
-                id = ?;''', (obj.content, obj.id)
-        )
-
-    @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.FileContent]:
-        rows = SqliteHelper.fetch(database, '''
-            SELECT * FROM filecontent;'''
-        ) 
-  
-        result = list()
-        for row in rows:
-            result.append(base.FileContent(*row))
-        
-        return result
-
-class LocalSymbolDAO(object):
- 
-    @staticmethod
-    def create_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''    
-            CREATE TABLE local_symbol(
-                id INTEGER NOT NULL, 
-                name TEXT, 
-                PRIMARY KEY(id), 
-                FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
-            );'''
-        )
-       
-    @staticmethod 
-    def delete_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''
-            DROP TABLE IF EXISTS main.local_symbol;'''
-        )
- 
-    @staticmethod
-    def new(database: sqlite3.Connection, obj: base.LocalSymbol) -> int:
-        return SqliteHelper.exec(database, '''
-            INSERT INTO local_symbol(
-                id, name 
-            ) VALUES(?, ?);''', (obj.id, obj.name)
-        )
- 
-    @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.LocalSymbol) -> None:
-        SqliteHelper.exec(database, '''
-            DELETE FROM local_symbol WHERE id = ?;''', (obj.id,)
-        )
-         
-    @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.LocalSymbol:
-        out = SqliteHelper.fetch(database, '''
-            SELECT * FROM local_symbol WHERE id = ?;''', (elem_id,)
-        ) 
-   
-        if len(out) == 1:
-            return base.LocalSymbol(*out[0])
- 
-    @staticmethod
-    def update(database: sqlite3.Connection, obj: base.LocalSymbol) -> None:
-        SqliteHelper.exec(database, '''
-            UPDATE local_symbol SET
-                name = ? 
-            WHERE
-                id = ?;''', (obj.name, obj.id)
-        )
-
-    @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.LocalSymbol]:
-        rows = SqliteHelper.fetch(database, '''
-            SELECT * FROM local_symbol;'''
-        ) 
-  
-        result = list()
-        for row in rows:
-            result.append(base.LocalSymbol(*row))
-        
-        return result
-
-class SourceLocationDAO(object):
- 
-    @staticmethod
-    def create_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''    
-            CREATE TABLE source_location(
-                id INTEGER NOT NULL, 
-                file_node_id INTEGER, 
-                start_line INTEGER, 
-                start_column INTEGER, 
-                end_line INTEGER, 
-                end_column INTEGER, 
-                type INTEGER, 
-                PRIMARY KEY(id), 
-                FOREIGN KEY(file_node_id) REFERENCES node(id) ON DELETE CASCADE
-            );'''
-        )
-       
-    @staticmethod 
-    def delete_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''
-            DROP TABLE IF EXISTS main.source_location;'''
-        )
- 
-    @staticmethod
-    def new(database: sqlite3.Connection, obj: base.SourceLocation) -> int:
-        return SqliteHelper.exec(database, '''
-            INSERT INTO source_location(
-                id, file_node_id, start_line, start_column, end_line, end_column, type 
-            ) VALUES(NULL, ?, ?, ?, ?, ?, ?);''', (
-                obj.file_node_id, obj.start_line, obj.start_column,
-                obj.end_line, obj.end_column, obj.type
-            )
-        )
- 
-    @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.SourceLocation) -> None:
-        SqliteHelper.exec(database, '''
-            DELETE FROM source_location WHERE id = ?;''', (obj.id,)
-        )
-         
-    @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.SourceLocation:
-        out = SqliteHelper.fetch(database, '''
-            SELECT * FROM source_location WHERE id = ?;''', (elem_id,)
-        ) 
-   
-        if len(out) == 1:
-            return base.SourceLocation(*out[0])
- 
-    @staticmethod
-    def update(database: sqlite3.Connection, obj: base.SourceLocation) -> None:
-        SqliteHelper.exec(database, '''
-            UPDATE source_location SET
-                file_node_id = ?,
-                start_line = ?,
-                start_column = ?,
-                end_line = ?,
-                end_column = ?,
-                type = ? 
-            WHERE
-                id = ?;''', (
-                    obj.file_node_id, obj.start_line, obj.start_column,
-                    obj.end_line, obj.end_column, obj.type, obj.id
-                )
-        )
-
-    @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.SourceLocation]:
-        rows = SqliteHelper.fetch(database, '''
-            SELECT * FROM source_location;'''
-        ) 
-  
-        result = list()
-        for row in rows:
-            result.append(base.SourceLocation(*row))
-        
-        return result
-
-class OccurrenceDAO(object):
- 
-    @staticmethod
-    def create_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''    
-            CREATE TABLE occurrence(
-                element_id INTEGER NOT NULL, 
-                source_location_id INTEGER NOT NULL, 
-                PRIMARY KEY(element_id, source_location_id), 
-                FOREIGN KEY(element_id) REFERENCES element(id) ON DELETE CASCADE, 
-                FOREIGN KEY(source_location_id) REFERENCES source_location(id) 
-                    ON DELETE CASCADE
-            );'''
-        )
-       
-    @staticmethod 
-    def delete_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''
-            DROP TABLE IF EXISTS main.occurrence;'''
-        )
- 
-    @staticmethod
-    def new(database: sqlite3.Connection, obj: base.Occurrence) -> int:
-        return SqliteHelper.exec(database, '''
-            INSERT INTO occurrence(
-                element_id, source_location_id 
-            ) VALUES(?, ?);''', (obj.element_id, obj.source_location_id)
-        )
- 
-    @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.Occurrence) -> None:
-        SqliteHelper.exec(database, '''
-            DELETE FROM occurrence WHERE element_id = ?;''', (obj.element_id,)
-        )
-         
-    @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.Occurrence:
-        out = SqliteHelper.fetch(database, '''
-            SELECT * FROM occurrence WHERE element_id = ?;''', (elem_id,)
-        ) 
-   
-        if len(out) == 1:
-            return base.Occurrence(*out[0])
-
-    @staticmethod
-    def update(database: sqlite3.Connection, obj: base.Occurrence) -> None:
-        SqliteHelper.exec(database, '''
-            UPDATE occurrence SET
-                element_id = ?,
-                source_location_id = ? 
-            WHERE
-                id = ?;''', (obj.element_id, obj.source_location_id, obj.id)
-        )
-
-    @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.Occurrence]:
-        rows = SqliteHelper.fetch(database, '''
-            SELECT * FROM occurrence;'''
-        ) 
-  
-        result = list()
-        for row in rows:
-            result.append(base.Occurrence(*row))
-        
-        return result
-
-class ComponentAccessDAO(object):
- 
-    @staticmethod
-    def create_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''    
-            CREATE TABLE component_access(
-                node_id INTEGER NOT NULL, 
-                type INTEGER NOT NULL, 
-                PRIMARY KEY(node_id), 
-                FOREIGN KEY(node_id) REFERENCES node(id) ON DELETE CASCADE
-            );'''
-        )
-       
-    @staticmethod 
-    def delete_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''
-            DROP TABLE IF EXISTS main.component_access;'''
-        )
- 
-    @staticmethod
-    def new(database: sqlite3.Connection, obj: base.ComponentAccess) -> int:
-        return SqliteHelper.exec(database, '''
-            INSERT INTO component_access(
-                node_id, type 
-            ) VALUES(?, ?);''', (obj.node_id, obj.type.value)
-        )
- 
-    @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.ComponentAccess) -> None:
-        SqliteHelper.exec(database, '''
-            DELETE FROM component_access WHERE node_id = ?;''', (obj.node_id,)
-        )
-         
-    @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.ComponentAccess:
-        out = SqliteHelper.fetch(database, '''
-            SELECT * FROM component_access WHERE node_id = ?;''', (elem_id,)
-        ) 
-   
-        if len(out) == 1:
-            return base.ComponentAccess(*out[0])
-
-    @staticmethod
-    def update(database: sqlite3.Connection, obj: base.ComponentAccess) -> None:
-        SqliteHelper.exec(database, '''
-            UPDATE component_access SET
-                node_id = ?,
-                type = ? 
-            WHERE
-                id = ?;''', (obj.node_id, obj.type.value, obj.id)
-        )
-
-    @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.ComponentAccess]:
-        rows = SqliteHelper.fetch(database, '''
-            SELECT * FROM component_access;'''
-        ) 
-  
-        result = list()
-        for row in rows:
-            result.append(base.ComponentAccess(*row))
-        
-        return result
-
-class ErrorDAO(object):
- 
-    @staticmethod
-    def create_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''    
-            CREATE TABLE error(
-                id INTEGER NOT NULL, 
-                message TEXT, 
-                fatal INTEGER NOT NULL, 
-                indexed INTEGER NOT NULL, 
-                translation_unit TEXT, 
-                PRIMARY KEY(id), 
-                FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
-            );'''
-        )
-       
-    @staticmethod 
-    def delete_table(database: sqlite3.Connection) -> None:
-        SqliteHelper.exec(database, '''
-            DROP TABLE IF EXISTS main.error;'''
-        )
- 
-    @staticmethod
-    def new(database: sqlite3.Connection, obj: base.Error) -> int:
-        return SqliteHelper.exec(database, '''
-            INSERT INTO error(
-                id, message, fatal, indexed, translation_unit 
-            ) VALUES(?, ?, ?, ?, ?);''', (
-                obj.id, obj.message, obj.fatal, obj.indexed, obj.translation_unit
-            )
-        )
- 
-    @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.Error) -> None:
-        SqliteHelper.exec(database, '''
-            DELETE FROM error WHERE id = ?;''', (obj.id,)
-        )
-         
-    @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.Error:
-        out = SqliteHelper.fetch(database, '''
-            SELECT * FROM error WHERE id = ?;''', (elem_id,)
-        ) 
-   
-        if len(out) == 1:
-            return base.Error(*out[0])
-
-    @staticmethod
-    def update(database: sqlite3.Connection, obj: base.Error) -> None:
-        SqliteHelper.exec(database, '''
-            UPDATE error SET
-                message = ?,
-                fatal = ?,
-                indexed = ?,
-                translation_unit = ?
-            WHERE
-                id = ?;''', (
-                    obj.message, obj.fatal, obj.indexed, 
-                    obj.translation_unit, obj.id
-                )
-        )
-
-    @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.Error]:
-        rows = SqliteHelper.fetch(database, '''
-            SELECT * FROM error;'''
-        ) 
-  
-        result = list()
-        for row in rows:
-            result.append(base.Error(*row))
-        
-        return result
 
 class SourcetrailDB(object):
     """
@@ -879,7 +36,7 @@ class SourcetrailDB(object):
         if not self.path.endswith(self.SOURCETRAIL_DB_EXT):
             raise Exception('File does not look like a sourcetrail database')
 
-        self.database = sqlite3.connect(self.path)
+        self.database = dao.SqliteHelper.connect(self.path)
 
     def create(self, path: str) -> None:
         """
@@ -894,7 +51,7 @@ class SourcetrailDB(object):
         if not self.path.endswith(self.SOURCETRAIL_DB_EXT):
             self.path += self.SOURCETRAIL_DB_EXT
  
-        self.database = sqlite3.connect(self.path)
+        self.database = dao.SqliteHelper.connect(self.path)
         self.__create_sql_tables()
         self.__create_project_file()
          
@@ -922,18 +79,18 @@ class SourcetrailDB(object):
             This method allow to create all the sql tables needed 
             by sourcetrail 
         """
-        ElementDAO.create_table(self.database)
-        ElementComponentDAO.create_table(self.database)
-        EdgeDAO.create_table(self.database)
-        NodeDAO.create_table(self.database)
-        SymbolDAO.create_table(self.database)
-        FileDAO.create_table(self.database)
-        FileContentDAO.create_table(self.database)
-        LocalSymbolDAO.create_table(self.database)
-        SourceLocationDAO.create_table(self.database)
-        OccurrenceDAO.create_table(self.database)
-        ComponentAccessDAO.create_table(self.database)
-        ErrorDAO.create_table(self.database)
+        dao.ElementDAO.create_table(self.database)
+        dao.ElementComponentDAO.create_table(self.database)
+        dao.EdgeDAO.create_table(self.database)
+        dao.NodeDAO.create_table(self.database)
+        dao.SymbolDAO.create_table(self.database)
+        dao.FileDAO.create_table(self.database)
+        dao.FileContentDAO.create_table(self.database)
+        dao.LocalSymbolDAO.create_table(self.database)
+        dao.SourceLocationDAO.create_table(self.database)
+        dao.OccurrenceDAO.create_table(self.database)
+        dao.ComponentAccessDAO.create_table(self.database)
+        dao.ErrorDAO.create_table(self.database)
         
     def __create_project_file(self) -> None:
         """
@@ -959,7 +116,7 @@ class SourcetrailDB(object):
             Add a new Element into the sourcetrail database
         """
         elem = base.Element()
-        elem.id = ElementDAO.new(self.database, elem) 
+        elem.id = dao.ElementDAO.new(self.database, elem) 
         return elem
     
     def updateElement(self, obj: base.Element) -> None:
@@ -974,14 +131,14 @@ class SourcetrailDB(object):
         """
             Return a list of Element that satisfy a predicate
         """ 
-        elements = ElementDAO.list(self.database)
+        elements = dao.ElementDAO.list(self.database)
         return list(filter(predicate, elements))
 
     def deleteElement(self, obj: base.Element) -> None:
         """
             Delete the specified Element from the database
         """ 
-        ElementDAO.delete(self.database, obj)
+        dao.ElementDAO.delete(self.database, obj)
 
     def newNode(self, nodetype: base.NodeType, name: str) -> base.Node:
         """
@@ -995,21 +152,21 @@ class SourcetrailDB(object):
         node.type = nodetype
         node.name = name 
         # Add it to the database
-        NodeDAO.new(self.database, node)
+        dao.NodeDAO.new(self.database, node)
         return node 
     
     def updateNode(self, obj: base.Node) -> None:
         """
             Update a Node into the sourcetrail database
         """
-        NodeDAO.update(self.database, obj)
+        dao.NodeDAO.update(self.database, obj)
 
     def findNodes(self, predicate: Callable[[base.Node], bool]
         ) -> list[base.Node]:
         """
             Return a list of Node that satisfy a predicate
         """ 
-        elements = NodeDAO.list(self.database)
+        elements = dao.NodeDAO.list(self.database)
         return list(filter(predicate, elements))
 
     def deleteNode(self, obj: base.Node, cascade: bool = False) -> None:
@@ -1020,10 +177,10 @@ class SourcetrailDB(object):
         # reference this Node
         if cascade:
             # Delete the element directly
-            ElementDAO.delete(self.database, base.Element(obj.id))
+            dao.ElementDAO.delete(self.database, base.Element(obj.id))
         else:
             # Only delete the node
-            NodeDAO.delete(self.database, obj)  
+            dao.NodeDAO.delete(self.database, obj)  
  
     def newLocalSymbol(self, name: str) -> base.LocalSymbol:
         """
@@ -1036,21 +193,21 @@ class SourcetrailDB(object):
         symb.id   = elem.id
         symb.name = name 
         # Add it to the database
-        LocalSymbolDAO.new(self.database, symb)
+        dao.LocalSymbolDAO.new(self.database, symb)
         return symb
     
     def updateLocalSymbol(self, obj: base.LocalSymbol) -> None:
         """
             Update a LocalSymbol into the sourcetrail database
         """
-        LocalSymbolDAO.update(self.database, obj)
+        dao.LocalSymbolDAO.update(self.database, obj)
 
     def findLocalSymbols(self, predicate: Callable[[base.LocalSymbol], bool]
         ) -> list[base.LocalSymbol]:
         """
             Return a list of LocalSymbol that satisfy a predicate
         """ 
-        elements = LocalSymbolDAO.list(self.database)
+        elements = dao.LocalSymbolDAO.list(self.database)
         return list(filter(predicate, elements))
 
     def deleteLocalSymbol(self, obj: base.LocalSymbol, cascade: bool = False) -> None:
@@ -1061,10 +218,10 @@ class SourcetrailDB(object):
         # reference this LocalSymbol
         if cascade:
             # Delete the element directly
-            ElementDAO.delete(self.database, base.Element(obj.id))
+            dao.ElementDAO.delete(self.database, base.Element(obj.id))
         else:
             # Only delete the node
-            LocalSymbolDAO.delete(self.database, obj)  
+            dao.LocalSymbolDAO.delete(self.database, obj)  
  
     def newElementComponent(self, elem_id: int, type_: base.ElementComponentType, 
             data: str) -> base.ElementComponent:
@@ -1078,21 +235,21 @@ class SourcetrailDB(object):
         comp.id   = elem.id
         comp.name = name 
         # Add it to the database
-        ElementComponentDAO.new(self.database, com)
+        dao.ElementComponentDAO.new(self.database, com)
         return comp
     
     def updateElementComponent(self, obj: base.ElementComponent) -> None:
         """
             Update a ElementComponent into the sourcetrail database
         """
-        ElementComponentDAO.update(self.database, obj)
+        dao.ElementComponentDAO.update(self.database, obj)
 
     def findElementComponents(self, predicate: Callable[[base.ElementComponent], bool]
         ) -> list[base.ElementComponent]:
         """
             Return a list of ElementComponent that satisfy a predicate
         """ 
-        elements = ElementComponentDAO.list(self.database)
+        elements = dao.ElementComponentDAO.list(self.database)
         return list(filter(predicate, elements))
 
     def deleteElementComponent(self, obj: base.ElementComponent, cascade: bool = False) -> None:
@@ -1103,10 +260,10 @@ class SourcetrailDB(object):
         # reference this ElementComponent
         if cascade:
             # Delete the element directly
-            ElementDAO.delete(self.database, base.Element(obj.id))
+            dao.ElementDAO.delete(self.database, base.Element(obj.id))
         else:
             # Only delete the node
-            ElementComponentDAO.delete(self.database, obj)  
+            dao.ElementComponentDAO.delete(self.database, obj)  
 
     def newError(self, message: str, fatal: int, indexed: int, 
             translation_unit: str) -> base.Error:
@@ -1123,21 +280,21 @@ class SourcetrailDB(object):
         error.indexed          = indexed
         error.translation_unit = translation_unit
         # Add it to the database
-        ErrorDAO.new(self.database, node)
+        dao.ErrorDAO.new(self.database, node)
         return node 
     
     def updateError(self, obj: base.Error) -> None:
         """
             Update a Error into the sourcetrail database
         """
-        ErrorDAO.update(self.database, obj)
+        dao.ErrorDAO.update(self.database, obj)
 
     def findErrors(self, predicate: Callable[[base.Error], bool]
         ) -> list[base.Error]:
         """
             Return a list of Error that satisfy a predicate
         """ 
-        elements = ErrorDAO.list(self.database)
+        elements = dao.ErrorDAO.list(self.database)
         return list(filter(predicate, elements))
 
     def deleteError(self, obj: base.Error, cascade: bool = False) -> None:
@@ -1148,10 +305,10 @@ class SourcetrailDB(object):
         # reference this Error
         if cascade:
             # Delete the element directly
-            ElementDAO.delete(self.database, base.Element(obj.id))
+            dao.ElementDAO.delete(self.database, base.Element(obj.id))
         else:
             # Only delete the node
-            ErrorDAO.delete(self.database, obj)  
+            dao.ErrorDAO.delete(self.database, obj)  
  
     def newSymbol(self, type_: base.SymbolType, node: base.Node, 
             cascade: bool = False) -> base.Symbol:
@@ -1170,21 +327,21 @@ class SourcetrailDB(object):
 
         symb.id = node.id
         # Add Symbol to the database
-        SymbolDAO.new(self.database, symb)
+        dao.SymbolDAO.new(self.database, symb)
         return symb
     
     def updateSymbol(self, obj: base.Symbol) -> None:
         """
             Update a Symbol into the sourcetrail database
         """
-        SymbolDAO.update(self.database, obj)
+        dao.SymbolDAO.update(self.database, obj)
 
     def findSymbols(self, predicate: Callable[[base.Symbol], bool]
         ) -> list[base.Symbol]:
         """
             Return a list of Symbol that satisfy a predicate
         """ 
-        elements = SymbolDAO.list(self.database)
+        elements = dao.SymbolDAO.list(self.database)
         return list(filter(predicate, elements))
 
     def deleteSymbol(self, obj: base.Symbol, cascade: bool = False) -> None:
@@ -1195,10 +352,10 @@ class SourcetrailDB(object):
         # reference this Symbol
         if cascade:
             # Delete the element directly
-            ElementDAO.delete(self.database, base.Element(obj.id))
+            dao.ElementDAO.delete(self.database, base.Element(obj.id))
         else:
             # Only delete the node
-            SymbolDAO.delete(self.database, obj)  
+            dao.SymbolDAO.delete(self.database, obj)  
 
     def newComponentAccess(self, type_: base.ComponentAccessType, node: base.Node, 
             cascade: bool = False) -> base.ComponentAccess:
@@ -1217,21 +374,21 @@ class SourcetrailDB(object):
 
         access.node_id = node.id
         # Add ComponentAccess to the database
-        ComponentAccessDAO.new(self.database, access)
+        dao.ComponentAccessDAO.new(self.database, access)
         return access
     
     def updateComponentAccess(self, obj: base.ComponentAccess) -> None:
         """
             Update a ComponentAccess into the sourcetrail database
         """
-        ComponentAccessDAO.update(self.database, obj)
+        dao.ComponentAccessDAO.update(self.database, obj)
 
     def findComponentAccesss(self, predicate: Callable[[base.ComponentAccess], bool]
         ) -> list[base.ComponentAccess]:
         """
             Return a list of ComponentAccess that satisfy a predicate
         """ 
-        elements = ComponentAccessDAO.list(self.database)
+        elements = dao.ComponentAccessDAO.list(self.database)
         return list(filter(predicate, elements))
 
     def deleteComponentAccess(self, obj: base.ComponentAccess, cascade: bool = False) -> None:
@@ -1242,34 +399,284 @@ class SourcetrailDB(object):
         # reference this ComponentAccess
         if cascade:
             # Delete the element directly
-            ElementDAO.delete(self.database, base.Element(obj.id))
+            dao.ElementDAO.delete(self.database, base.Element(obj.node_id))
         else:
             # Only delete the node
-            ComponentAccessDAO.delete(self.database, obj)  
+            dao.ComponentAccessDAO.delete(self.database, obj)  
 
-"""
-API status:
+    def newEdge(self, type_: base.EdgeType, src: base.Node, dst: base.Node,
+            cascade: bool = False) -> base.Edge:
+        """
+            Add a new Edge into the sourcetrail database. If cascade is false,
+            the nodes passed as parameter must exist in the database and must have 
+            been created by the newNode method otherwise it will be also inserted
+            as a new Node into the database.
+        """
+        # Create a new Edge
+        edge = base.Edge()
+        edge.type = type_
+        if cascade:
+            # Insert the two new Node in the database
+            src = self.newNode(src.type, src.name)
+            dst = self.newNode(dst.type, dst.name)
 
-@DONE:
-    - Element
-    - Error
-    - Node
-    - Symbol
-    - LocalSymbol
-    - ComponentAccess   
-    - ElementComponent
+        edge.src = src.id
+        edge.dst = dst.id 
+        # Add Edge to the database
+        dao.EdgeDAO.new(self.database, edge)
+        return edge
+    
+    def updateEdge(self, obj: base.Edge) -> None:
+        """
+            Update a Edge into the sourcetrail database
+        """
+        dao.EdgeDAO.update(self.database, obj)
 
-@TODO:
-    - Edge
-    - SourceLocation  
-    - File
-    - FileContent 
-    - Occurence
+    def findEdges(self, predicate: Callable[[base.Edge], bool]
+        ) -> list[base.Edge]:
+        """
+            Return a list of Edge that satisfy a predicate
+        """ 
+        elements = dao.EdgeDAO.list(self.database)
+        return list(filter(predicate, elements))
 
-"""
+    def deleteEdge(self, obj: base.Edge, cascade: bool = False) -> None:
+        """
+            Delete the specified Edge from the database
+        """ 
+        # Check if user want to delete everything that 
+        # reference this Edge
+        if cascade:
+            # Delete the element directly
+            dao.ElementDAO.delete(self.database, base.Element(obj.id))
+        else:
+            # Only delete the node
+            dao.EdgeDAO.delete(self.database, obj)  
+
+    def newSourceLocation(self, start_line: int, start_column: int, end_line: int,
+            end_column: int, type_: base.SourceLocationType,  node: base.Node,
+            cascade: bool = False) -> base.SourceLocation:
+        """
+            Add a new SourceLocation into the sourcetrail database. If cascade is false,
+            the node passed as parameter must exist in the database and must have 
+            been created by the newNode method otherwise it will be also inserted
+            as a new Node into the database.
+        """
+        # Create a new SourceLocation
+        loc = base.SourceLocation()
+        loc.type         = type_
+        loc.start_line   = start_line
+        loc.start_column = start_column
+        loc.end_line     = end_line
+        loc.end_column   = end_column
+        if cascade:
+            # Insert a new Node in the database
+            node = self.newNode(node.type, node.name)
+
+        loc.file_node_id = node.id
+        # Add SourceLocation to the database
+        loc.id = dao.SourceLocationDAO.new(self.database, loc)
+        return loc
+    
+    def updateSourceLocation(self, obj: base.SourceLocation) -> None:
+        """
+            Update a SourceLocation into the sourcetrail database
+        """
+        dao.SourceLocationDAO.update(self.database, obj)
+
+    def findSourceLocations(self, predicate: Callable[[base.SourceLocation], bool]
+        ) -> list[base.SourceLocation]:
+        """
+            Return a list of SourceLocation that satisfy a predicate
+        """ 
+        elements = dao.SourceLocationDAO.list(self.database)
+        return list(filter(predicate, elements))
+
+    def deleteSourceLocation(self, obj: base.SourceLocation, cascade: bool = False) -> None:
+        """
+            Delete the specified SourceLocation from the database
+        """ 
+        # Delete the source location, no need to cascade since 
+        # this element doesn't **direcly** reference any other elements/nodes 
+        dao.SourceLocationDAO.delete(self.database, obj)  
+
+    def newFile(self, path: str, language: str, modification_time: str,
+            indexed: int, complete: int, line_count: int, node: base.Node, 
+            cascade: bool = False) -> base.File:
+        """
+            Add a new File into the sourcetrail database. If cascade is false,
+            the node passed as parameter must exist in the database and must have 
+            been created by the newNode method otherwise it will be also inserted
+            as a new Node into the database.
+        """
+        # Create a new File
+        file = base.File()
+        file.path              = path
+        file.language          = language
+        file.modification_time = modification_time
+        file.indexed           = indexed
+        file.complete          = complete
+        file.line_count        = line_count
+        if cascade:
+            # Insert the new Node in the database
+            node = self.newNode(node.type, node.name)
+
+        file.id = node.id 
+        # Add File to the database
+        dao.FileDAO.new(self.database, file)
+        return file
+    
+    def updateFile(self, obj: base.File) -> None:
+        """
+            Update a File into the sourcetrail database
+        """
+        dao.FileDAO.update(self.database, obj)
+
+    def findFiles(self, predicate: Callable[[base.File], bool]
+        ) -> list[base.File]:
+        """
+            Return a list of File that satisfy a predicate
+        """ 
+        elements = dao.FileDAO.list(self.database)
+        return list(filter(predicate, elements))
+
+    def deleteFile(self, obj: base.File, cascade: bool = False) -> None:
+        """
+            Delete the specified File from the database
+        """ 
+        # Check if user want to delete everything that 
+        # reference this File
+        if cascade:
+            # Delete the element directly
+            dao.ElementDAO.delete(self.database, base.Element(obj.id))
+        else:
+            # Only delete the node
+            dao.FileDAO.delete(self.database, obj)  
+
+    def newFileContent(self, content: str, file: base.File, node: base.Node = None, 
+            cascade: bool = False) -> base.FileContent:
+        """
+            Add a new FileContent into the sourcetrail database. If cascade is false,
+            the File passed as parameter must exist in the database and must have 
+            been created by the newNode method otherwise it will be also inserted
+            as a new Node into the database.
+        """
+        # If cascade is requested, node must be not null
+        if cascade and not node:
+            return None
+ 
+        # Create a new FileContent
+        filecontent = base.FileContent()
+        filecontent.content = content
+        if cascade:
+            # Insert the new File in the database
+            file = self.newFile(
+                file.path, 
+                file.language,
+                file.modification_time,
+                file.indexed,
+                file.complete,
+                file.line_count,
+                node,
+                cascade=True
+            )
+
+        filecontent.id = file.id 
+        # Add FileContent to the database
+        dao.FileContentDAO.new(self.database, filecontent)
+        return filecontent
+    
+    def updateFileContent(self, obj: base.FileContent) -> None:
+        """
+            Update a FileContent into the sourcetrail database
+        """
+        dao.FileContentDAO.update(self.database, obj)
+
+    def findFileContents(self, predicate: Callable[[base.FileContent], bool]
+        ) -> list[base.FileContent]:
+        """
+            Return a list of FileContent that satisfy a predicate
+        """ 
+        elements = dao.FileContentDAO.list(self.database)
+        return list(filter(predicate, elements))
+
+    def deleteFileContent(self, obj: base.FileContent, cascade: bool = False) -> None:
+        """
+            Delete the specified FileContent from the database
+        """ 
+        # Check if user want to delete everything that 
+        # reference this FileContent
+        if cascade:
+            # Delete the element directly
+            dao.ElementDAO.delete(self.database, base.Element(obj.id))
+        else:
+            # Only delete the node
+            dao.FileContentDAO.delete(self.database, obj)  
+
+    def newOccurrence(self, location: base.SourceLocation, element: base.Element, 
+            node: base.Node = None, cascade: bool = False) -> base.Occurrence:
+        """
+            Add a new Occurrence into the sourcetrail database. If cascade is false,
+            the SourceLocation passed as parameter must exist in the database and must have 
+            been created by the newNode method otherwise it will be also inserted
+            as a new Node into the database.
+        """
+        # If cascade is requested, node must be not null
+        if cascade and not node:
+            return None
+ 
+        # Create a new Occurrence
+        occurrence = base.Occurrence()
+        if cascade:
+            # Insert the new SourceLocation in the database
+            location = self.newSourceLocation(
+                location.start_line,
+                location.start_column,
+                location.end_line,
+                location.end_column,
+                location.type,
+                node,
+                cascade=True
+            )
+               
+            # Insert a new element 
+            element = self.newElement() 
+
+        occurrence.element_id         = element.id
+        occurrence.source_location_id = location.id
+        # Add Occurrence to the database
+        dao.OccurrenceDAO.new(self.database, occurrence)
+        return occurrence
+    
+    def updateOccurrence(self, obj: base.Occurrence) -> None:
+        """
+            Update a Occurrence into the sourcetrail database
+        """
+        dao.OccurrenceDAO.update(self.database, obj)
+
+    def findOccurrences(self, predicate: Callable[[base.Occurrence], bool]
+        ) -> list[base.Occurrence]:
+        """
+            Return a list of Occurrence that satisfy a predicate
+        """ 
+        elements = dao.OccurrenceDAO.list(self.database)
+        return list(filter(predicate, elements))
+
+    def deleteOccurrence(self, obj: base.Occurrence, cascade: bool = False) -> None:
+        """
+            Delete the specified Occurrence from the database
+        """ 
+        # Check if user want to delete everything that 
+        # reference this Occurrence
+        if cascade:
+            # Delete the element directly
+            dao.ElementDAO.delete(self.database, base.Element(obj.element_id))
+            dao.ElementDAO.delete(self.database, base.Element(obj.source_location_id))
+        else:
+            # Only delete the node
+            dao.OccurrenceDAO.delete(self.database, obj)  
 
 def main():
-    pass
 
     srctrl = SourcetrailDB()
     srctrl.create('database')

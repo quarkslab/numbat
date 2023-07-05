@@ -51,20 +51,20 @@ class EdgeType(enum.Enum):
         Internal class that represent a Edge type inside the 
         sourcetrail database    
     """
-    EDGE_UNDEFINED               = 0
-    EDGE_MEMBER                  = 1 << 0
-    EDGE_TYPE_USAGE              = 1 << 1
-    EDGE_USAGE                   = 1 << 2
-    EDGE_CALL                    = 1 << 3
-    EDGE_INHERITANCE             = 1 << 4
-    EDGE_OVERRIDE                = 1 << 5
-    EDGE_TYPE_ARGUMENT           = 1 << 6
-    EDGE_TEMPLATE_SPECIALIZATION = 1 << 7
-    EDGE_INCLUDE                 = 1 << 8
-    EDGE_IMPORT                  = 1 << 9
-    EDGE_BUNDLED_EDGES           = 1 << 10
-    EDGE_MACRO_USAGE             = 1 << 11
-    EDGE_ANNOTATION_USAGE        = 1 << 12
+    UNDEFINED               = 0
+    MEMBER                  = 1 << 0
+    TYPE_USAGE              = 1 << 1
+    USAGE                   = 1 << 2
+    CALL                    = 1 << 3
+    INHERITANCE             = 1 << 4
+    OVERRIDE                = 1 << 5
+    TYPE_ARGUMENT           = 1 << 6
+    TEMPLATE_SPECIALIZATION = 1 << 7
+    INCLUDE                 = 1 << 8
+    IMPORT                  = 1 << 9
+    BUNDLED_EDGES           = 1 << 10
+    MACRO_USAGE             = 1 << 11
+    ANNOTATION_USAGE        = 1 << 12
 
 class Edge(Element):
     """ 
@@ -82,7 +82,7 @@ class Edge(Element):
         ) 
     """
 
-    def __init__(self, id_: int = 0, type_: EdgeType = EdgeType.EDGE_UNDEFINED, 
+    def __init__(self, id_: int = 0, type_: EdgeType = EdgeType.UNDEFINED, 
             src: int = 0, dst: int = 0) -> None:
 
         super().__init__(id_)  
@@ -226,6 +226,18 @@ class LocalSymbol(Element):
         super().__init__(id_)  
         self.name = name
 
+class SourceLocationType(enum.Enum):
+    TOKEN           = 0
+    SCOPE           = 1
+    QUALIFIER       = 2
+    LOCAL_SYMBOL    = 3
+    SIGNATURE       = 4
+    COMMENT         = 5
+    ERROR           = 6
+    FULLTEXT_SEARCH = 7
+    SCREEN_SEARCH   = 8
+    UNSOLVED        = 9
+
 class SourceLocation(Element):
     """
         Wrapper class for sourcetrail source_location table:
@@ -245,7 +257,7 @@ class SourceLocation(Element):
 
     def __init__(self, id_: int = 0, file_node_id: int = 0, start_line: int = 0, 
             start_column: int = 0, end_line: int = 0, end_column: int = 0, 
-            type_: int = 0) -> None:
+            type_: SourceLocationType = SourceLocationType.UNSOLVED) -> None:
         
         super().__init__(id_)  
         self.file_node_id = file_node_id
@@ -317,6 +329,7 @@ class Error(Element):
             translation_unit TEXT, 
             PRIMARY KEY(id), 
             FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
+
         )
     """
 

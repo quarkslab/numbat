@@ -72,6 +72,12 @@ class ElementDAO(object):
         SqliteHelper.exec(database, '''
             DELETE FROM element WHERE id = ?;''', (obj.id,)
         )
+ 
+    @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM element;'''
+        )
    
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> base.Element:
@@ -134,7 +140,13 @@ class ElementComponentDAO(object):
         SqliteHelper.exec(database, '''
             DELETE FROM element_component WHERE id = ?;''', (obj.id,)
         )
-         
+ 
+    @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM element_component;'''
+        )        
+
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> base.ElementComponent:
         out = SqliteHelper.fetch(database, '''
@@ -142,7 +154,10 @@ class ElementComponentDAO(object):
         ) 
    
         if len(out) == 1:
-            return base.ElementComponent(*out[0])
+            id_, element_id, type_, data = out[0]
+            return base.ElementComponent(id_, element_id, 
+                base.ElementComponentType(type_), data
+            )
      
     @staticmethod
     def update(database: sqlite3.Connection, obj: base.ElementComponent) -> None:
@@ -203,7 +218,13 @@ class EdgeDAO(object):
         SqliteHelper.exec(database, '''
             DELETE FROM edge WHERE id = ?;''', (obj.id,)
         )
-         
+     
+    @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM edge;'''
+        )
+
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> base.Edge:
         out = SqliteHelper.fetch(database, '''
@@ -211,7 +232,8 @@ class EdgeDAO(object):
         ) 
    
         if len(out) == 1:
-            return base.Edge(*out[0])
+            id_, type_, src, dst = out[0]
+            return base.Edge(id_, base.EdgeType(type_), src, dst)
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: base.Edge) -> None:
@@ -235,6 +257,58 @@ class EdgeDAO(object):
             result.append(base.Edge(*row))
         
         return result
+
+class NameHierarchy(object):
+   
+    # Delimiters for the serialized_name 
+    DELIMITER              = '\t'
+    META_DELIMITER         = '\tm'
+    NAME_DELIMITER         = '\tn'
+    PART_DELIMITER         = '\ts'
+    SIGNATURE_DELIMITER    = '\tp'
+
+    # Name delimiter type
+    NAME_DELIMITER_FILE    = '/'
+    NAME_DELIMITER_CXX     = '::'
+    NAME_DELIMITER_JAVA    = '.'
+    NAME_DELIMITER_UNKNOWN = '@'
+
+    NAME_DELIMITERS = [
+        NAME_DELIMITER_FILE,    
+        NAME_DELIMITER_CXX,  
+        NAME_DELIMITER_JAVA,    
+        NAME_DELIMITER_UNKNOWN 
+    ]
+
+    @staticmethod
+    def serialize_name(prefix: str = '', name: str = '', suffix: str = ''):
+        """
+            Utility method that return a serialized name
+        """
+        return ''.join([
+            NameHierarchy.NAME_DELIMITER_CXX,
+            NameHierarchy.META_DELIMITER,
+            name,
+            NameHierarchy.PART_DELIMITER,
+            prefix,
+            NameHierarchy.SIGNATURE_DELIMITER,
+            suffix
+        ])
+
+    @staticmethod
+    def deserialize_name(serialized_name: str = ''):
+        """
+            Utility method that return prefix, name and suffix 
+            from a serialized name
+        """
+        items = serialized_name.split(NameHierarchy.DELIMITER) 
+        if items[0] not in NameHierarchy.NAME_DELIMITERS:
+            raise Exception("Invalide serialized name: '%s'"%serialized_name) 
+
+        name   = items[1][1:]
+        prefix = items[2][1:]
+        suffix = items[3][1:]
+        return (prefix, name, suffix)
 
 class NodeDAO(object):
  
@@ -269,7 +343,13 @@ class NodeDAO(object):
         SqliteHelper.exec(database, '''
             DELETE FROM node WHERE id = ?;''', (obj.id,)
         )
-         
+   
+    @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM node;'''
+        )      
+
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> base.Node:
         out = SqliteHelper.fetch(database, '''
@@ -277,7 +357,8 @@ class NodeDAO(object):
         ) 
    
         if len(out) == 1:
-            return base.Node(*out[0])
+            id_, type_, serialized_name = out[0]
+            return base.Node(id_, base.NodeType(type_), serialized_name)
  
     @staticmethod
     def update(database: sqlite3.Connection, obj: base.Node) -> None:
@@ -300,6 +381,21 @@ class NodeDAO(object):
             result.append(base.Node(*row))
         
         return result
+
+    @staticmethod
+    def serialize_name(prefix: str = '', name: str = '', suffix: str = ''):
+        """
+            Utility method that return a serialized name
+        """
+        return NameHierarchy.serialize_name(prefix, name, suffix) 
+
+    @staticmethod
+    def deserialize_name(serialized_name: str = ''):
+        """
+            Utility method that return prefix, name and suffix 
+            from a serialized name
+        """
+        return NameHierarchy.deserialize_name(serialized_name) 
 
 class SymbolDAO(object):
  
@@ -335,13 +431,20 @@ class SymbolDAO(object):
         )
          
     @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM symbol;'''
+        )
+
+    @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> base.Symbol:
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM symbol WHERE id = ?;''', (elem_id,)
         ) 
    
         if len(out) == 1:
-            return base.Symbol(*out[0])
+            id_, type_ = out[0]
+            return base.Symbol(id_, base.SymbolType(type_))
  
     @staticmethod
     def update(database: sqlite3.Connection, obj: base.Symbol) -> None:
@@ -403,6 +506,12 @@ class FileDAO(object):
     def delete(database: sqlite3.Connection, obj: base.File) -> None:
         SqliteHelper.exec(database, '''
             DELETE FROM file WHERE id = ?;''', (obj.id,)
+        )
+
+    @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM file;'''
         )
          
     @staticmethod
@@ -477,6 +586,12 @@ class FileContentDAO(object):
         )
          
     @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM filecontent;'''
+        )
+
+    @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> base.FileContent:
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM filecontent WHERE id = ?;''', (elem_id,)
@@ -539,6 +654,12 @@ class LocalSymbolDAO(object):
             DELETE FROM local_symbol WHERE id = ?;''', (obj.id,)
         )
          
+    @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM local_symbol;'''
+        )
+
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> base.LocalSymbol:
         out = SqliteHelper.fetch(database, '''
@@ -611,13 +732,22 @@ class SourceLocationDAO(object):
         )
          
     @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM source_location;'''
+        )
+
+    @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> base.SourceLocation:
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM source_location WHERE id = ?;''', (elem_id,)
         ) 
    
         if len(out) == 1:
-            return base.SourceLocation(*out[0])
+            id_, fid, sl, sc, el, ec, type_ = out[0]
+            return base.SourceLocation(id_, fid, sl, sc, el, ec, 
+                base.SourceLocationType(type_)
+            )
  
     @staticmethod
     def update(database: sqlite3.Connection, obj: base.SourceLocation) -> None:
@@ -684,6 +814,12 @@ class OccurrenceDAO(object):
         )
          
     @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM occurrence;'''
+        )
+
+    @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> base.Occurrence:
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM occurrence WHERE element_id = ?;''', (elem_id,)
@@ -748,13 +884,22 @@ class ComponentAccessDAO(object):
         )
          
     @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM component_access;'''
+        )
+
+    @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> base.ComponentAccess:
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM component_access WHERE node_id = ?;''', (elem_id,)
         ) 
    
         if len(out) == 1:
-            return base.ComponentAccess(*out[0])
+            node_id, type_ = out[0]
+            return base.ComponentAccess(node_id,    
+                base.ComponentAccessType(type_)
+            )
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: base.ComponentAccess) -> None:
@@ -826,6 +971,12 @@ class ErrorDAO(object):
             return base.Error(*out[0])
 
     @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM error;'''
+        )
+
+    @staticmethod
     def update(database: sqlite3.Connection, obj: base.Error) -> None:
         SqliteHelper.exec(database, '''
             UPDATE error SET
@@ -852,4 +1003,77 @@ class ErrorDAO(object):
         
         return result
 
+class MetaDAO(object):
+    
+    @staticmethod
+    def create_table(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''    
+            CREATE TABLE meta(
+                id INTEGER, 
+                key TEXT, 
+                value TEXT, 
+                PRIMARY KEY(id)
+            );'''
+        )
+       
+    @staticmethod 
+    def delete_table(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DROP TABLE IF EXISTS main.meta;'''
+        )
+ 
+    @staticmethod
+    def new(database: sqlite3.Connection, key: str, value: str) -> int:
+        return SqliteHelper.exec(database, '''
+            INSERT INTO meta(
+                id, key, value  
+            ) VALUES(NULL, ?, ?);''', (
+                key, value 
+            )
+        )
+
+    @staticmethod
+    def delete(database: sqlite3.Connection, id_: int) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM meta WHERE id = ?;''', (id_,)
+        )
+         
+    @staticmethod
+    def get(database: sqlite3.Connection, id_: int) -> tuple[int, str, str]:
+        out = SqliteHelper.fetch(database, '''
+            SELECT id, key, value FROM meta WHERE id = ?;''', (id_,)
+        ) 
+        return tuple(out[0])   
+
+    @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        SqliteHelper.exec(database, '''
+            DELETE FROM meta;'''
+        )
+
+    @staticmethod
+    def update(database: sqlite3.Connection, id_: int, key: str, 
+            value: str) -> None:
+
+        SqliteHelper.exec(database, '''
+            UPDATE meta SET
+                key = ?,
+                value = ?
+            WHERE
+                id = ?;''', (
+                    key, value, id_
+                )
+        )
+
+    @staticmethod
+    def list(database: sqlite3.Connection) -> list[tuple[int, str, str]]:
+        rows = SqliteHelper.fetch(database, '''
+            SELECT * FROM meta;'''
+        ) 
+  
+        result = list()
+        for row in rows:
+            result.append(tuple(row))
+        
+        return result
 

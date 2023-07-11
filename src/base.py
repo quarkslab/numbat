@@ -1,5 +1,9 @@
 import enum
 
+# ------------------------------------------------------------------------ #
+# Basic wrapper Types for API                                              #
+# ------------------------------------------------------------------------ #
+
 class Element(object):
    
     """ 
@@ -342,3 +346,91 @@ class Error(Element):
         self.indexed          = indexed
         self.translation_unit = translation_unit 
 
+# ------------------------------------------------------------------------ #
+# Advanced wrapper Types for API                                           #
+# ------------------------------------------------------------------------ #
+
+class Class(Element):
+    """
+        Wrapper class for the 'Class' logic of sourcetrail 
+    """
+    def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> None:
+
+        super().__init__(id_)
+        self.name    = name
+        self.prefix  = prefix
+        self.suffix  = suffix
+        self.indexed = indexed
+
+class Typedef(Element):
+    """
+        Wrapper class for the 'Typedef' logic of sourcetrail 
+    """
+    def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> None:
+
+        super().__init__(id_)
+        self.name    = name
+        self.prefix  = prefix
+        self.suffix  = suffix
+        self.indexed = indexed
+
+class Function(Element):
+    """
+        Wrapper class for the 'Function' logic of sourcetrail 
+    """
+    def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> None:
+
+        super().__init__(id_)
+        self.name    = name
+        self.prefix  = prefix
+        self.suffix  = suffix
+        self.indexed = indexed
+
+class Method(Element):
+    """
+        Wrapper class for the 'Method' logic of sourcetrail 
+    """
+    def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> None:
+
+        super().__init__(id_)
+        self.name     = name
+        self.prefix   = prefix
+        self.suffix   = suffix
+        self.indexed  = indexed
+
+class Field(Element):
+    """
+        Wrapper class for the 'Field' logic of sourcetrail 
+    """
+    def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> None:
+
+        super().__init__(id_)
+        self.name     = name
+        self.prefix   = prefix
+        self.suffix   = suffix
+        self.indexed  = indexed
+
+class Field(Element):
+    """
+        Wrapper class for the 'Field' logic of sourcetrail 
+    """
+    def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> None:
+
+        super().__init__(id_)
+        self.name     = name
+        self.prefix   = prefix
+        self.suffix   = suffix
+        self.indexed  = indexed
+    
+class Import(Edge):
+    """
+        Wrapper class for the 'Import' logic of sourcetrail 
+        Note: no need to add more fields than the one already in Edge class
+    """
+     

@@ -2,8 +2,174 @@ import os
 import sys
 import base
 import dao
+# Typing stuff
+import sqlite3
+from typing import TypeVar
 from collections.abc import Callable
 
+# ------------------------------------------------------------------------ #
+# Advanced wrapper Types for API                                           #
+# ------------------------------------------------------------------------ #
+
+# Declare a type for any inherited class of the AdvancedBaseType
+AdvancedBaseSubType = TypeVar('AdvancedBaseSubType') # , bound=AdvancedBaseType)
+
+class AdvancedBaseType(base.Element):
+    """
+        Parent class that almost all advanced types from the API
+        can inherit from to factorize code. All inherited children
+        can be viewed as syntactic sugar. 
+    """
+
+    # Special values that indicate that no parent or child are set yet
+    INVALID_PARENT_ID = 0
+    INVALID_CHILD_ID  = 0
+
+    def __init__(self, subtype: AdvancedBaseSubType, 
+        database: sqlite3.Connection, id_: int = 0, name: str = '', 
+        prefix: str ='', suffix: str = '', indexed: bool = True) -> None:
+
+        super().__init__(id_)
+        self.name      = name
+        self.prefix    = prefix
+        self.suffix    = suffix
+        self.indexed   = indexed
+
+        # The type of the children that inherit this class
+        self.subtype   = subtype 
+        self.parent_id = self.INVALID_PARENT_ID
+        self.child_id  = self.INVALID_CHILD_ID
+
+        # Pointer to the database
+        self.database  = database
+
+    def set_parent(self, parent: AdvancedBaseSubType) -> None:
+        """
+            Set the parent of this element
+        """
+        if parent and hasattr(parent, 'id') \
+            and parent.id != self.INVALID_PARENT_ID:        
+            
+            self.parent_id = parent.id
+
+    def get_parent(self) -> AdvancedBaseSubType:
+        """
+            Return the parent object of this element
+            if any is set
+        """
+        if self.parent_id != self.INVALID_PARENT_ID:
+
+            node = dao.nodeDAO.get(self.database, self.parent_id)
+            if node:
+                prefix, name, suffix = dao.NodeDAO.deserialize_name(node.name) 
+                
+                indexed = False
+                symb = dao.SymbolDAO.get(self.database, node.id)
+                if symb and symb.definition_kind == base.SymbolType.EXPLICIT:
+                    indexed = True
+
+                obj = self.subtype()
+                obj.id      = node.id
+                obj.prefix  = prefix
+                obj.name    = name
+                obj.suffix  = suffix
+                obj.indexed = indexed   
+                
+                return obj
+
+    def set_child(self, child: AdvancedBaseSubType) -> None:
+        """
+            Set the child of this element
+        """
+        if child and hasattr(child, 'id') \
+            and child.id != self.INVALID_CHILD_ID:        
+            
+            self.child_id = child.id
+
+    def get_child(self) -> AdvancedBaseSubType:
+        """
+            Return the child object of this element 
+            if any is set
+        """
+        if self.child_id != self.INVALID_CHILD_ID:
+            node = dao.nodeDAO.get(self.database, self.parent_id)
+            if node:
+                prefix, name, suffix = dao.NodeDAO.deserialize_name(node.name) 
+                
+                indexed = False
+                symb = dao.SymbolDAO.get(self.database, node.id)
+                if symb and symb.definition_kind == base.SymbolType.EXPLICIT:
+                    indexed = True
+
+                obj = self.subtype()
+                obj.id      = node.id
+                obj.prefix  = prefix
+                obj.name    = name
+                obj.suffix  = suffix
+                obj.indexed = indexed   
+
+                return obj
+
+class Module(AdvancedBaseType):
+    """
+        Wrapper class for the 'Module' logic of sourcetrail 
+    """
+    def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> None:
+
+        super().__init__(Module, None, id_, name, prefix, suffix, indexed)
+    
+class Class(AdvancedBaseType):
+    """
+        Wrapper class for the 'Class' logic of sourcetrail 
+    """
+    def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> None:
+
+        super().__init__(Class, None, id_, name, prefix, suffix, indexed)
+
+class Typedef(AdvancedBaseType):
+    """
+        Wrapper class for the 'Typedef' logic of sourcetrail 
+    """
+    def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> None:
+
+        super().__init__(Typedef, None, id_, name, prefix, suffix, indexed)
+
+class Function(AdvancedBaseType):
+    """
+        Wrapper class for the 'Function' logic of sourcetrail 
+    """
+    def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> None:
+
+        super().__init__(Function, None, id_, name, prefix, suffix, indexed)
+
+class Method(AdvancedBaseType):
+    """
+        Wrapper class for the 'Method' logic of sourcetrail 
+    """
+    def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> None:
+
+        super().__init__(Method, None, id_, name, prefix, suffix, indexed)
+
+class Field(AdvancedBaseType):
+    """
+        Wrapper class for the 'Field' logic of sourcetrail 
+    """
+    def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> None:
+
+        super().__init__(Field, None, id_, name, prefix, suffix, indexed)
+  
+class Import(base.Edge):
+    """
+        Wrapper class for the 'Import' logic of sourcetrail 
+        Note: no need to add more fields than the one already in Edge class
+    """
+     
 class SourcetrailDB(object):
     """
         This class implement a wrapper to sourcetrail internal database,
@@ -477,6 +643,10 @@ class SourcetrailDB(object):
 
         edge.src = src.id
         edge.dst = dst.id 
+        # Add a new element to reference this edge
+        elem = self.new_element()
+        edge.id = elem.id
+
         # Add Edge to the database
         dao.EdgeDAO.new(self.database, edge)
         return edge
@@ -735,28 +905,18 @@ class SourcetrailDB(object):
     # Advanced API for database                                                #
     # ------------------------------------------------------------------------ #
 
-    def new_class(self, name: str = '', prefix: str ='', 
-        suffix: str = '', indexed: bool = True) -> base.Class:
+    def __advanced_api_new(self, nodetype: base.NodeType, serialized_name: str, 
+            indexed: bool = True) -> int:
         """
-            Add a new Class into the sourcetrail database
+            Wrapper that factorize common code for the 'new_*' 
+            methods of the advanced API 
         """
-        # Create a new Class element
-        cls = base.Class()
-        cls.name    = name
-        cls.prefix  = prefix
-        cls.suffix  = suffix
-        cls.indexed = indexed
-
         # Insert a new node in the database 
         node = self.new_node(
-            base.NodeType.NODE_CLASS,
-            dao.NodeDAO.serialize_name(
-                cls.prefix,
-                cls.name,       
-                cls.suffix
-            )  
+            nodetype,
+            serialized_name  
         )
-        cls.id = node.id
+
         # Indicate whether the element is implicit or non-indexed   
         if indexed:
             # Add a new symbol, no need to save symbol id has it should
@@ -764,38 +924,36 @@ class SourcetrailDB(object):
             self.new_symbol(
                 base.SymbolType.EXPLICIT,
                 node 
-            )   
-        return cls
-    
-    def update_class(self, obj: base.Class) -> None:
-        """
-            Update a Class into the sourcetrail database
-        """
+            ) 
 
+        return node.id
+
+    def __advanced_api_update(self, node_id: int, serialized_name: str, 
+            indexed: bool = True) -> None:
+        """
+            Wrapper that factorize common code for the 'update_*' 
+            methods of the advanced API 
+        """
         # Search for the corresponding node
-        node = dao.NodeDAO.get(self.database, obj.id)
+        node = dao.NodeDAO.get(self.database, node_id)
         # Update object 
-        node.name = dao.NodeDAO.serialize_name(
-            obj.prefix,
-            obj.name,
-            obj.suffix
-        ) 
+        node.name = serialized_name
         # Reflect change in the database
         self.update_node(node)      
         # Also apply modification to the symbol
         symb = dao.SymbolDAO.get(self.database, node.id)
 
-        if obj.indexed and not symb:
+        if indexed and not symb:
             # Insert a new symbol
             self.new_symbol(
                 base.SymbolType.EXPLICIT,
                 node 
             )
-        elif obj.indexed and symb.definition_kind != base.SymbolType.EXPLICIT:
+        elif indexed and symb.definition_kind != base.SymbolType.EXPLICIT:
             # Update the existing one
             symb.definition_kind = base.SymbolType.EXPLICIT
             self.update_symbol(symb)
-        elif not obj.indexed and symb.definition_kind == base.SymbolType.EXPLICIT:
+        elif not indexed and symb.definition_kind == base.SymbolType.EXPLICIT:
             # Update the existing one
             symb.definition_kind = base.SymbolType.IMPLICIT
             self.update_symbol(symb)
@@ -803,8 +961,157 @@ class SourcetrailDB(object):
             # No action are required
             pass
         
-    def find_class(self, predicate: Callable[[base.Class], bool]
-        ) -> list[base.Class]:
+    def __advanced_api_find(self) -> None:
+        """
+            Wrapper that factorize common code for the 'find_*' 
+            methods of the advanced API 
+        """
+        # The 'find_*' methods are not factorizable for now
+        raise NotImplementedError()
+
+    def __advanced_api_delete(self, node_id: int, 
+            cascade: bool = False) -> None:
+        """
+            Wrapper that factorize common code for the 'delete_*' 
+            methods of the advanced API 
+        """
+        # Check if user want to delete everything that reference this element 
+        if cascade:
+            # Delete the element directly
+            dao.ElementDAO.delete(self.database, base.Element(node_id))
+        else:
+            # Only delete the node and it's symbol
+            # Create a "fake" Node to save avoid passing all attributes
+            # as parameters
+            dao.NodeDAO.delete(self.database, base.Node(
+                node_id,
+                base.NodeType.NODE_SYMBOL,
+                dao.NodeDAO.serialized_name(
+                    '',
+                    '',       
+                    '' 
+                )
+            ))
+            dao.SymbolDAO.delete(self.database, base.Symbol(
+                node_id,
+                base.SymbolType.NONE 
+            ))
+
+    def new_module(self, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> Module:
+        """
+            Add a new Module into the sourcetrail database
+        """
+        # Create a new Module element
+        obj = Module()
+        obj.name    = name
+        obj.prefix  = prefix
+        obj.suffix  = suffix
+        obj.indexed = indexed
+        obj.id      = self.__advanced_api_new(
+            base.NodeType.NODE_FUNCTION,
+            dao.NodeDAO.serialize_name(
+                obj.prefix,
+                obj.name,       
+                obj.suffix
+            ),   
+            indexed
+        ) 
+        # Copy the database handle to this object 
+        obj.database = self.database
+    
+        return obj
+    
+    def update_module(self, obj: Module) -> None:
+        """
+            Update a Module into the sourcetrail database
+        """
+        self.__advanced_api_update(
+            obj.id,
+            dao.NodeDAO.serialize_name(
+                obj.prefix,
+                obj.name,       
+                obj.suffix
+            ),
+            obj.indexed
+        )
+      
+    def find_module(self, predicate: Callable[[Module], bool]
+        ) -> list[Module]:
+        """
+            Return a list of Module that satisfy a predicate
+        """ 
+        # Convert a Node object to Module 
+        def convert(node: base.Node):
+            prefix, name, suffix = dao.NodeDAO.deserialize_name(node.name) 
+            
+            indexed = False
+            symb = dao.SymbolDAO.get(self.database, node.id)
+            if symb and symb.definition_kind == base.SymbolType.EXPLICIT:
+                indexed = True
+
+            obj = Module()
+            obj.id      = node.id
+            obj.prefix  = prefix
+            obj.name    = name
+            obj.suffix  = suffix
+            obj.indexed = indexed   
+            # Copy the database handle to this object 
+            obj.database = self.database
+
+            return obj 
+
+        # Apply our wrapper to all the nodes
+        nodes = dao.NodeDAO.list(self.database)
+        return list(filter(predicate, list(map(convert, nodes))))
+
+    def delete_module(self, obj: Module, cascade: bool = False) -> None:
+        """
+            Delete the specified Module from the database
+        """ 
+        self.__advanced_api_delete(obj.id, cascade) 
+
+    def new_class(self, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> Class:
+        """
+            Add a new Class into the sourcetrail database
+        """
+        # Create a new Class element
+        obj = Class()
+        obj.name    = name
+        obj.prefix  = prefix
+        obj.suffix  = suffix
+        obj.indexed = indexed
+        obj.id      = self.__advanced_api_new(
+            base.NodeType.NODE_CLASS,
+            dao.NodeDAO.serialize_name(
+                obj.prefix,
+                obj.name,       
+                obj.suffix
+            ),
+            indexed
+        ) 
+        # Copy the database handle to this object 
+        obj.database = self.database
+     
+        return obj
+    
+    def update_class(self, obj: Class) -> None:
+        """
+            Update a Class into the sourcetrail database
+        """
+        self.__advanced_api_update(
+            obj.id,
+            dao.NodeDAO.serialize_name(
+                obj.prefix,
+                obj.name,       
+                obj.suffix
+            ),
+            obj.indexed
+        )
+      
+    def find_class(self, predicate: Callable[[Class], bool]
+        ) -> list[Class]:
         """
             Return a list of Class that satisfy a predicate
         """ 
@@ -817,42 +1124,270 @@ class SourcetrailDB(object):
             if symb and symb.definition_kind == base.SymbolType.EXPLICIT:
                 indexed = True
 
-            cls = base.Class()
-            cls.id      = node.id
-            cls.prefix  = prefix
-            cls.name    = name
-            cls.suffix  = suffix
-            cls.indexed = indexed   
-            
-            return cls 
+            obj = Class()
+            obj.id      = node.id
+            obj.prefix  = prefix
+            obj.name    = name
+            obj.suffix  = suffix
+            obj.indexed = indexed   
+            # Copy the database handle to this object 
+            obj.database = self.database
+             
+            return obj 
 
         # Apply our wrapper to all the nodes
         nodes = dao.NodeDAO.list(self.database)
         return list(filter(predicate, list(map(convert, nodes))))
 
-    def delete_class(self, obj: base.Class, cascade: bool = False) -> None:
+    def delete_class(self, obj: Class, cascade: bool = False) -> None:
         """
             Delete the specified Class from the database
         """ 
-        # Check if user want to delete everything that reference this Class
-        if cascade:
-            # Delete the element directly
-            dao.ElementDAO.delete(self.database, base.Element(obj.id))
-        else:
-            # Only delete the node and it's symbol
-            dao.NodeDAO.delete(self.database, base.Node(
-                obj.id,
-                base.NodeType.NODE_CLASS,
-                dao.NodeDAO.serialized_name(
-                    cls.prefix,
-                    cls.name,       
-                    cls.suffix
-                )
-            ))
-            dao.SymbolDAO.delete(self.database, base.Symbol(
-                obj.id,
-                base.SymbolType.NONE 
-            ))  
+        self.__advanced_api_delete(obj.id, cascade) 
+
+    def new_typedef(self, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> Typedef:
+        """
+            Add a new Typedef into the sourcetrail database
+        """
+        # Create a new Typedef element
+        obj = Typedef()
+        obj.name    = name
+        obj.prefix  = prefix
+        obj.suffix  = suffix
+        obj.indexed = indexed
+        obj.id      = self.__advanced_api_new(
+            base.NodeType.NODE_TYPEDEF,
+            dao.NodeDAO.serialize_name(
+                obj.prefix,
+                obj.name,       
+                obj.suffix
+            ),
+            indexed
+        ) 
+        # Copy the database handle to this object 
+        obj.database = self.database
+     
+        return obj
+    
+    def update_typedef(self, obj: Typedef) -> None:
+        """
+            Update a Typedef into the sourcetrail database
+        """
+        self.__advanced_api_update(
+            obj.id,
+            dao.NodeDAO.serialize_name(
+                obj.prefix,
+                obj.name,       
+                obj.suffix
+            ),
+            obj.indexed
+        )
+      
+    def find_typedef(self, predicate: Callable[[Typedef], bool]
+        ) -> list[Typedef]:
+        """
+            Return a list of Typedef that satisfy a predicate
+        """ 
+        # Convert a Node object to Typedef 
+        def convert(node: base.Node):
+            prefix, name, suffix = dao.NodeDAO.deserialize_name(node.name) 
+            
+            indexed = False
+            symb = dao.SymbolDAO.get(self.database, node.id)
+            if symb and symb.definition_kind == base.SymbolType.EXPLICIT:
+                indexed = True
+
+            obj = Typedef()
+            obj.id      = node.id
+            obj.prefix  = prefix
+            obj.name    = name
+            obj.suffix  = suffix
+            obj.indexed = indexed   
+            # Copy the database handle to this object 
+            obj.database = self.database
+            
+            return obj 
+
+        # Apply our wrapper to all the nodes
+        nodes = dao.NodeDAO.list(self.database)
+        return list(filter(predicate, list(map(convert, nodes))))
+
+    def delete_typedef(self, obj: Typedef, cascade: bool = False) -> None:
+        """
+            Delete the specified Typedef from the database
+        """ 
+        self.__advanced_api_delete(obj.id, cascade) 
+
+    def new_function(self, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> Function:
+        """
+            Add a new Function into the sourcetrail database
+        """
+        # Create a new Function element
+        obj = Function()
+        obj.name    = name
+        obj.prefix  = prefix
+        obj.suffix  = suffix
+        obj.indexed = indexed
+        obj.id      = self.__advanced_api_new(
+            base.NodeType.NODE_FUNCTION,
+            dao.NodeDAO.serialize_name(
+                obj.prefix,
+                obj.name,       
+                obj.suffix
+            ),
+            indexed
+        ) 
+        # Copy the database handle to this object 
+        obj.database = self.database
+ 
+        return obj
+    
+    def update_function(self, obj: Function) -> None:
+        """
+            Update a Function into the sourcetrail database
+        """
+        self.__advanced_api_update(
+            obj.id,
+            dao.NodeDAO.serialize_name(
+                obj.prefix,
+                obj.name,       
+                obj.suffix
+            ),
+            obj.indexed
+        )
+      
+    def find_function(self, predicate: Callable[[Function], bool]
+        ) -> list[Function]:
+        """
+            Return a list of Function that satisfy a predicate
+        """ 
+        # Convert a Node object to Function 
+        def convert(node: base.Node):
+            prefix, name, suffix = dao.NodeDAO.deserialize_name(node.name) 
+            
+            indexed = False
+            symb = dao.SymbolDAO.get(self.database, node.id)
+            if symb and symb.definition_kind == base.SymbolType.EXPLICIT:
+                indexed = True
+
+            obj = Function()
+            obj.id      = node.id
+            obj.prefix  = prefix
+            obj.name    = name
+            obj.suffix  = suffix
+            obj.indexed = indexed   
+            # Copy the database handle to this object 
+            obj.database = self.database
+    
+            return obj 
+
+        # Apply our wrapper to all the nodes
+        nodes = dao.NodeDAO.list(self.database)
+        return list(filter(predicate, list(map(convert, nodes))))
+
+    def delete_function(self, obj: Function, cascade: bool = False) -> None:
+        """
+            Delete the specified Function from the database
+        """ 
+        self.__advanced_api_delete(obj.id, cascade) 
+
+    def new_method(self, cls: Class, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> Method:
+        """
+            Add a new Method into the sourcetrail database
+        """
+       
+        # Create a new Method element
+        obj = Method()
+        obj.name    = name
+        obj.prefix  = prefix
+        obj.suffix  = suffix  
+        obj.indexed = indexed
+
+        # Get the serialized name of the class object
+        cls_name = dao.NodeDAO.serialize_name(
+            cls.prefix,
+            cls.name,
+            cls.suffix
+        )
+ 
+        # Get the serialized name of the new method object
+        # without adding the name delimiter and add the name
+        # delimiter instead of the meta one to indicate that
+        # this element belongs to the class 
+        method_name = dao.NodeDAO.serialize_name(
+            obj.prefix,
+            obj.name,       
+            obj.suffix,
+            dao.NameHierarchy.NAME_DELIMITER,
+            False
+        )
+        # Add the new method
+        obj.id = self.__advanced_api_new(
+            base.NodeType.NODE_METHOD,
+            cls_name + method_name,
+            indexed   
+        ) 
+        # Copy the database handle to this object 
+        obj.database = self.database
+        
+        # Also add an edge between class and method
+        self.new_edge(base.EdgeType.MEMBER, cls, obj) 
+        return obj
+    
+    def update_method(self, obj: Method) -> None:
+        """
+            Update a Method into the sourcetrail database
+        """
+
+        # @TODO: decide how to handle the cls serialized name
+        #        We could store it inside the object, set the cls
+        #        as parent of the method, store it inside the 
+        #        'name' attribute...
+        self.__advanced_api_update(
+            obj.id,
+            obj.prefix,
+            obj.name,
+            obj.suffix,
+            obj.indexed
+        )
+      
+    def find_method(self, predicate: Callable[[Method], bool]
+        ) -> list[Method]:
+        """
+            Return a list of Method that satisfy a predicate
+        """ 
+        # Convert a Node object to Method 
+        def convert(node: base.Node):
+            prefix, name, suffix = dao.NodeDAO.deserialize_name(node.name) 
+            
+            indexed = False
+            symb = dao.SymbolDAO.get(self.database, node.id)
+            if symb and symb.definition_kind == base.SymbolType.EXPLICIT:
+                indexed = True
+
+            obj = Method()
+            obj.id      = node.id
+            obj.prefix  = prefix
+            obj.name    = name
+            obj.suffix  = suffix
+            obj.indexed = indexed   
+            # Copy the database handle to this object 
+            obj.database = self.database
+    
+            return obj 
+
+        # Apply our wrapper to all the nodes
+        nodes = dao.NodeDAO.list(self.database)
+        return list(filter(predicate, list(map(convert, nodes))))
+
+    def delete_method(self, obj: Method, cascade: bool = False) -> None:
+        """
+            Delete the specified Method from the database
+        """ 
+        self.__advanced_api_delete(obj.id, cascade) 
 
 def main():
 
@@ -864,8 +1399,8 @@ def main():
         srctrl.open('database')
         srctrl.clear()
 
-    cls = srctrl.new_class('MyClass', 'class', '()') 
-    cls = srctrl.new_class('MyOtherClass', 'class', '()') 
+    cls = srctrl.new_class('MyClass', 'Object/', '') 
+    cls = srctrl.new_class('MyOtherClass', 'Object/', '') 
 
     classes = srctrl.find_class(lambda e: e.name == 'MyClass')
     for cls in classes:
@@ -875,6 +1410,8 @@ def main():
     classes = srctrl.find_class(lambda e: True)
     for cls in classes:
         print('%s %s%s' %(cls.prefix, cls.name, cls.suffix))
+        # Add a new method to each class
+        srctrl.new_method(cls, 'new', '', '')
    
     srctrl.commit()
     srctrl.close()

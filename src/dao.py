@@ -1,6 +1,10 @@
 import base
 import sqlite3
 
+# ------------------------------------------------------------------------ #
+# Data Access Object (DAO) for Sourcetrail database                        #
+# ------------------------------------------------------------------------ #
+
 class SqliteHelper(object):
     """
         Helper class for sqlite operation
@@ -281,13 +285,14 @@ class NameHierarchy(object):
     ]
 
     @staticmethod
-    def serialize_name(prefix: str = '', name: str = '', suffix: str = ''):
+    def serialize_name(prefix: str = '', name: str = '', suffix: str = '',
+            type_delimiter: str = '', add_name_delimiter: bool = True) -> str:
         """
             Utility method that return a serialized name
         """
         return ''.join([
-            NameHierarchy.NAME_DELIMITER_CXX,
-            NameHierarchy.META_DELIMITER,
+            NameHierarchy.NAME_DELIMITER_CXX if add_name_delimiter else '',
+            type_delimiter,
             name,
             NameHierarchy.PART_DELIMITER,
             prefix,
@@ -296,7 +301,7 @@ class NameHierarchy(object):
         ])
 
     @staticmethod
-    def deserialize_name(serialized_name: str = ''):
+    def deserialize_name(serialized_name: str = '') -> tuple:
         """
             Utility method that return prefix, name and suffix 
             from a serialized name
@@ -383,14 +388,18 @@ class NodeDAO(object):
         return result
 
     @staticmethod
-    def serialize_name(prefix: str = '', name: str = '', suffix: str = ''):
+    def serialize_name(prefix: str = '', name: str = '', suffix: str = '',
+            type_delimiter: str = NameHierarchy.META_DELIMITER,
+            add_name_delimiter: bool = True) -> str:
         """
             Utility method that return a serialized name
         """
-        return NameHierarchy.serialize_name(prefix, name, suffix) 
+        return NameHierarchy.serialize_name(
+            prefix, name, suffix, type_delimiter, add_name_delimiter
+        ) 
 
     @staticmethod
-    def deserialize_name(serialized_name: str = ''):
+    def deserialize_name(serialized_name: str = '') -> tuple:
         """
             Utility method that return prefix, name and suffix 
             from a serialized name

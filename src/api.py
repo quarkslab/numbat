@@ -163,13 +163,7 @@ class Field(AdvancedBaseType):
         suffix: str = '', indexed: bool = True) -> None:
 
         super().__init__(Field, None, id_, name, prefix, suffix, indexed)
-  
-class Import(base.Edge):
-    """
-        Wrapper class for the 'Import' logic of sourcetrail 
-        Note: no need to add more fields than the one already in Edge class
-    """
-     
+    
 class SourcetrailDB(object):
     """
         This class implement a wrapper to sourcetrail internal database,
@@ -1389,6 +1383,102 @@ class SourcetrailDB(object):
         """ 
         self.__advanced_api_delete(obj.id, cascade) 
 
+    def new_field(self, cls: Class, name: str = '', prefix: str ='', 
+        suffix: str = '', indexed: bool = True) -> Field:
+        """
+            Add a new Field into the sourcetrail database
+        """
+       
+        # Create a new Field element
+        obj = Field()
+        obj.name    = name
+        obj.prefix  = prefix
+        obj.suffix  = suffix  
+        obj.indexed = indexed
+
+        # Get the serialized name of the class object
+        cls_name = dao.NodeDAO.serialize_name(
+            cls.prefix,
+            cls.name,
+            cls.suffix
+        )
+ 
+        # Get the serialized name of the new field object
+        # without adding the name delimiter and add the name
+        # delimiter instead of the meta one to indicate that
+        # this element belongs to the class 
+        field_name = dao.NodeDAO.serialize_name(
+            obj.prefix,
+            obj.name,       
+            obj.suffix,
+            dao.NameHierarchy.NAME_DELIMITER,
+            False
+        )
+        # Add the new field
+        obj.id = self.__advanced_api_new(
+            base.NodeType.NODE_FIELD,
+            cls_name + field_name,
+            indexed   
+        ) 
+        # Copy the database handle to this object 
+        obj.database = self.database
+        
+        # Also add an edge between class and field
+        self.new_edge(base.EdgeType.MEMBER, cls, obj) 
+        return obj
+    
+    def update_field(self, obj: Field) -> None:
+        """
+            Update a Field into the sourcetrail database
+        """
+
+        # @TODO: decide how to handle the cls serialized name
+        #        We could store it inside the object, set the cls
+        #        as parent of the field, store it inside the 
+        #        'name' attribute...
+        self.__advanced_api_update(
+            obj.id,
+            obj.prefix,
+            obj.name,
+            obj.suffix,
+            obj.indexed
+        )
+      
+    def find_field(self, predicate: Callable[[Field], bool]
+        ) -> list[Field]:
+        """
+            Return a list of Field that satisfy a predicate
+        """ 
+        # Convert a Node object to Field 
+        def convert(node: base.Node):
+            prefix, name, suffix = dao.NodeDAO.deserialize_name(node.name) 
+            
+            indexed = False
+            symb = dao.SymbolDAO.get(self.database, node.id)
+            if symb and symb.definition_kind == base.SymbolType.EXPLICIT:
+                indexed = True
+
+            obj = Field()
+            obj.id      = node.id
+            obj.prefix  = prefix
+            obj.name    = name
+            obj.suffix  = suffix
+            obj.indexed = indexed   
+            # Copy the database handle to this object 
+            obj.database = self.database
+    
+            return obj 
+
+        # Apply our wrapper to all the nodes
+        nodes = dao.NodeDAO.list(self.database)
+        return list(filter(predicate, list(map(convert, nodes))))
+
+    def delete_field(self, obj: Field, cascade: bool = False) -> None:
+        """
+            Delete the specified Field from the database
+        """ 
+        self.__advanced_api_delete(obj.id, cascade) 
+
 def main():
 
     srctrl = SourcetrailDB()
@@ -1412,6 +1502,8 @@ def main():
         print('%s %s%s' %(cls.prefix, cls.name, cls.suffix))
         # Add a new method to each class
         srctrl.new_method(cls, 'new', '', '')
+        # Add a new field to each class
+        srctrl.new_method(cls, 'x', 'int', '')
    
     srctrl.commit()
     srctrl.close()

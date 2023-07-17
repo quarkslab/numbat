@@ -1479,6 +1479,18 @@ class SourcetrailDB(object):
         """ 
         self.__advanced_api_delete(obj.id, cascade) 
 
+"""
+
+@TODO:
+    - Change the basic API to the private one
+    - Decide which format use for the API between
+      a functional one (actual) or a more object 
+      oriented one 
+    - Add the possibility to have more than one 
+      child in a AdvancedBaseType 
+
+"""
+
 def main():
 
     srctrl = SourcetrailDB()

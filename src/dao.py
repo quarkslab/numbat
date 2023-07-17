@@ -1197,7 +1197,7 @@ class LocalSymbolDAO(object):
                 id INTEGER NOT NULL, 
                 name TEXT, 
                 PRIMARY KEY(id), 
-                FOREIGN KEY(id) REFERENCES local_symbol(id) ON DELETE CASCADE
+                FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
             );'''
         )
        
@@ -1485,10 +1485,10 @@ class OccurrenceDAO(object):
         """ 
         SqliteHelper.exec(database, '''    
             CREATE TABLE occurrence(
-                occurrence_id INTEGER NOT NULL, 
+                element_id INTEGER NOT NULL, 
                 source_location_id INTEGER NOT NULL, 
-                PRIMARY KEY(occurrence_id, source_location_id), 
-                FOREIGN KEY(occurrence_id) REFERENCES occurrence(id) ON DELETE CASCADE, 
+                PRIMARY KEY(element_id, source_location_id), 
+                FOREIGN KEY(element_id) REFERENCES element(id) ON DELETE CASCADE, 
                 FOREIGN KEY(source_location_id) REFERENCES source_location(id) 
                     ON DELETE CASCADE
             );'''
@@ -1521,8 +1521,8 @@ class OccurrenceDAO(object):
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO occurrence(
-                occurrence_id, source_location_id 
-            ) VALUES(?, ?);''', (obj.occurrence_id, obj.source_location_id)
+                element_id, source_location_id 
+            ) VALUES(?, ?);''', (obj.element_id, obj.source_location_id)
         )
  
     @staticmethod
@@ -1537,7 +1537,7 @@ class OccurrenceDAO(object):
             :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
-            DELETE FROM occurrence WHERE occurrence_id = ?;''', (obj.occurrence_id,)
+            DELETE FROM occurrence WHERE element_id = ?;''', (obj.occurrence_id,)
         )
          
     @staticmethod
@@ -1566,7 +1566,7 @@ class OccurrenceDAO(object):
             :rtype: base.Occurrence
         """
         out = SqliteHelper.fetch(database, '''
-            SELECT * FROM occurrence WHERE occurrence_id = ?;''', (elem_id,)
+            SELECT * FROM occurrence WHERE element_id = ?;''', (elem_id,)
         ) 
    
         if len(out) == 1:
@@ -1585,10 +1585,10 @@ class OccurrenceDAO(object):
         """
         SqliteHelper.exec(database, '''
             UPDATE occurrence SET
-                occurrence_id = ?,
+                element_id = ?,
                 source_location_id = ? 
             WHERE
-                id = ?;''', (obj.occurrence_id, obj.source_location_id, obj.id)
+                id = ?;''', (obj.element_id, obj.source_location_id, obj.id)
         )
 
     @staticmethod
@@ -1770,7 +1770,7 @@ class ErrorDAO(object):
                 indexed INTEGER NOT NULL, 
                 translation_unit TEXT, 
                 PRIMARY KEY(id), 
-                FOREIGN KEY(id) REFERENCES error(id) ON DELETE CASCADE
+                FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
             );'''
         )
        

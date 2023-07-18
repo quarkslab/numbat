@@ -4,15 +4,11 @@ import base
 import dao
 # Typing stuff
 import sqlite3
-from typing import TypeVar
 from collections.abc import Callable
 
 # ------------------------------------------------------------------------ #
 # Advanced wrapper Types for API                                           #
 # ------------------------------------------------------------------------ #
-
-# Declare a type for any inherited class of the AdvancedBaseType
-AdvancedBaseSubType = TypeVar('AdvancedBaseSubType') # , bound=AdvancedBaseType)
 
 class AdvancedBaseType(base.Element):
     """
@@ -23,92 +19,194 @@ class AdvancedBaseType(base.Element):
 
     # Special values that indicate that no parent or child are set yet
     INVALID_PARENT_ID = 0
-    INVALID_CHILD_ID  = 0
 
-    def __init__(self, subtype: AdvancedBaseSubType, 
-        database: sqlite3.Connection, id_: int = 0, name: str = '', 
-        prefix: str ='', suffix: str = '', indexed: bool = True) -> None:
+    def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
+            suffix: str = '', indexed: bool = True) -> None:
 
         super().__init__(id_)
-        self.name      = name
-        self.prefix    = prefix
-        self.suffix    = suffix
-        self.indexed   = indexed
+        self.name       = name
+        self.prefix     = prefix
+        self.suffix     = suffix
+        self.indexed    = indexed
 
         # The type of the children that inherit this class
-        self.subtype   = subtype 
-        self.parent_id = self.INVALID_PARENT_ID
-        self.child_id  = self.INVALID_CHILD_ID
+        self.__parent   = self.INVALID_PARENT_ID
+        self.__childs   = list() 
 
         # Pointer to the database
-        self.database  = database
+        self.__database = None 
 
-    def set_parent(self, parent: AdvancedBaseSubType) -> None:
+    def __eq__(self, other: object) -> bool:
+        return self.id == other.id
+    
+    def __ne__(self, other: object) -> bool:
+        return self.id != other.id
+ 
+    def __cmp__(self, other: object) -> bool:
+        return self.id == other.id    
+    
+    def _get_database(self) -> sqlite3.Connection:
         """
-            Set the parent of this element
+            Return a handle to the database 
         """
-        if parent and hasattr(parent, 'id') \
+        return self.__database
+
+    def _set_database(self, database: sqlite3.Connection) -> None:
+        """
+            Set the handle to the database
+        """
+        self.__database = database
+
+    @staticmethod 
+    def _resolve_hierarchy(obj: object, database: sqlite3.Connection) -> None:
+        """
+            Resolve parent and children for a given object that 
+            should inherit from this class
+        """
+        # Filter that list all edges that have this element as src (childs)
+        # or that have this element as dst (parent) 
+        def filter_edge(e):
+            return e.type == base.EdgeType.MEMBER  \
+               and (e.src == obj.id or e.dst == obj.id)
+        
+        edges = list(filter(filter_edge, dao.EdgeDAO.list(database)))
+        for edge in edges:
+            # Check if the edge reference ourselves 
+            # if so it's our parent, if not it's one of our childs
+            if edge.dst == obj.id:
+                obj._set_parent_id(edge.src)
+            else:
+                obj._add_child_id(edge.dst)
+
+    def _set_parent_id(self, parent_id: int) -> None:
+        """
+            Add the given id as child of this element
+            Note: This method should only be used by the API
+        """
+        self.__parent = parent_id
+ 
+    def _set_parent(self, parent: object) -> None:
+        """
+            Set the parent of this element and add this
+            element as children of the parent
+        """
+        if parent and hasattr(parent, 'id')             \
             and parent.id != self.INVALID_PARENT_ID:        
             
-            self.parent_id = parent.id
+            self.__parent = parent.id
+            if self.id not in parent.__childs:
+                parent.__childs.append(self.id)
 
-    def get_parent(self) -> AdvancedBaseSubType:
+    def get_parent(self) -> object:
         """
             Return the parent object of this element
             if any is set
         """
-        if self.parent_id != self.INVALID_PARENT_ID:
 
-            node = dao.nodeDAO.get(self.database, self.parent_id)
+        if self.__parent != self.INVALID_PARENT_ID:
+
+            node = dao.NodeDAO.get(self.__database, self.__parent)
             if node:
                 prefix, name, suffix = dao.NodeDAO.deserialize_name(node.name) 
                 
                 indexed = False
-                symb = dao.SymbolDAO.get(self.database, node.id)
+                symb = dao.SymbolDAO.get(self.__database, node.id)
                 if symb and symb.definition_kind == base.SymbolType.EXPLICIT:
                     indexed = True
 
-                obj = self.subtype()
+                obj = self._nodetype_to_type(node.type)() 
                 obj.id      = node.id
                 obj.prefix  = prefix
                 obj.name    = name
                 obj.suffix  = suffix
                 obj.indexed = indexed   
-                
-                return obj
-
-    def set_child(self, child: AdvancedBaseSubType) -> None:
-        """
-            Set the child of this element
-        """
-        if child and hasattr(child, 'id') \
-            and child.id != self.INVALID_CHILD_ID:        
             
-            self.child_id = child.id
+                # Copy over some of the parent attribute
+                obj.__database = self.__database
+                # Add relationship between parent and childs  
+                AdvancedBaseType._resolve_hierarchy(obj, self.__database)
+    
+                return obj
 
-    def get_child(self) -> AdvancedBaseSubType:
+    def _add_child_id(self, child_id: int) -> None:
         """
-            Return the child object of this element 
-            if any is set
+            Add the given id as child of this element
+            Note: This method should only be used by the API
         """
-        if self.child_id != self.INVALID_CHILD_ID:
-            node = dao.nodeDAO.get(self.database, self.parent_id)
+        self.__childs.append(child_id)
+ 
+    def _add_child(self, child: object) -> None:
+        """
+            Add a child to this element and set this 
+            element as the parent of the child   
+        """
+        if child and hasattr(child, 'id')           \
+            and child.id not in self.__childs:        
+            
+            self.__childs.append(child.id)
+            child.__parent = self.id
+
+    def _remove_child(self, child: object) -> None:
+        """
+            Remove a child from this element and remove
+            this element from child parent
+        """
+        if child and hasattr(child, 'id')           \
+            and child.id in self.__childs:        
+         
+            self.__childs.remove(child.id)
+            child.__parent = self.INVALID_PARENT_ID
+
+    def _nodetype_to_type(self, nodetype: base.NodeType) -> type:
+        """
+            Return the class corresponding to the type of the node            
+        """
+        if nodetype == base.NodeType.NODE_CLASS:
+            return Class
+        elif nodetype == base.NodeType.NODE_FUNCTION:
+            return Function
+        elif nodetype == base.NodeType.NODE_MODULE:
+            return Module
+        elif nodetype == base.NodeType.NODE_TYPEDEF:
+            return Typedef
+        elif nodetype == base.NodeType.NODE_METHOD:
+            return Method
+        elif nodetype == base.NodeType.NODE_FIELD:
+            return Field
+        else:
+            raise Exception("Unhandled Node Type: '%s'" % nodetype)
+
+    def get_childs(self) -> list[object]:
+        """
+            Return the list of children of this object  
+            if any are set
+        """
+        children = [] 
+        for child in self.__childs:
+            node = dao.NodeDAO.get(self.__database, child)
             if node:
                 prefix, name, suffix = dao.NodeDAO.deserialize_name(node.name) 
                 
                 indexed = False
-                symb = dao.SymbolDAO.get(self.database, node.id)
+                symb = dao.SymbolDAO.get(self.__database, node.id)
                 if symb and symb.definition_kind == base.SymbolType.EXPLICIT:
                     indexed = True
 
-                obj = self.subtype()
+                obj = self._nodetype_to_type(node.type)() 
                 obj.id      = node.id
                 obj.prefix  = prefix
                 obj.name    = name
                 obj.suffix  = suffix
                 obj.indexed = indexed   
+                
+                # Copy over some of the parent attribute
+                obj.__database = self.__database
+                # Add relationship between parent and childs  
+                AdvancedBaseType._resolve_hierarchy(obj, self.__database)
 
-                return obj
+                children.append(obj)
+
+        return children
 
 class Module(AdvancedBaseType):
     """
@@ -117,7 +215,7 @@ class Module(AdvancedBaseType):
     def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
         suffix: str = '', indexed: bool = True) -> None:
 
-        super().__init__(Module, None, id_, name, prefix, suffix, indexed)
+        super().__init__(id_, name, prefix, suffix, indexed)
     
 class Class(AdvancedBaseType):
     """
@@ -126,7 +224,7 @@ class Class(AdvancedBaseType):
     def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
         suffix: str = '', indexed: bool = True) -> None:
 
-        super().__init__(Class, None, id_, name, prefix, suffix, indexed)
+        super().__init__(id_, name, prefix, suffix, indexed)
 
 class Typedef(AdvancedBaseType):
     """
@@ -135,7 +233,7 @@ class Typedef(AdvancedBaseType):
     def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
         suffix: str = '', indexed: bool = True) -> None:
 
-        super().__init__(Typedef, None, id_, name, prefix, suffix, indexed)
+        super().__init__(id_, name, prefix, suffix, indexed)
 
 class Function(AdvancedBaseType):
     """
@@ -144,7 +242,7 @@ class Function(AdvancedBaseType):
     def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
         suffix: str = '', indexed: bool = True) -> None:
 
-        super().__init__(Function, None, id_, name, prefix, suffix, indexed)
+        super().__init__(id_, name, prefix, suffix, indexed)
 
 class Method(AdvancedBaseType):
     """
@@ -153,7 +251,7 @@ class Method(AdvancedBaseType):
     def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
         suffix: str = '', indexed: bool = True) -> None:
 
-        super().__init__(Method, None, id_, name, prefix, suffix, indexed)
+        super().__init__(id_, name, prefix, suffix, indexed)
 
 class Field(AdvancedBaseType):
     """
@@ -162,7 +260,7 @@ class Field(AdvancedBaseType):
     def __init__(self, id_: int = 0, name: str = '', prefix: str ='', 
         suffix: str = '', indexed: bool = True) -> None:
 
-        super().__init__(Field, None, id_, name, prefix, suffix, indexed)
+        super().__init__(id_, name, prefix, suffix, indexed)
     
 class SourcetrailDB(object):
     """
@@ -326,7 +424,7 @@ class SourcetrailDB(object):
     # Basic API for database                                                   #
     # ------------------------------------------------------------------------ #
 
-    def new_element(self) -> base.Element:
+    def __new_element(self) -> base.Element:
         """
             Add a new Element into the sourcetrail database
         """
@@ -334,14 +432,14 @@ class SourcetrailDB(object):
         elem.id = dao.ElementDAO.new(self.database, elem) 
         return elem
     
-    def update_element(self, obj: base.Element) -> None:
+    def __update_element(self, obj: base.Element) -> None:
         """
             Update a Element into the sourcetrail database
         """
         # An element has only a primary key so it can't be updated
         pass 
 
-    def find_elements(self, predicate: Callable[[base.Element], bool]
+    def __find_elements(self, predicate: Callable[[base.Element], bool]
         ) -> list[base.Element]:
         """
             Return a list of Element that satisfy a predicate
@@ -349,18 +447,18 @@ class SourcetrailDB(object):
         elements = dao.ElementDAO.list(self.database)
         return list(filter(predicate, elements))
 
-    def delete_element(self, obj: base.Element) -> None:
+    def __delete_element(self, obj: base.Element) -> None:
         """
             Delete the specified Element from the database
         """ 
         dao.ElementDAO.delete(self.database, obj)
 
-    def new_node(self, nodetype: base.NodeType, name: str) -> base.Node:
+    def __new_node(self, nodetype: base.NodeType, name: str) -> base.Node:
         """
             Add a new Node into the sourcetrail database
         """
         # First insert an element object  
-        elem = self.new_element()
+        elem = self.__new_element()
         # Create a new Node
         node = base.Node()
         node.id   = elem.id 
@@ -370,13 +468,13 @@ class SourcetrailDB(object):
         dao.NodeDAO.new(self.database, node)
         return node 
     
-    def update_node(self, obj: base.Node) -> None:
+    def __update_node(self, obj: base.Node) -> None:
         """
             Update a Node into the sourcetrail database
         """
         dao.NodeDAO.update(self.database, obj)
 
-    def find_nodes(self, predicate: Callable[[base.Node], bool]
+    def __find_nodes(self, predicate: Callable[[base.Node], bool]
         ) -> list[base.Node]:
         """
             Return a list of Node that satisfy a predicate
@@ -384,7 +482,7 @@ class SourcetrailDB(object):
         elements = dao.NodeDAO.list(self.database)
         return list(filter(predicate, elements))
 
-    def delete_node(self, obj: base.Node, cascade: bool = False) -> None:
+    def __delete_node(self, obj: base.Node, cascade: bool = False) -> None:
         """
             Delete the specified Node from the database
         """ 
@@ -397,12 +495,12 @@ class SourcetrailDB(object):
             # Only delete the node
             dao.NodeDAO.delete(self.database, obj)  
  
-    def new_local_symbol(self, name: str) -> base.LocalSymbol:
+    def __new_local_symbol(self, name: str) -> base.LocalSymbol:
         """
             Add a new LocalSymbol into the sourcetrail database
         """
         # First insert an element object  
-        elem = self.new_element()
+        elem = self.__new_element()
         # Create a new LocalSymbol
         symb = base.LocalSymbol()
         symb.id   = elem.id
@@ -411,13 +509,13 @@ class SourcetrailDB(object):
         dao.LocalSymbolDAO.new(self.database, symb)
         return symb
     
-    def update_local_symbol(self, obj: base.LocalSymbol) -> None:
+    def __update_local_symbol(self, obj: base.LocalSymbol) -> None:
         """
             Update a LocalSymbol into the sourcetrail database
         """
         dao.LocalSymbolDAO.update(self.database, obj)
 
-    def find_local_symbols(self, predicate: Callable[[base.LocalSymbol], bool]
+    def __find_local_symbols(self, predicate: Callable[[base.LocalSymbol], bool]
         ) -> list[base.LocalSymbol]:
         """
             Return a list of LocalSymbol that satisfy a predicate
@@ -425,7 +523,7 @@ class SourcetrailDB(object):
         elements = dao.LocalSymbolDAO.list(self.database)
         return list(filter(predicate, elements))
 
-    def delete_local_symbol(self, obj: base.LocalSymbol, cascade: bool = False) -> None:
+    def __delete_local_symbol(self, obj: base.LocalSymbol, cascade: bool = False) -> None:
         """
             Delete the specified LocalSymbol from the database
         """ 
@@ -438,13 +536,13 @@ class SourcetrailDB(object):
             # Only delete the node
             dao.LocalSymbolDAO.delete(self.database, obj)  
  
-    def new_element_component(self, elem_id: int, type_: base.ElementComponentType, 
+    def __new_element_component(self, elem_id: int, type_: base.ElementComponentType, 
             data: str) -> base.ElementComponent:
         """
             Add a new ElementComponent into the sourcetrail database
         """
         # First insert an element object  
-        elem = self.new_element()
+        elem = self.__new_element()
         # Create a new ElementComponent
         comp = base.ElementComponent()
         comp.id   = elem.id
@@ -453,13 +551,13 @@ class SourcetrailDB(object):
         dao.ElementComponentDAO.new(self.database, com)
         return comp
     
-    def update_element_component(self, obj: base.ElementComponent) -> None:
+    def __update_element_component(self, obj: base.ElementComponent) -> None:
         """
             Update a ElementComponent into the sourcetrail database
         """
         dao.ElementComponentDAO.update(self.database, obj)
 
-    def find_element_components(self, predicate: Callable[[base.ElementComponent], bool]
+    def __find_element_components(self, predicate: Callable[[base.ElementComponent], bool]
         ) -> list[base.ElementComponent]:
         """
             Return a list of ElementComponent that satisfy a predicate
@@ -467,7 +565,7 @@ class SourcetrailDB(object):
         elements = dao.ElementComponentDAO.list(self.database)
         return list(filter(predicate, elements))
 
-    def delete_element_component(self, obj: base.ElementComponent, cascade: bool = False) -> None:
+    def __delete_element_component(self, obj: base.ElementComponent, cascade: bool = False) -> None:
         """
             Delete the specified ElementComponent from the database
         """ 
@@ -480,13 +578,13 @@ class SourcetrailDB(object):
             # Only delete the node
             dao.ElementComponentDAO.delete(self.database, obj)  
 
-    def new_error(self, message: str, fatal: int, indexed: int, 
+    def __new_error(self, message: str, fatal: int, indexed: int, 
             translation_unit: str) -> base.Error:
         """
             Add a new Error into the sourcetrail database
         """
         # First insert an element object  
-        elem = self.new_element()
+        elem = self.__new_element()
         # Create a new Error
         error = base.Error()
         error.id               = elem.id 
@@ -498,13 +596,13 @@ class SourcetrailDB(object):
         dao.ErrorDAO.new(self.database, node)
         return node 
     
-    def update_error(self, obj: base.Error) -> None:
+    def __update_error(self, obj: base.Error) -> None:
         """
             Update a Error into the sourcetrail database
         """
         dao.ErrorDAO.update(self.database, obj)
 
-    def find_errors(self, predicate: Callable[[base.Error], bool]
+    def __find_errors(self, predicate: Callable[[base.Error], bool]
         ) -> list[base.Error]:
         """
             Return a list of Error that satisfy a predicate
@@ -512,7 +610,7 @@ class SourcetrailDB(object):
         elements = dao.ErrorDAO.list(self.database)
         return list(filter(predicate, elements))
 
-    def delete_error(self, obj: base.Error, cascade: bool = False) -> None:
+    def __delete_error(self, obj: base.Error, cascade: bool = False) -> None:
         """
             Delete the specified Error from the database
         """ 
@@ -525,12 +623,12 @@ class SourcetrailDB(object):
             # Only delete the node
             dao.ErrorDAO.delete(self.database, obj)  
  
-    def new_symbol(self, type_: base.SymbolType, node: base.Node, 
+    def __new_symbol(self, type_: base.SymbolType, node: base.Node, 
             cascade: bool = False) -> base.Symbol:
         """
             Add a new Symbol into the sourcetrail database. If cascade is false,
             the node passed as parameter must exist in the database and must have 
-            been created by the new_node method otherwise it will be also inserted
+            been created by the __new_node method otherwise it will be also inserted
             as a new Node into the database.
         """
         # Create a new Symbol
@@ -538,20 +636,20 @@ class SourcetrailDB(object):
         symb.definition_kind = type_
         if cascade:
             # Insert a new Node in the database
-            node = self.new_node(node.type, node.name)
+            node = self.__new_node(node.type, node.name)
 
         symb.id = node.id
         # Add Symbol to the database
         dao.SymbolDAO.new(self.database, symb)
         return symb
     
-    def update_symbol(self, obj: base.Symbol) -> None:
+    def __update_symbol(self, obj: base.Symbol) -> None:
         """
             Update a Symbol into the sourcetrail database
         """
         dao.SymbolDAO.update(self.database, obj)
 
-    def find_symbols(self, predicate: Callable[[base.Symbol], bool]
+    def __find_symbols(self, predicate: Callable[[base.Symbol], bool]
         ) -> list[base.Symbol]:
         """
             Return a list of Symbol that satisfy a predicate
@@ -559,7 +657,7 @@ class SourcetrailDB(object):
         elements = dao.SymbolDAO.list(self.database)
         return list(filter(predicate, elements))
 
-    def delete_symbol(self, obj: base.Symbol, cascade: bool = False) -> None:
+    def __delete_symbol(self, obj: base.Symbol, cascade: bool = False) -> None:
         """
             Delete the specified Symbol from the database
         """ 
@@ -572,12 +670,12 @@ class SourcetrailDB(object):
             # Only delete the node
             dao.SymbolDAO.delete(self.database, obj)  
 
-    def new_component_access(self, type_: base.ComponentAccessType, node: base.Node, 
+    def __new_component_access(self, type_: base.ComponentAccessType, node: base.Node, 
             cascade: bool = False) -> base.ComponentAccess:
         """
             Add a new ComponentAccess into the sourcetrail database. If cascade is false,
             the node passed as parameter must exist in the database and must have 
-            been created by the new_node method otherwise it will be also inserted
+            been created by the __new_node method otherwise it will be also inserted
             as a new Node into the database.
         """
         # Create a new ComponentAccess
@@ -585,20 +683,20 @@ class SourcetrailDB(object):
         access.type = type_
         if cascade:
             # Insert a new Node in the database
-            node = self.new_node(node.type, node.name)
+            node = self.__new_node(node.type, node.name)
 
         access.node_id = node.id
         # Add ComponentAccess to the database
         dao.ComponentAccessDAO.new(self.database, access)
         return access
     
-    def update_component_access(self, obj: base.ComponentAccess) -> None:
+    def __update_component_access(self, obj: base.ComponentAccess) -> None:
         """
             Update a ComponentAccess into the sourcetrail database
         """
         dao.ComponentAccessDAO.update(self.database, obj)
 
-    def find_component_accesss(self, predicate: Callable[[base.ComponentAccess], bool]
+    def __find_component_accesss(self, predicate: Callable[[base.ComponentAccess], bool]
         ) -> list[base.ComponentAccess]:
         """
             Return a list of ComponentAccess that satisfy a predicate
@@ -606,7 +704,7 @@ class SourcetrailDB(object):
         elements = dao.ComponentAccessDAO.list(self.database)
         return list(filter(predicate, elements))
 
-    def delete_component_access(self, obj: base.ComponentAccess, cascade: bool = False) -> None:
+    def __delete_component_access(self, obj: base.ComponentAccess, cascade: bool = False) -> None:
         """
             Delete the specified ComponentAccess from the database
         """ 
@@ -619,12 +717,12 @@ class SourcetrailDB(object):
             # Only delete the node
             dao.ComponentAccessDAO.delete(self.database, obj)  
 
-    def new_edge(self, type_: base.EdgeType, src: base.Node, dst: base.Node,
+    def __new_edge(self, type_: base.EdgeType, src: base.Node, dst: base.Node,
             cascade: bool = False) -> base.Edge:
         """
             Add a new Edge into the sourcetrail database. If cascade is false,
             the nodes passed as parameter must exist in the database and must have 
-            been created by the new_node method otherwise it will be also inserted
+            been created by the __new_node method otherwise it will be also inserted
             as a new Node into the database.
         """
         # Create a new Edge
@@ -632,26 +730,26 @@ class SourcetrailDB(object):
         edge.type = type_
         if cascade:
             # Insert the two new Node in the database
-            src = self.new_node(src.type, src.name)
-            dst = self.new_node(dst.type, dst.name)
+            src = self.__new_node(src.type, src.name)
+            dst = self.__new_node(dst.type, dst.name)
 
         edge.src = src.id
         edge.dst = dst.id 
         # Add a new element to reference this edge
-        elem = self.new_element()
+        elem = self.__new_element()
         edge.id = elem.id
 
         # Add Edge to the database
         dao.EdgeDAO.new(self.database, edge)
         return edge
     
-    def update_edge(self, obj: base.Edge) -> None:
+    def __update_edge(self, obj: base.Edge) -> None:
         """
             Update a Edge into the sourcetrail database
         """
         dao.EdgeDAO.update(self.database, obj)
 
-    def find_edges(self, predicate: Callable[[base.Edge], bool]
+    def __find_edges(self, predicate: Callable[[base.Edge], bool]
         ) -> list[base.Edge]:
         """
             Return a list of Edge that satisfy a predicate
@@ -659,7 +757,7 @@ class SourcetrailDB(object):
         elements = dao.EdgeDAO.list(self.database)
         return list(filter(predicate, elements))
 
-    def delete_edge(self, obj: base.Edge, cascade: bool = False) -> None:
+    def __delete_edge(self, obj: base.Edge, cascade: bool = False) -> None:
         """
             Delete the specified Edge from the database
         """ 
@@ -672,13 +770,13 @@ class SourcetrailDB(object):
             # Only delete the node
             dao.EdgeDAO.delete(self.database, obj)  
 
-    def new_source_location(self, start_line: int, start_column: int, end_line: int,
+    def __new_source_location(self, start_line: int, start_column: int, end_line: int,
             end_column: int, type_: base.SourceLocationType,  node: base.Node,
             cascade: bool = False) -> base.SourceLocation:
         """
             Add a new SourceLocation into the sourcetrail database. If cascade is false,
             the node passed as parameter must exist in the database and must have 
-            been created by the new_node method otherwise it will be also inserted
+            been created by the __new_node method otherwise it will be also inserted
             as a new Node into the database.
         """
         # Create a new SourceLocation
@@ -690,20 +788,20 @@ class SourcetrailDB(object):
         loc.end_column   = end_column
         if cascade:
             # Insert a new Node in the database
-            node = self.new_node(node.type, node.name)
+            node = self.__new_node(node.type, node.name)
 
         loc.file_node_id = node.id
         # Add SourceLocation to the database
         loc.id = dao.SourceLocationDAO.new(self.database, loc)
         return loc
     
-    def update_source_location(self, obj: base.SourceLocation) -> None:
+    def __update_source_location(self, obj: base.SourceLocation) -> None:
         """
             Update a SourceLocation into the sourcetrail database
         """
         dao.SourceLocationDAO.update(self.database, obj)
 
-    def find_source_locations(self, predicate: Callable[[base.SourceLocation], bool]
+    def __find_source_locations(self, predicate: Callable[[base.SourceLocation], bool]
         ) -> list[base.SourceLocation]:
         """
             Return a list of SourceLocation that satisfy a predicate
@@ -711,7 +809,7 @@ class SourcetrailDB(object):
         elements = dao.SourceLocationDAO.list(self.database)
         return list(filter(predicate, elements))
 
-    def delete_source_location(self, obj: base.SourceLocation, cascade: bool = False) -> None:
+    def __delete_source_location(self, obj: base.SourceLocation, cascade: bool = False) -> None:
         """
             Delete the specified SourceLocation from the database
         """ 
@@ -719,13 +817,13 @@ class SourcetrailDB(object):
         # this element doesn't **direcly** reference any other elements/nodes 
         dao.SourceLocationDAO.delete(self.database, obj)  
 
-    def new_file(self, path: str, language: str, modification_time: str,
+    def __new_file(self, path: str, language: str, modification_time: str,
             indexed: int, complete: int, line_count: int, node: base.Node, 
             cascade: bool = False) -> base.File:
         """
             Add a new File into the sourcetrail database. If cascade is false,
             the node passed as parameter must exist in the database and must have 
-            been created by the new_node method otherwise it will be also inserted
+            been created by the __new_node method otherwise it will be also inserted
             as a new Node into the database.
         """
         # Create a new File
@@ -738,20 +836,20 @@ class SourcetrailDB(object):
         file.line_count        = line_count
         if cascade:
             # Insert the new Node in the database
-            node = self.new_node(node.type, node.name)
+            node = self.__new_node(node.type, node.name)
 
         file.id = node.id 
         # Add File to the database
         dao.FileDAO.new(self.database, file)
         return file
     
-    def update_file(self, obj: base.File) -> None:
+    def __update_file(self, obj: base.File) -> None:
         """
             Update a File into the sourcetrail database
         """
         dao.FileDAO.update(self.database, obj)
 
-    def find_files(self, predicate: Callable[[base.File], bool]
+    def __find_files(self, predicate: Callable[[base.File], bool]
         ) -> list[base.File]:
         """
             Return a list of File that satisfy a predicate
@@ -759,7 +857,7 @@ class SourcetrailDB(object):
         elements = dao.FileDAO.list(self.database)
         return list(filter(predicate, elements))
 
-    def delete_file(self, obj: base.File, cascade: bool = False) -> None:
+    def __delete_file(self, obj: base.File, cascade: bool = False) -> None:
         """
             Delete the specified File from the database
         """ 
@@ -772,12 +870,12 @@ class SourcetrailDB(object):
             # Only delete the node
             dao.FileDAO.delete(self.database, obj)  
 
-    def new_file_content(self, content: str, file: base.File, node: base.Node = None, 
+    def __new_file_content(self, content: str, file: base.File, node: base.Node = None, 
             cascade: bool = False) -> base.FileContent:
         """
             Add a new FileContent into the sourcetrail database. If cascade is false,
             the File passed as parameter must exist in the database and must have 
-            been created by the new_node method otherwise it will be also inserted
+            been created by the __new_node method otherwise it will be also inserted
             as a new Node into the database.
         """
         # If cascade is requested, node must be not null
@@ -789,7 +887,7 @@ class SourcetrailDB(object):
         filecontent.content = content
         if cascade:
             # Insert the new File in the database
-            file = self.new_file(
+            file = self.__new_file(
                 file.path, 
                 file.language,
                 file.modification_time,
@@ -805,13 +903,13 @@ class SourcetrailDB(object):
         dao.FileContentDAO.new(self.database, filecontent)
         return filecontent
     
-    def update_file_content(self, obj: base.FileContent) -> None:
+    def __update_file_content(self, obj: base.FileContent) -> None:
         """
             Update a FileContent into the sourcetrail database
         """
         dao.FileContentDAO.update(self.database, obj)
 
-    def find_file_contents(self, predicate: Callable[[base.FileContent], bool]
+    def __find_file_contents(self, predicate: Callable[[base.FileContent], bool]
         ) -> list[base.FileContent]:
         """
             Return a list of FileContent that satisfy a predicate
@@ -819,7 +917,7 @@ class SourcetrailDB(object):
         elements = dao.FileContentDAO.list(self.database)
         return list(filter(predicate, elements))
 
-    def delete_file_content(self, obj: base.FileContent, cascade: bool = False) -> None:
+    def __delete_file_content(self, obj: base.FileContent, cascade: bool = False) -> None:
         """
             Delete the specified FileContent from the database
         """ 
@@ -832,12 +930,12 @@ class SourcetrailDB(object):
             # Only delete the node
             dao.FileContentDAO.delete(self.database, obj)  
 
-    def new_occurrence(self, location: base.SourceLocation, element: base.Element, 
+    def __new_occurrence(self, location: base.SourceLocation, element: base.Element, 
             node: base.Node = None, cascade: bool = False) -> base.Occurrence:
         """
             Add a new Occurrence into the sourcetrail database. If cascade is false,
             the SourceLocation passed as parameter must exist in the database and must have 
-            been created by the new_node method otherwise it will be also inserted
+            been created by the __new_node method otherwise it will be also inserted
             as a new Node into the database.
         """
         # If cascade is requested, node must be not null
@@ -848,7 +946,7 @@ class SourcetrailDB(object):
         occurrence = base.Occurrence()
         if cascade:
             # Insert the new SourceLocation in the database
-            location = self.new_source_location(
+            location = self.__new_source_location(
                 location.start_line,
                 location.start_column,
                 location.end_line,
@@ -859,7 +957,7 @@ class SourcetrailDB(object):
             )
                
             # Insert a new element 
-            element = self.new_element() 
+            element = self.__new_element() 
 
         occurrence.element_id         = element.id
         occurrence.source_location_id = location.id
@@ -867,13 +965,13 @@ class SourcetrailDB(object):
         dao.OccurrenceDAO.new(self.database, occurrence)
         return occurrence
     
-    def update_occurrence(self, obj: base.Occurrence) -> None:
+    def __update_occurrence(self, obj: base.Occurrence) -> None:
         """
             Update a Occurrence into the sourcetrail database
         """
         dao.OccurrenceDAO.update(self.database, obj)
 
-    def find_occurrences(self, predicate: Callable[[base.Occurrence], bool]
+    def __find_occurrences(self, predicate: Callable[[base.Occurrence], bool]
         ) -> list[base.Occurrence]:
         """
             Return a list of Occurrence that satisfy a predicate
@@ -881,7 +979,7 @@ class SourcetrailDB(object):
         elements = dao.OccurrenceDAO.list(self.database)
         return list(filter(predicate, elements))
 
-    def delete_occurrence(self, obj: base.Occurrence, cascade: bool = False) -> None:
+    def __delete_occurrence(self, obj: base.Occurrence, cascade: bool = False) -> None:
         """
             Delete the specified Occurrence from the database
         """ 
@@ -906,7 +1004,7 @@ class SourcetrailDB(object):
             methods of the advanced API 
         """
         # Insert a new node in the database 
-        node = self.new_node(
+        node = self.__new_node(
             nodetype,
             serialized_name  
         )
@@ -915,7 +1013,7 @@ class SourcetrailDB(object):
         if indexed:
             # Add a new symbol, no need to save symbol id has it should
             # be the same as the id of the node
-            self.new_symbol(
+            self.__new_symbol(
                 base.SymbolType.EXPLICIT,
                 node 
             ) 
@@ -933,24 +1031,24 @@ class SourcetrailDB(object):
         # Update object 
         node.name = serialized_name
         # Reflect change in the database
-        self.update_node(node)      
+        self.__update_node(node)      
         # Also apply modification to the symbol
         symb = dao.SymbolDAO.get(self.database, node.id)
 
         if indexed and not symb:
             # Insert a new symbol
-            self.new_symbol(
+            self.__new_symbol(
                 base.SymbolType.EXPLICIT,
                 node 
             )
         elif indexed and symb.definition_kind != base.SymbolType.EXPLICIT:
             # Update the existing one
             symb.definition_kind = base.SymbolType.EXPLICIT
-            self.update_symbol(symb)
+            self.__update_symbol(symb)
         elif not indexed and symb.definition_kind == base.SymbolType.EXPLICIT:
             # Update the existing one
             symb.definition_kind = base.SymbolType.IMPLICIT
-            self.update_symbol(symb)
+            self.__update_symbol(symb)
         else:
             # No action are required
             pass
@@ -1012,7 +1110,7 @@ class SourcetrailDB(object):
             indexed
         ) 
         # Copy the database handle to this object 
-        obj.database = self.database
+        obj._set_database(self.database)
     
         return obj
     
@@ -1051,7 +1149,7 @@ class SourcetrailDB(object):
             obj.suffix  = suffix
             obj.indexed = indexed   
             # Copy the database handle to this object 
-            obj.database = self.database
+            obj._set_database(self.database)
 
             return obj 
 
@@ -1086,7 +1184,7 @@ class SourcetrailDB(object):
             indexed
         ) 
         # Copy the database handle to this object 
-        obj.database = self.database
+        obj._set_database(self.database)
      
         return obj
     
@@ -1103,6 +1201,14 @@ class SourcetrailDB(object):
             ),
             obj.indexed
         )
+        # Update all the children of this element
+        for child in obj.get_childs():
+            if type(child) == Method:
+                self.update_method(child, obj)
+            elif type(child) == Field:
+                self.update_field(child, obj)
+            else:
+                raise Exception("Unsupported child type: '%s'" % type(child)) 
       
     def find_class(self, predicate: Callable[[Class], bool]
         ) -> list[Class]:
@@ -1125,12 +1231,26 @@ class SourcetrailDB(object):
             obj.suffix  = suffix
             obj.indexed = indexed   
             # Copy the database handle to this object 
-            obj.database = self.database
-             
+            obj._set_database(self.database)
+           
+            # Filter that list all edges that have this class as src (childs)
+            # or that have this class as dst (parent) 
+            def filter_edge(e):
+                return e.type == base.EdgeType.MEMBER  \
+                   and (e.src == obj.id or e.dst == obj.id)
+            
+            for edge in self.__find_edges(filter_edge):
+                # Check if the edge reference ourselves 
+                # if so it's our parent, if not it's one of our childs
+                if edge.dst == obj.id:
+                    obj._set_parent_id(edge.src)
+                else:
+                    obj._add_child_id(edge.dst)
+    
             return obj 
 
         # Apply our wrapper to all the nodes
-        nodes = dao.NodeDAO.list(self.database)
+        nodes = self.__find_nodes(lambda e: e.type == base.NodeType.NODE_CLASS) 
         return list(filter(predicate, list(map(convert, nodes))))
 
     def delete_class(self, obj: Class, cascade: bool = False) -> None:
@@ -1160,7 +1280,7 @@ class SourcetrailDB(object):
             indexed
         ) 
         # Copy the database handle to this object 
-        obj.database = self.database
+        obj._set_database(self.database)
      
         return obj
     
@@ -1199,7 +1319,7 @@ class SourcetrailDB(object):
             obj.suffix  = suffix
             obj.indexed = indexed   
             # Copy the database handle to this object 
-            obj.database = self.database
+            obj._set_database(self.database)
             
             return obj 
 
@@ -1234,7 +1354,7 @@ class SourcetrailDB(object):
             indexed
         ) 
         # Copy the database handle to this object 
-        obj.database = self.database
+        obj._set_database(self.database)
  
         return obj
     
@@ -1273,7 +1393,7 @@ class SourcetrailDB(object):
             obj.suffix  = suffix
             obj.indexed = indexed   
             # Copy the database handle to this object 
-            obj.database = self.database
+            obj._set_database(self.database)
     
             return obj 
 
@@ -1325,33 +1445,52 @@ class SourcetrailDB(object):
             indexed   
         ) 
         # Copy the database handle to this object 
-        obj.database = self.database
+        obj._set_database(self.database)
         
+        # Add relation ship between theses objects
+        obj._set_parent(cls)
+        cls._add_child(obj)
+
         # Also add an edge between class and method
-        self.new_edge(base.EdgeType.MEMBER, cls, obj) 
+        self.__new_edge(base.EdgeType.MEMBER, cls, obj) 
         return obj
     
-    def update_method(self, obj: Method) -> None:
+    def update_method(self, obj: Method, cls: Class = None) -> None:
         """
             Update a Method into the sourcetrail database
         """
-
-        # @TODO: decide how to handle the cls serialized name
-        #        We could store it inside the object, set the cls
-        #        as parent of the method, store it inside the 
-        #        'name' attribute...
-        self.__advanced_api_update(
-            obj.id,
-            obj.prefix,
-            obj.name,
-            obj.suffix,
-            obj.indexed
-        )
-      
-    def find_method(self, predicate: Callable[[Method], bool]
+        cls = cls or obj.get_parent()  
+        if cls:
+            # Get the serialized name of the class object
+            cls_name = dao.NodeDAO.serialize_name(
+                cls.prefix,
+                cls.name,
+                cls.suffix
+            )
+     
+            # Get the serialized name of the new field object
+            # without adding the name delimiter and add the name
+            # delimiter instead of the meta one to indicate that
+            # this element belongs to the class 
+            field_name = dao.NodeDAO.serialize_name(
+                obj.prefix,
+                obj.name,       
+                obj.suffix,
+                dao.NameHierarchy.NAME_DELIMITER,
+                False
+            )
+               
+            self.__advanced_api_update(
+                obj.id,
+                cls_name + field_name,
+                obj.indexed
+            )
+     
+    def find_method(self, cls: Class, predicate: Callable[[Method], bool]
         ) -> list[Method]:
         """
-            Return a list of Method that satisfy a predicate
+            Return a list of Methods that belongs to this class 
+            that satisfy a predicate
         """ 
         # Convert a Node object to Method 
         def convert(node: base.Node):
@@ -1369,7 +1508,7 @@ class SourcetrailDB(object):
             obj.suffix  = suffix
             obj.indexed = indexed   
             # Copy the database handle to this object 
-            obj.database = self.database
+            obj._set_database(self.database)
     
             return obj 
 
@@ -1421,33 +1560,51 @@ class SourcetrailDB(object):
             indexed   
         ) 
         # Copy the database handle to this object 
-        obj.database = self.database
+        obj._set_database(self.database)
+
+        # Add relation ship between theses objects
+        obj._set_parent(cls)
+        cls._add_child(obj)
         
         # Also add an edge between class and field
-        self.new_edge(base.EdgeType.MEMBER, cls, obj) 
+        self.__new_edge(base.EdgeType.MEMBER, cls, obj) 
         return obj
     
-    def update_field(self, obj: Field) -> None:
+    def update_field(self, obj: Field, cls: Class = None) -> None:
         """
             Update a Field into the sourcetrail database
         """
-
-        # @TODO: decide how to handle the cls serialized name
-        #        We could store it inside the object, set the cls
-        #        as parent of the field, store it inside the 
-        #        'name' attribute...
-        self.__advanced_api_update(
-            obj.id,
-            obj.prefix,
-            obj.name,
-            obj.suffix,
-            obj.indexed
-        )
+        cls = cls or obj.get_parent()
+        if cls:
+            # Get the serialized name of the class object
+            cls_name = dao.NodeDAO.serialize_name(
+                cls.prefix,
+                cls.name,
+                cls.suffix
+            )
+     
+            # Get the serialized name of the new field object
+            # without adding the name delimiter and add the name
+            # delimiter instead of the meta one to indicate that
+            # this element belongs to the class 
+            field_name = dao.NodeDAO.serialize_name(
+                obj.prefix,
+                obj.name,       
+                obj.suffix,
+                dao.NameHierarchy.NAME_DELIMITER,
+                False
+            )
+            self.__advanced_api_update(
+                obj.id,
+                cls_name + field_name,
+                obj.indexed
+            )
       
-    def find_field(self, predicate: Callable[[Field], bool]
+    def find_field(self, cls: Class, predicate: Callable[[Field], bool]
         ) -> list[Field]:
         """
-            Return a list of Field that satisfy a predicate
+            Return a list of Field that belongs to this class 
+            that satisfy a predicate
         """ 
         # Convert a Node object to Field 
         def convert(node: base.Node):
@@ -1465,7 +1622,7 @@ class SourcetrailDB(object):
             obj.suffix  = suffix
             obj.indexed = indexed   
             # Copy the database handle to this object 
-            obj.database = self.database
+            obj._set_database(self.database)
     
             return obj 
 
@@ -1482,13 +1639,9 @@ class SourcetrailDB(object):
 """
 
 @TODO:
-    - Change the basic API to the private one
     - Decide which format use for the API between
       a functional one (actual) or a more object 
       oriented one 
-    - Add the possibility to have more than one 
-      child in a AdvancedBaseType 
-
 """
 
 def main():
@@ -1513,10 +1666,20 @@ def main():
     for cls in classes:
         print('%s %s%s' %(cls.prefix, cls.name, cls.suffix))
         # Add a new method to each class
-        srctrl.new_method(cls, 'new', '', '')
+        method = srctrl.new_method(cls, 'new', '', '')
         # Add a new field to each class
-        srctrl.new_method(cls, 'x', 'int', '')
-   
+        field = srctrl.new_field(cls, 'x', 'int', '')
+  
+    classes = srctrl.find_class(lambda e: e.name == 'MyOtherClass')
+    for cls in classes:
+        cls.name = 'MyOtherUpdatedClass'
+        srctrl.update_class(cls)
+    
+    # Note that here the method/field object are not valid anymore 
+    # because their values have been updated inside the database by 
+    # the update_class call. 
+    # @TODO: find a better way of doing this ?  
+
     srctrl.commit()
     srctrl.close()
        

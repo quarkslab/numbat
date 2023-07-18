@@ -340,7 +340,10 @@ class ElementComponentDAO(object):
   
         result = list()
         for row in rows:
-            result.append(base.ElementComponent(*row))
+            id_, element_id, type_, data = row 
+            result.append(base.ElementComponent(
+                id_, element_id, base.ElementComponentType(type_), data
+            ))
         
         return result
     
@@ -483,7 +486,10 @@ class EdgeDAO(object):
   
         result = list()
         for row in rows:
-            result.append(base.Edge(*row))
+            id_, type_, src, dst = row
+            result.append(base.Edge(
+                id_, base.EdgeType(type_), src, dst
+            ))
         
         return result
 
@@ -561,11 +567,14 @@ class NameHierarchy(object):
         """
         items = serialized_name.split(NameHierarchy.DELIMITER) 
         if items[0] not in NameHierarchy.NAME_DELIMITERS:
-            raise Exception("Invalide serialized name: '%s'"%serialized_name) 
+            raise Exception('Invalid Serialized Name')
 
-        name   = items[1][1:]
-        prefix = items[2][1:]
-        suffix = items[3][1:]
+        # Remove the first element since it's just the name delimiter 
+        items = items[1:]
+        # Read serialized name from right to left
+        name   = items[-3][1:]
+        prefix = items[-2][1:]
+        suffix = items[-1][1:]
         return (prefix, name, suffix)
 
 class NodeDAO(object):
@@ -703,7 +712,10 @@ class NodeDAO(object):
   
         result = list()
         for row in rows:
-            result.append(base.Node(*row))
+            id_, type_, serialized_name = row
+            result.append(base.Node(
+                id_, base.NodeType(type_), serialized_name
+            ))
         
         return result
 
@@ -888,7 +900,10 @@ class SymbolDAO(object):
   
         result = list()
         for row in rows:
-            result.append(base.Symbol(*row))
+            id_, type_ = row
+            result.append(base.Symbol(
+                id_, base.SymbolType(type_)
+            ))
         
         return result
 
@@ -1467,7 +1482,10 @@ class SourceLocationDAO(object):
   
         result = list()
         for row in rows:
-            result.append(base.SourceLocation(*row))
+            id_, fid, sl, sc, el, ec, type_ = row
+            result.append(base.SourceLocation(
+                id_, fid, sl, sc, el, ec, base.SourceLocationType(type_)
+            ))
         
         return result
 
@@ -1746,7 +1764,10 @@ class ComponentAccessDAO(object):
   
         result = list()
         for row in rows:
-            result.append(base.ComponentAccess(*row))
+            node_id, type_ = row
+            result.append(base.ComponentAccess(
+                node_id, base.ComponentAccessType(type_)
+            ))
         
         return result
 

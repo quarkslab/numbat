@@ -346,3 +346,178 @@ class Error(Element):
         self.indexed          = indexed
         self.translation_unit = translation_unit 
 
+class NameElement(object):
+    """
+        This class is a basic component of the serialized_name field
+        of the node table.
+    """ 
+    def __init__(self, prefix: str = None, name: str = None, 
+            postfix: str = None) -> None:
+
+        self._prefix  = prefix
+        self._name    = name
+        self._postfix = postfix 
+
+    def __str__(self) -> str:
+        return '<NameElement prefix:%s, name: %s, postfix: %s>' % (
+            self._prefix, self._name, self._postfix
+        )
+
+    def get_prefix(self) -> str:
+        return self._prefix
+
+    def get_name(self) -> str:
+        return self._name
+
+    def get_postix(self) -> str:
+        return self._postfix
+
+    def set_prefix(self, prefix: str) -> str:
+        self._prefix = prefix
+
+    def set_name(self, name: str) -> str:
+        self._name = name
+
+    def set_postfix(self, postfix: str) -> str:
+        self._postfix = postfix
+    
+class NameHierarchy(object):
+   
+    # Delimiters for the serialized_name 
+    DELIMITER              = '\t'
+    META_DELIMITER         = '\tm'
+    NAME_DELIMITER         = '\tn'
+    PART_DELIMITER         = '\ts'
+    SIGNATURE_DELIMITER    = '\tp'
+
+    # Name delimiter type
+    NAME_DELIMITER_FILE    = '/'
+    NAME_DELIMITER_CXX     = '::'
+    NAME_DELIMITER_JAVA    = '.'
+    NAME_DELIMITER_UNKNOWN = '@'
+
+    NAME_DELIMITERS = [
+        NAME_DELIMITER_FILE,    
+        NAME_DELIMITER_CXX,  
+        NAME_DELIMITER_JAVA,    
+        NAME_DELIMITER_UNKNOWN 
+    ]
+
+    def __init__(self, delimiter: str, elements: list[NameElement]):
+        self._delimiter = delimiter
+        self._elements  = elements
+
+    def __serialize(self, start: int, end: int) -> str:
+        """
+            wrapper for serialize_range and serialize_name 
+            :param start: the starting position of the elements  
+            :type start: int
+            :param end: the ending position of the elements  
+            :type end: int
+            :return: The serialized name 
+            :rtype: str
+        """
+        result = self._delimiter + self.META_DELIMITER
+        if not self._elements:
+            return result
+
+        elements = self._elements[start:end]
+        for i, elem in enumerate(elements):
+            if i > 0:
+                result += self.NAME_DELIMITER 
+
+            result += elem.get_name() + self.PART_DELIMITER
+            result += elem.get_prefix() + self.SIGNATURE_DELIMITER
+            result += elem.get_postix()
+        return result
+
+    def serialize_range(self, start: int, end: int) -> str:
+        """
+            Utility method that return a part of the serialized name
+            :param start: the starting position of the elements  
+            :type start: int
+            :param end: the ending position of the elements  
+            :type end: int
+            :return: The serialized name 
+            :rtype: str
+        """
+        return self.__serialize(start, end)
+
+    def serialize_name(self) -> str:
+        """
+            Utility method that return the full serialized name
+            :return: The serialized name 
+            :rtype: str
+        """
+        return self.__serialize(0, self.size())
+
+    def size(self) -> int:
+        """
+            Return the size of the NameHierarchy object.
+            :return: The size of the NameHierarchy
+            :rtype: int
+        """
+        return len(self._elements) if self._elements else 0
+
+    @staticmethod
+    def deserialize_name(serialized_name: str) -> object:
+        """
+            Utility method that return prefix, name and suffix 
+            from a serialized name
+            :param serialized_name: A string that should start by one 
+            of the following:
+                - NAME_DELIMITER_FILE
+                - NAME_DELIMITER_CXX
+                - NAME_DELIMITER_JAVA
+                - NAME_DELIMITER_UNKNOWN
+            And then be followed by at least 3 elements separated by
+            the delimiter DELIMITER. 
+            :type serialized_name: str
+            :return: The NameHierarchy corresponding to the deserialize_name 
+            :rtype: NameHierarchy
+        """
+        idx = serialized_name.find(NameHierarchy.META_DELIMITER)
+        if idx == -1:
+            # Invalid meta delimiter
+            return NameHierarchy(NameHierarchy.NAME_DELIMITER_UNKNOWN, None)
+        
+        elements = list()
+        result = NameHierarchy(serialized_name[0 : idx], None)
+
+        idx += len(NameHierarchy.META_DELIMITER)
+        while (idx < len(serialized_name)):
+            # Read name
+            spos = serialized_name.find(NameHierarchy.PART_DELIMITER, idx)
+            if spos == -1:
+                # Invalid part delimiter
+                return NameHierarchy(
+                    NameHierarchy.NAME_DELIMITER_UNKNOWN, None
+                )
+
+            name = serialized_name[idx : spos]
+            spos += len(NameHierarchy.PART_DELIMITER)
+     
+            # Read prefix
+            ppos = serialized_name.find(NameHierarchy.SIGNATURE_DELIMITER, spos)
+            if ppos == -1:
+                # Invalid signature delimiter
+                return NameHierarchy(
+                    NameHierarchy.NAME_DELIMITER_UNKNOWN, None
+                )
+
+            prefix = serialized_name[spos : ppos]
+            ppos += len(NameHierarchy.SIGNATURE_DELIMITER)
+ 
+            # Read postfix
+            npos = serialized_name.find(NameHierarchy.NAME_DELIMITER, ppos)
+            if npos == -1:
+                postfix = serialized_name[ppos:] 
+                idx = len(serialized_name)
+            else:
+                postfix = serialized_name[ppos : npos]
+                idx = npos + len(NameHierarchy.NAME_DELIMITER)
+ 
+            elements.append(NameElement(prefix, name, postfix)) 
+
+        result._elements = elements
+        return result 

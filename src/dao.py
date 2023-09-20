@@ -252,7 +252,7 @@ class ElementComponentDAO(object):
         return SqliteHelper.exec(database, '''
             INSERT INTO element_component(
                 id, element_id, type, data
-            ) VALUES(?, ?, ?, ?);''', (obj.id, obj.elem_id, obj.type.value, obj.data)
+            ) VALUES(NULL, ?, ?, ?);''', (obj.elem_id, obj.type.value, obj.data)
         )
  
     @staticmethod
@@ -493,90 +493,6 @@ class EdgeDAO(object):
         
         return result
 
-class NameHierarchy(object):
-   
-    # Delimiters for the serialized_name 
-    DELIMITER              = '\t'
-    META_DELIMITER         = '\tm'
-    NAME_DELIMITER         = '\tn'
-    PART_DELIMITER         = '\ts'
-    SIGNATURE_DELIMITER    = '\tp'
-
-    # Name delimiter type
-    NAME_DELIMITER_FILE    = '/'
-    NAME_DELIMITER_CXX     = '::'
-    NAME_DELIMITER_JAVA    = '.'
-    NAME_DELIMITER_UNKNOWN = '@'
-
-    NAME_DELIMITERS = [
-        NAME_DELIMITER_FILE,    
-        NAME_DELIMITER_CXX,  
-        NAME_DELIMITER_JAVA,    
-        NAME_DELIMITER_UNKNOWN 
-    ]
-
-    @staticmethod
-    def serialize_name(prefix: str = '', name: str = '', suffix: str = '',
-            type_delimiter: str = '', add_name_delimiter: bool = True) -> str:
-        """
-            Utility method that return a serialized name
-            :param prefix: The prefix of this element 
-            :type prefix: str
-            :param name: The name of this element
-            :type name: str
-            :param suffix: The suffix of this element
-            :type suffix: str
-            :param type_delimiter: One of the following:
-                - META_DELIMITER
-                - NAME_DELIMITER
-            :type type_delimiter: str
-            :param add_name_delimiter: A boolean that indicate if a NAME_DELIMITER_
-            must be added at the start of the resulting element. This is useful for
-            nested names.
-            :type add_name_delimiter: bool
-            :return: The serialized name 
-            :rtype: str
-        """
-        return ''.join([
-            NameHierarchy.NAME_DELIMITER_CXX if add_name_delimiter else '',
-            type_delimiter,
-            name,
-            NameHierarchy.PART_DELIMITER,
-            prefix,
-            NameHierarchy.SIGNATURE_DELIMITER,
-            suffix
-        ])
-
-    @staticmethod
-    def deserialize_name(serialized_name: str = '') -> tuple:
-        """
-            Utility method that return prefix, name and suffix 
-            from a serialized name
-            :param serialized_name: A string that should start by one 
-            of the following:
-                - NAME_DELIMITER_FILE
-                - NAME_DELIMITER_CXX
-                - NAME_DELIMITER_JAVA
-                - NAME_DELIMITER_UNKNOWN
-            And then be followed by at least 3 elements separated by
-            the delimiter DELIMITER. 
-            :type serialized_name: str
-            :return: A tuple containing the prefix, name and suffix of
-            this element
-            :rtype: tuple
-        """
-        items = serialized_name.split(NameHierarchy.DELIMITER) 
-        if items[0] not in NameHierarchy.NAME_DELIMITERS:
-            raise Exception('Invalid Serialized Name')
-
-        # Remove the first element since it's just the name delimiter 
-        items = items[1:]
-        # Read serialized name from right to left
-        name   = items[-3][1:]
-        prefix = items[-2][1:]
-        suffix = items[-1][1:]
-        return (prefix, name, suffix)
-
 class NodeDAO(object):
  
     @staticmethod
@@ -718,54 +634,6 @@ class NodeDAO(object):
             ))
         
         return result
-
-    @staticmethod
-    def serialize_name(prefix: str = '', name: str = '', suffix: str = '',
-            type_delimiter: str = NameHierarchy.META_DELIMITER,
-            add_name_delimiter: bool = True) -> str:
-        """
-            Utility method that return a serialized name
-            :param prefix: The prefix of this element 
-            :type prefix: str
-            :param name: The name of this element
-            :type name: str
-            :param suffix: The suffix of this element
-            :type suffix: str
-            :param type_delimiter: One of the following:
-                - META_DELIMITER
-                - NAME_DELIMITER
-            :type type_delimiter: str
-            :param add_name_delimiter: A boolean that indicate if a NAME_DELIMITER_
-            must be added at the start of the resulting element. This is useful for
-            nested names.
-            :type add_name_delimiter: bool
-            :return: The serialized name 
-            :rtype: str
-        """
-
-        return NameHierarchy.serialize_name(
-            prefix, name, suffix, type_delimiter, add_name_delimiter
-        ) 
-
-    @staticmethod
-    def deserialize_name(serialized_name: str = '') -> tuple:
-        """
-            Utility method that return prefix, name and suffix 
-            from a serialized name
-            :param serialized_name: A string that should start by one 
-            of the following:
-                - NAME_DELIMITER_FILE
-                - NAME_DELIMITER_CXX
-                - NAME_DELIMITER_JAVA
-                - NAME_DELIMITER_UNKNOWN
-            And then be followed by at least 3 elements separated by
-            the delimiter DELIMITER. 
-            :type serialized_name: str
-            :return: A tuple containing the prefix, name and suffix of
-            this element
-            :rtype: tuple
-        """
-        return NameHierarchy.deserialize_name(serialized_name) 
 
 class SymbolDAO(object):
  
@@ -1289,6 +1157,25 @@ class LocalSymbolDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM local_symbol WHERE id = ?;''', (elem_id,)
+        ) 
+   
+        if len(out) == 1:
+            return base.LocalSymbol(*out[0])
+ 
+    @staticmethod
+    def get_from_name(database: sqlite3.Connection, name: str) -> base.LocalSymbol:
+        """
+            Return a local_symbol from the database with the matching name
+            :param database: A database handle
+            :type database: sqlite3.Connection           
+            :param elem_id: The name of the local_symbol to retrieve  
+            :type elem_id: str
+            :return: A LocalSymbol object that reflect the content inside 
+            the database 
+            :rtype: base.LocalSymbol
+        """
+        out = SqliteHelper.fetch(database, '''
+            SELECT * FROM local_symbol WHERE name = ? LIMIT 1;''', (name,)
         ) 
    
         if len(out) == 1:

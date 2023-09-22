@@ -170,7 +170,11 @@ class SourcetrailDB(object):
         """
         dao.MetaDAO.new(self.database, 'storage_version', '25')
         dao.MetaDAO.new(self.database, 'project_settings', self.SOURCETRAIL_XML)
-  
+ 
+    # ------------------------------------------------------------------------ #
+    # Sourcetrail API (Existing one)                                           #
+    # ------------------------------------------------------------------------ #
+ 
     def record_symbol(self, hierarchy: base.NameHierarchy) -> int: 
         """
             Record a new Symbol in the database
@@ -180,17 +184,11 @@ class SourcetrailDB(object):
 
         # Add all the nodes needed 
         for i in range(0, hierarchy.size()):
-            elem = base.Element()
-            elem.id = dao.ElementDAO.new(self.database, elem)
-
-            dao.NodeDAO.new(self.database, base.Node(
-                elem.id,
-                base.NodeType.NODE_SYMBOL,
-                hierarchy.serialize_range(0, i+1)
+            ids.append(self.__add_if_not_existing(
+                hierarchy.serialize_range(0, i+1),
+                base.NodeType.NODE_SYMBOL
             ))
-    
-            ids.append(elem.id)
-           
+          
         # Add all the edges between nodes
         if len(ids) > 1:
             parent, childs = ids[0], ids[1:] 
@@ -425,19 +423,16 @@ class SourcetrailDB(object):
             lines = open(path, 'r').readlines()
 
         # Insert a new node
-        elem = base.Element()
-        elem.id = dao.ElementDAO.new(self.database, elem)
-        dao.NodeDAO.new(self.database, base.Node(
-            elem.id,
-            base.NodeType.NODE_FILE,
-            hierarchy.serialize_name()
-        ))
-         
+        elem_id = self.__add_if_not_existing(
+            hierarchy.serialize_name(),
+            base.NodeType.NODE_FILE
+        )
+        
         # Insert a new file
         dao.FileDAO.new(
             self.database, 
             base.File(
-                elem.id,
+                elem_id,
                 str(path.absolute()),
                 '', # Empty language identifier for now
                 modification_time,
@@ -451,13 +446,13 @@ class SourcetrailDB(object):
             # Insert a new filecontent
             dao.FileContentDAO.new(self.database,
                 base.FileContent(
-                    elem.id,
+                    elem_id,
                     ''.join(lines)
                 )
             )    
 
         # Return the newly created element id
-        return elem.id
+        return elem_id
 
     def record_file_language(self, id_: int, language: str) -> None:
         """
@@ -535,6 +530,54 @@ class SourcetrailDB(object):
             base.SourceLocationType.INDEXER_ERROR
         )
 
+    # ------------------------------------------------------------------------ #
+    # Sourcetrail API (New features)                                           #
+    # ------------------------------------------------------------------------ #
+    
+    def __add_if_not_existing(self, name: str, type_: base.NodeType) -> int:
+        """
+            Create a new node if it doesn't already exist
+              
+            @Warning: This is not the same behavior as SourcetrailDB
+            We are not allowing nodes with same serialized_name
+        """
+        node = dao.NodeDAO.get_by_name(self.database, name)
+        if not node:
+            elem = base.Element()
+            elem.id = dao.ElementDAO.new(self.database, elem)
+
+            dao.NodeDAO.new(self.database, base.Node(
+                elem.id,
+                type_,
+                name 
+            ))
+    
+            return elem.id
+        else:
+            return node.id
+            
+    def get_symbol(self, hierarchy: base.NameHierarchy) -> int: 
+        """
+            Return the corresponding Symbol from the database
+        """
+ 
+        serialized_name = hierarchy.serialize_name()
+        node = dao.NodeDAO.get_by_name(self.database, serialized_name)
+        if node:
+            return node.id
+
+    def record_symbol_child(self, parent_id: int, element: base.NameElement) -> int:
+        """
+            Add a child to an existing node without having to give the full
+            hierarchy of the element
+        """
+        
+        node = dao.NodeDAO.get(self.database, parent_id)
+        if node:
+            hierarchy = base.NameHierarchy.deserialize_name(node.name)
+            hierarchy.extend(element)
+            return self.record_symbol(hierarchy)
+
 def main():
     srctrl = SourcetrailDB()
     try:
@@ -544,6 +587,7 @@ def main():
         srctrl.open('generated/database')
         srctrl.clear()
 
+    # ----- Test for SourcetrailDB core features ----- #
     file_id = srctrl.record_file(pathlib.Path('generated/file.py')) 
     srctrl.record_file_language(file_id, 'python')
 
@@ -595,6 +639,22 @@ def main():
 
     useage_id = srctrl.record_reference(method_id, member_id, base.EdgeType.USAGE)
     srctrl.record_reference_location(useage_id, file_id, 7, 10, 7, 18)
+
+    # ----- Test for new features ----- #
+
+    # This should return the same id as the one we inserted
+    symbol_id_ = srctrl.record_symbol(base.NameHierarchy(
+        base.NameHierarchy.NAME_DELIMITER_JAVA,
+        [base.NameElement(
+            '',
+            'MyType',
+            ''
+        )]
+    ))
+    assert(symbol_id == symbol_id_)
+
+    # Add a child to a symbol without having to give his whole hierarchy
+    srctrl.record_symbol_child(symbol_id, base.NameElement('', 'my_other_method', ''))
 
     srctrl.commit()
     srctrl.close()

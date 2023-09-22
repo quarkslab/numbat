@@ -4,30 +4,19 @@
 
 ## Introduction
 
-The goal of this project is to use sourcetrail software to map firmwares, this could be an extension
-to the existing project [pyrrha](https://gitlab.qb/firmware-re/cartography/pyrrha).
- 
-The goal of this tool will be to list all the relation between binaries (much like pyrrha) but with
-more information. In particular, we would be able to get the disassembly / decompiled code of all the 
-binaries and display them in sourcetrail UI.
+The goal of this project is to provide a new API to Sourcetrail software. Sourcetrail is a archived project
+so the API is no longer maintain. Our goal is to provide a better SDK than the already existing one to
+manipulate the underlying sqlite3 database with less constraints. On top of that, we are planning to add
+new features such finding an element in the database. 
 
-## Generals Ideas  
+Numbat will be used in the already existing project [pyrrha](https://gitlab.qb/firmware-re/cartography/pyrrha).
 
-The following tasks need to be done:
-
- - Providing a better SDK than the already existing one to be able to manipulate underlying sqlite3
-   database with less constraints.
- - Provide information about decompiled code and assembly (maybe using Ghidra or IDA API) 
- - Instead of displaying link from one function to a binary (what pyrrha is currently doing)
-   we would display relation with the functions within the binaries. For example, the function
-   ``printf`` inside ``ls`` will have a reference to the function ``memset`` of the binary ``libc.6.so`` 
-
-Here is an overview of sourcetrail databases, the main component is the element table which is used
+Here is an overview of Sourcetrail database, the main component is the element table which is used
 by almost all the other elements for simple cross referencing between tables. 
 
 ![Sourcetrail Database](https://gitlab.qb/sbabigeon/numbat/-/raw/main/sourcetrail_db.png)
 
-## TODO
+## Difference with SourcetrailDB
 
-The first thing to do is to define an API for the user, then actually implement the API,
-then try the API on simple use case.
+For now the only difference in term of behavior, is that we don't allow duplicate in the Node table, which 
+means that is not possible to add, for example, two classes with the same prefix, name and postfix.

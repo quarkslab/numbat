@@ -593,6 +593,26 @@ class NodeDAO(object):
         if len(out) == 1:
             id_, type_, serialized_name = out[0]
             return base.Node(id_, base.NodeType(type_), serialized_name)
+
+    @staticmethod
+    def get_by_name(database: sqlite3.Connection, name: str) -> base.Node:
+        """
+            Return a Node from the database with the matching serialized_name 
+            :param database: A database handle
+            :type database: sqlite3.Connection           
+            :param elem_id: The serialized_name of the element to retrieve  
+            :type elem_id: str 
+            :return: A Node object that reflect the content inside 
+            the database 
+            :rtype: base.Node
+        """
+        out = SqliteHelper.fetch(database, '''
+            SELECT * FROM node WHERE serialized_name = ? LIMIT 1;''', (name,)
+        ) 
+   
+        if len(out) == 1:
+            id_, type_, serialized_name = out[0]
+            return base.Node(id_, base.NodeType(type_), serialized_name)
  
     @staticmethod
     def update(database: sqlite3.Connection, obj: base.Node) -> None:

@@ -431,6 +431,15 @@ class NameHierarchy(object):
             result += elem.get_postix()
         return result
 
+    def extend(self, element: NameElement) -> None:
+        """
+            Utility method that adds a new element to a hierarchy
+            :param element: The new element to add
+            :type element: NameElement
+            :rtype: NoneType
+        """
+        self._elements.append(element)
+
     def serialize_range(self, start: int, end: int) -> str:
         """
             Utility method that return a part of the serialized name

@@ -1,2 +1,4 @@
-**/tags/
-**/__pycache__/
+__pycache__/
+build/
+*.egg-info/
+.idea/

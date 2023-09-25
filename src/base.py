@@ -1,12 +1,12 @@
 import enum
 
+
 # ------------------------------------------------------------------------ #
 # Basic wrapper Types for API                                              #
 # ------------------------------------------------------------------------ #
 
 class Element(object):
-   
-    """ 
+    """
         Wrapper class for sourcetrail element table:
             
         CREATE TABLE element(
@@ -14,18 +14,20 @@ class Element(object):
             PRIMARY KEY(id)
         )
     """
- 
+
     def __init__(self, id_: int = 0) -> None:
-        self.id = id_ 
+        self.id = id_
+
 
 class ElementComponentType(enum.Enum):
     """
         Internal class that represent an ElementComponent type 
         inside the sourcetrail database    
     """
- 
-    NONE         = 0
+
+    NONE = 0
     IS_AMBIGUOUS = 1
+
 
 class ElementComponent(Element):
     """ 
@@ -40,35 +42,36 @@ class ElementComponent(Element):
             FOREIGN KEY(element_id) REFERENCES element(id) ON DELETE CASCADE
         )
     """
- 
-    def __init__(self, id_: int = 0, elem_id: int = 0, 
-            type_: ElementComponentType = ElementComponentType.NONE, 
-            data: str = '') -> None:
 
+    def __init__(self, id_: int = 0, elem_id: int = 0,
+                 type_: ElementComponentType = ElementComponentType.NONE,
+                 data: str = '') -> None:
         super().__init__(id_)
         self.elem_id = elem_id
-        self.type    = type_
-        self.data    = data     
+        self.type = type_
+        self.data = data
+
 
 class EdgeType(enum.Enum):
     """
-        Internal class that represent a Edge type inside the 
+        Internal class that represent an Edge type inside the
         sourcetrail database    
     """
-    UNDEFINED               = 0
-    MEMBER                  = 1 << 0
-    TYPE_USAGE              = 1 << 1
-    USAGE                   = 1 << 2
-    CALL                    = 1 << 3
-    INHERITANCE             = 1 << 4
-    OVERRIDE                = 1 << 5
-    TYPE_ARGUMENT           = 1 << 6
+    UNDEFINED = 0
+    MEMBER = 1 << 0
+    TYPE_USAGE = 1 << 1
+    USAGE = 1 << 2
+    CALL = 1 << 3
+    INHERITANCE = 1 << 4
+    OVERRIDE = 1 << 5
+    TYPE_ARGUMENT = 1 << 6
     TEMPLATE_SPECIALIZATION = 1 << 7
-    INCLUDE                 = 1 << 8
-    IMPORT                  = 1 << 9
-    BUNDLED_EDGES           = 1 << 10
-    MACRO_USAGE             = 1 << 11
-    ANNOTATION_USAGE        = 1 << 12
+    INCLUDE = 1 << 8
+    IMPORT = 1 << 9
+    BUNDLED_EDGES = 1 << 10
+    MACRO_USAGE = 1 << 11
+    ANNOTATION_USAGE = 1 << 12
+
 
 class Edge(Element):
     """ 
@@ -86,40 +89,41 @@ class Edge(Element):
         ) 
     """
 
-    def __init__(self, id_: int = 0, type_: EdgeType = EdgeType.UNDEFINED, 
-            src: int = 0, dst: int = 0) -> None:
-
-        super().__init__(id_)  
+    def __init__(self, id_: int = 0, type_: EdgeType = EdgeType.UNDEFINED,
+                 src: int = 0, dst: int = 0) -> None:
+        super().__init__(id_)
         self.type = type_
-        self.src  = src
-        self.dst  = dst
+        self.src = src
+        self.dst = dst
+
 
 class NodeType(enum.Enum):
     """
-        Internal class that represent a Edge type inside the 
+        Internal class that represent an Edge type inside the
         sourcetrail database    
     """
-    NODE_SYMBOL          = 1 << 0
-    NODE_TYPE            = 1 << 1
-    NODE_BUILTIN_TYPE    = 1 << 2
-    NODE_MODULE          = 1 << 3
-    NODE_NAMESPACE       = 1 << 4
-    NODE_PACKAGE         = 1 << 5
-    NODE_STRUCT          = 1 << 6
-    NODE_CLASS           = 1 << 7
-    NODE_INTERFACE       = 1 << 8
-    NODE_ANNOTATION      = 1 << 9
+    NODE_SYMBOL = 1 << 0
+    NODE_TYPE = 1 << 1
+    NODE_BUILTIN_TYPE = 1 << 2
+    NODE_MODULE = 1 << 3
+    NODE_NAMESPACE = 1 << 4
+    NODE_PACKAGE = 1 << 5
+    NODE_STRUCT = 1 << 6
+    NODE_CLASS = 1 << 7
+    NODE_INTERFACE = 1 << 8
+    NODE_ANNOTATION = 1 << 9
     NODE_GLOBAL_VARIABLE = 1 << 10
-    NODE_FIELD           = 1 << 11
-    NODE_FUNCTION        = 1 << 12
-    NODE_METHOD          = 1 << 13
-    NODE_ENUM            = 1 << 14
-    NODE_ENUM_CONSTANT   = 1 << 15
-    NODE_TYPEDEF         = 1 << 16
-    NODE_TYPE_PARAMETER  = 1 << 17
-    NODE_FILE            = 1 << 18
-    NODE_MACRO           = 1 << 19
-    NODE_UNION           = 1 << 20
+    NODE_FIELD = 1 << 11
+    NODE_FUNCTION = 1 << 12
+    NODE_METHOD = 1 << 13
+    NODE_ENUM = 1 << 14
+    NODE_ENUM_CONSTANT = 1 << 15
+    NODE_TYPEDEF = 1 << 16
+    NODE_TYPE_PARAMETER = 1 << 17
+    NODE_FILE = 1 << 18
+    NODE_MACRO = 1 << 19
+    NODE_UNION = 1 << 20
+
 
 class Node(Element):
     """
@@ -134,21 +138,22 @@ class Node(Element):
         ) 
     """
 
-    def __init__(self, id_: int = 0, type_: NodeType = NodeType.NODE_TYPE, 
-            name: str = '') -> None:
-
-        super().__init__(id_)  
+    def __init__(self, id_: int = 0, type_: NodeType = NodeType.NODE_TYPE,
+                 name: str = '') -> None:
+        super().__init__(id_)
         self.type = type_
         self.name = name
+
 
 class SymbolType(enum.Enum):
     """
         Internal class that represent a Symbol type inside the 
         sourcetrail database    
     """
-    NONE     = 0
+    NONE = 0
     IMPLICIT = 1
-    EXPLICIT = 2 
+    EXPLICIT = 2
+
 
 class Symbol(Element):
     """
@@ -163,9 +168,9 @@ class Symbol(Element):
     """
 
     def __init__(self, id_: int = 0, definition: SymbolType = SymbolType.NONE) -> None:
-
-        super().__init__(id_)  
+        super().__init__(id_)
         self.definition_kind = definition
+
 
 class File(Element):
     """
@@ -182,20 +187,20 @@ class File(Element):
             PRIMARY KEY(id), 
             FOREIGN KEY(id) REFERENCES node(id) ON DELETE CASCADE
         )
-    """ 
+    """
 
-    def __init__(self, id_: int = 0, path: str = '', language: str = '', 
-            modification_time: str = '', indexed: int = 0, complete: int = 0, 
-            line_count: int = 0) -> None:
-    
-        super().__init__(id_)  
-        self.path              = path
-        self.language          = language
+    def __init__(self, id_: int = 0, path: str = '', language: str = '',
+                 modification_time: str = '', indexed: int = 0, complete: int = 0,
+                 line_count: int = 0) -> None:
+        super().__init__(id_)
+        self.path = path
+        self.language = language
         self.modification_time = modification_time
-        self.indexed           = indexed
-        self.complete          = complete
-        self.line_count        = line_count
-        
+        self.indexed = indexed
+        self.complete = complete
+        self.line_count = line_count
+
+
 class FileContent(Element):
     """
         Wrapper class for sourcetrail filecontent table:
@@ -209,9 +214,9 @@ class FileContent(Element):
     """
 
     def __init__(self, id_: int = 0, content: str = '') -> None:
- 
-        super().__init__(id_)  
+        super().__init__(id_)
         self.content = content
+
 
 class LocalSymbol(Element):
     """
@@ -226,21 +231,22 @@ class LocalSymbol(Element):
     """
 
     def __init__(self, id_: int = 0, name: str = '') -> None:
-
-        super().__init__(id_)  
+        super().__init__(id_)
         self.name = name
 
+
 class SourceLocationType(enum.Enum):
-    TOKEN           = 0
-    SCOPE           = 1
-    QUALIFIER       = 2
-    LOCAL_SYMBOL    = 3
-    SIGNATURE       = 4
-    COMMENT         = 5
-    ERROR           = 6
+    TOKEN = 0
+    SCOPE = 1
+    QUALIFIER = 2
+    LOCAL_SYMBOL = 3
+    SIGNATURE = 4
+    COMMENT = 5
+    ERROR = 6
     FULLTEXT_SEARCH = 7
-    SCREEN_SEARCH   = 8
-    UNSOLVED        = 9
+    SCREEN_SEARCH = 8
+    UNSOLVED = 9
+
 
 class SourceLocation(Element):
     """
@@ -259,17 +265,17 @@ class SourceLocation(Element):
         )
     """
 
-    def __init__(self, id_: int = 0, file_node_id: int = 0, start_line: int = 0, 
-            start_column: int = 0, end_line: int = 0, end_column: int = 0, 
-            type_: SourceLocationType = SourceLocationType.UNSOLVED) -> None:
-        
-        super().__init__(id_)  
+    def __init__(self, id_: int = 0, file_node_id: int = 0, start_line: int = 0,
+                 start_column: int = 0, end_line: int = 0, end_column: int = 0,
+                 type_: SourceLocationType = SourceLocationType.UNSOLVED) -> None:
+        super().__init__(id_)
         self.file_node_id = file_node_id
-        self.start_line   = start_line
+        self.start_line = start_line
         self.start_column = start_column
-        self.end_line     = end_line
-        self.end_column   = end_column
-        self.type         = type_
+        self.end_line = end_line
+        self.end_column = end_column
+        self.type = type_
+
 
 class Occurrence(object):
     """
@@ -286,22 +292,23 @@ class Occurrence(object):
     """
 
     def __init__(self, elem_id: int = 0, source_location_id: int = 0) -> None:
-          
         self.element_id = elem_id
         self.source_location_id = source_location_id
+
 
 class ComponentAccessType(enum.Enum):
     """
         Internal class that represent a ComponentAccess type inside 
         the sourcetrail database    
     """
-    NONE               = 0
-    PUBLIC             = 1
-    PROTECTED          = 2
-    PRIVATE            = 3
-    DEFAULT            = 4
+    NONE = 0
+    PUBLIC = 1
+    PROTECTED = 2
+    PRIVATE = 3
+    DEFAULT = 4
     TEMPLATE_PARAMETER = 5
-    TYPE_PARAMETER     = 6
+    TYPE_PARAMETER = 6
+
 
 class ComponentAccess(object):
     """
@@ -313,13 +320,13 @@ class ComponentAccess(object):
             PRIMARY KEY(node_id), 
             FOREIGN KEY(node_id) REFERENCES node(id) ON DELETE CASCADE
         )
-    """  
+    """
 
-    def __init__(self, node_id: int = 0, 
-        type_: ComponentAccessType = ComponentAccessType.NONE) -> None:
-        
+    def __init__(self, node_id: int = 0,
+                 type_: ComponentAccessType = ComponentAccessType.NONE) -> None:
         self.node_id = node_id
-        self.type    = type_
+        self.type = type_
+
 
 class Error(Element):
     """
@@ -333,30 +340,29 @@ class Error(Element):
             translation_unit TEXT, 
             PRIMARY KEY(id), 
             FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
-
         )
     """
 
-    def __init__(self, id_: int = 0, message: str = '', fatal: int = 0, 
-            indexed: int = 0, translation_unit: str = '') -> None:
-    
+    def __init__(self, id_: int = 0, message: str = '', fatal: int = 0,
+                 indexed: int = 0, translation_unit: str = '') -> None:
         super().__init__(id_)
-        self.message          = message
-        self.fatal            = fatal
-        self.indexed          = indexed
-        self.translation_unit = translation_unit 
+        self.message = message
+        self.fatal = fatal
+        self.indexed = indexed
+        self.translation_unit = translation_unit
+
 
 class NameElement(object):
     """
         This class is a basic component of the serialized_name field
         of the node table.
-    """ 
-    def __init__(self, prefix: str = None, name: str = None, 
-            postfix: str = None) -> None:
+    """
 
-        self._prefix  = prefix
-        self._name    = name
-        self._postfix = postfix 
+    def __init__(self, prefix: str = None, name: str = None,
+                 postfix: str = None) -> None:
+        self._prefix = prefix
+        self._name = name
+        self._postfix = postfix
 
     def __str__(self) -> str:
         return '<NameElement prefix:%s, name: %s, postfix: %s>' % (
@@ -380,32 +386,32 @@ class NameElement(object):
 
     def set_postfix(self, postfix: str) -> str:
         self._postfix = postfix
-    
+
+
 class NameHierarchy(object):
-   
-    # Delimiters for the serialized_name 
-    DELIMITER              = '\t'
-    META_DELIMITER         = '\tm'
-    NAME_DELIMITER         = '\tn'
-    PART_DELIMITER         = '\ts'
-    SIGNATURE_DELIMITER    = '\tp'
+    # Delimiters for the serialized_name
+    DELIMITER = '\t'
+    META_DELIMITER = '\tm'
+    NAME_DELIMITER = '\tn'
+    PART_DELIMITER = '\ts'
+    SIGNATURE_DELIMITER = '\tp'
 
     # Name delimiter type
-    NAME_DELIMITER_FILE    = '/'
-    NAME_DELIMITER_CXX     = '::'
-    NAME_DELIMITER_JAVA    = '.'
+    NAME_DELIMITER_FILE = '/'
+    NAME_DELIMITER_CXX = '::'
+    NAME_DELIMITER_JAVA = '.'
     NAME_DELIMITER_UNKNOWN = '@'
 
     NAME_DELIMITERS = [
-        NAME_DELIMITER_FILE,    
-        NAME_DELIMITER_CXX,  
-        NAME_DELIMITER_JAVA,    
-        NAME_DELIMITER_UNKNOWN 
+        NAME_DELIMITER_FILE,
+        NAME_DELIMITER_CXX,
+        NAME_DELIMITER_JAVA,
+        NAME_DELIMITER_UNKNOWN
     ]
 
     def __init__(self, delimiter: str, elements: list[NameElement]):
         self._delimiter = delimiter
-        self._elements  = elements
+        self._elements = elements
 
     def __serialize(self, start: int, end: int) -> str:
         """
@@ -424,7 +430,7 @@ class NameHierarchy(object):
         elements = self._elements[start:end]
         for i, elem in enumerate(elements):
             if i > 0:
-                result += self.NAME_DELIMITER 
+                result += self.NAME_DELIMITER
 
             result += elem.get_name() + self.PART_DELIMITER
             result += elem.get_prefix() + self.SIGNATURE_DELIMITER
@@ -489,9 +495,9 @@ class NameHierarchy(object):
         if idx == -1:
             # Invalid meta delimiter
             return NameHierarchy(NameHierarchy.NAME_DELIMITER_UNKNOWN, None)
-        
+
         elements = list()
-        result = NameHierarchy(serialized_name[0 : idx], None)
+        result = NameHierarchy(serialized_name[0: idx], None)
 
         idx += len(NameHierarchy.META_DELIMITER)
         while (idx < len(serialized_name)):
@@ -503,9 +509,9 @@ class NameHierarchy(object):
                     NameHierarchy.NAME_DELIMITER_UNKNOWN, None
                 )
 
-            name = serialized_name[idx : spos]
+            name = serialized_name[idx: spos]
             spos += len(NameHierarchy.PART_DELIMITER)
-     
+
             # Read prefix
             ppos = serialized_name.find(NameHierarchy.SIGNATURE_DELIMITER, spos)
             if ppos == -1:
@@ -514,19 +520,19 @@ class NameHierarchy(object):
                     NameHierarchy.NAME_DELIMITER_UNKNOWN, None
                 )
 
-            prefix = serialized_name[spos : ppos]
+            prefix = serialized_name[spos: ppos]
             ppos += len(NameHierarchy.SIGNATURE_DELIMITER)
- 
+
             # Read postfix
             npos = serialized_name.find(NameHierarchy.NAME_DELIMITER, ppos)
             if npos == -1:
-                postfix = serialized_name[ppos:] 
+                postfix = serialized_name[ppos:]
                 idx = len(serialized_name)
             else:
-                postfix = serialized_name[ppos : npos]
+                postfix = serialized_name[ppos: npos]
                 idx = npos + len(NameHierarchy.NAME_DELIMITER)
- 
-            elements.append(NameElement(prefix, name, postfix)) 
+
+            elements.append(NameElement(prefix, name, postfix))
 
         result._elements = elements
-        return result 
+        return result

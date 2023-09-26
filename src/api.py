@@ -1,10 +1,6 @@
 import os
-import sys
-import time
 import pathlib
 import datetime
-import sqlite3
-from collections.abc import Callable
 
 import base
 import dao
@@ -58,7 +54,7 @@ class SourcetrailDB(object):
         if not self.path.exists() or not self.path.is_file():
             raise Exception('File not found')
 
-        self.database = dao.SqliteHelper.connect(self.path)
+        self.database = dao.SqliteHelper.connect(str(self.path))
 
     def create(self, path: pathlib.Path) -> None:
         """
@@ -82,7 +78,7 @@ class SourcetrailDB(object):
         if self.path.exists():
             raise Exception('File already exists')
 
-        self.database = dao.SqliteHelper.connect(self.path)
+        self.database = dao.SqliteHelper.connect(str(self.path))
         # Try to create the tables
         try:
             self.__create_sql_tables()
@@ -162,8 +158,7 @@ class SourcetrailDB(object):
         """
 
         filename = self.path.with_suffix(self.SOURCETRAIL_PROJECT_EXT)
-        with open(filename, 'w') as prj:
-            prj.write(self.SOURCETRAIL_XML)
+        filename.write_text(self.SOURCETRAIL_XML)
 
     def __add_meta_info(self) -> None:
         """
@@ -467,13 +462,13 @@ class SourcetrailDB(object):
 
     def record_local_symbol(self, name: str):
         # Check that the symbol does not already exist
-        local = dao.LocalSymbolDAO.get_from_name(name)
+        local = dao.LocalSymbolDAO.get_from_name(self.database, name)
         if not local:
             # Insert a new local symbol
             elem = base.Element()
             elem.id = dao.ElementDAO.new(self.database, elem)
             local = base.LocalSymbol(elem.id, name)
-            dao.LocalSymbolDAO.new(local)
+            dao.LocalSymbolDAO.new(self.database, local)
 
         return local.id
 

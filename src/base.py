@@ -475,7 +475,7 @@ class NameHierarchy(object):
         return len(self._elements) if self._elements else 0
 
     @staticmethod
-    def deserialize_name(serialized_name: str) -> object:
+    def deserialize_name(serialized_name: str) -> 'NameHierarchy':
         """
             Utility method that return prefix, name and suffix 
             from a serialized name
@@ -500,7 +500,7 @@ class NameHierarchy(object):
         result = NameHierarchy(serialized_name[0: idx], None)
 
         idx += len(NameHierarchy.META_DELIMITER)
-        while (idx < len(serialized_name)):
+        while idx < len(serialized_name):
             # Read name
             spos = serialized_name.find(NameHierarchy.PART_DELIMITER, idx)
             if spos == -1:

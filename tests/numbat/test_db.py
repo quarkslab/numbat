@@ -1,5 +1,5 @@
 from numbat import SourcetrailDB
-from numbat.base import NameHierarchy, NameElement
+from numbat.base import NameHierarchy, NameElement, NodeType
 
 import pathlib
 import shutil
@@ -77,6 +77,77 @@ def test_record_file(test_create_db):
 
     srctrl.close()
 
+@pytest.fixture()
+def test_record_symbol(test_create_db):
+    path = '%s/db.srctrldb' % TMP_PATH
+
+    # Open an existing database
+    srctrl = SourcetrailDB()
+    srctrl.open(path)
+ 
+    hierarchy = NameHierarchy(
+        NameHierarchy.NAME_DELIMITER_JAVA,
+        [NameElement(
+            '',
+            'MyType',
+            ''
+        )]
+    )
+    # Insert a symbol once
+    id_a = srctrl.record_symbol(hierarchy)
+    assert(id_a != None)
+
+    # Check that symbol exists
+    assert(id_a == srctrl.get_symbol(hierarchy))
+    
+    srctrl.close()
+    
+def test_record_symbol_kind(test_record_symbol):
+    path = '%s/db.srctrldb' % TMP_PATH
+
+    # Open an existing database
+    srctrl = SourcetrailDB()
+    srctrl.open(path)
+
+    hierarchy = NameHierarchy(
+        NameHierarchy.NAME_DELIMITER_JAVA,
+        [NameElement(
+            '',
+            'MyType',
+            ''
+        )]
+    )
+    # Insert a symbol once
+    id_a = srctrl.record_symbol(hierarchy)
+    assert(id_a != None)
+
+    srctrl.record_symbol_kind(id_a, NodeType.NODE_CLASS)
+    assert True 
+    srctrl.close()
+
+def test_record_symbol_kind(test_record_symbol):
+    path = '%s/db.srctrldb' % TMP_PATH
+
+    # Open an existing database
+    srctrl = SourcetrailDB()
+    srctrl.open(path)
+
+    hierarchy = NameHierarchy(
+        NameHierarchy.NAME_DELIMITER_JAVA,
+        [NameElement(
+            '',
+            'MyType',
+            ''
+        )]
+    )
+    # Insert a symbol once
+    id_a = srctrl.record_symbol(hierarchy)
+    assert(id_a != None)
+
+    srctrl.record_symbol_kind(id_a, NodeType.NODE_CLASS)
+    assert True 
+    srctrl.close()
+    
 def test_duplicate_symbol(test_create_db):
     path = '%s/db.srctrldb' % TMP_PATH
 

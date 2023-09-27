@@ -72,6 +72,25 @@ srctrl.record_file_language(file_id, 'C')
 
 To populate the database, it's possible to record different symbol such as class or function like this:
 ```python
-
-
+symbol_id = srctrl.record_symbol(NameHierarchy(
+    NameHierarchy.NAME_DELIMITER_JAVA,
+    [NameElement(
+        '',
+        'MyType',
+        ''
+    )]
+))
+srctrl.record_symbol_definition_kind(symbol_id, SymbolType.EXPLICIT)
+srctrl.record_symbol_kind(symbol_id, NodeType.NODE_CLASS)
+srctrl.record_symbol_location(symbol_id, file_id, 2, 7, 2, 12)
+srctrl.record_symbol_scope_location(symbol_id, file_id, 2, 1, 7, 1)
 ``` 
+
+Once the database is filled with information, it must be saved and close like this:
+```python 
+srctrl.commit()
+srctrl.close()
+```
+
+More examples are available under `examples/`.
+

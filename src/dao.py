@@ -1473,7 +1473,7 @@ class OccurrenceDAO(object):
             :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
-            DELETE FROM occurrence WHERE element_id = ?;''', (obj.occurrence_id,)
+            DELETE FROM occurrence WHERE element_id = ?;''', (obj.element_id,)
                           )
 
     @staticmethod
@@ -1521,10 +1521,9 @@ class OccurrenceDAO(object):
         """
         SqliteHelper.exec(database, '''
             UPDATE occurrence SET
-                element_id = ?,
                 source_location_id = ? 
             WHERE
-                id = ?;''', (obj.element_id, obj.source_location_id, obj.id)
+                element_id = ?;''', (obj.source_location_id, obj.element_id)
                           )
 
     @staticmethod
@@ -1662,10 +1661,9 @@ class ComponentAccessDAO(object):
         """
         SqliteHelper.exec(database, '''
             UPDATE component_access SET
-                node_id = ?,
                 type = ? 
             WHERE
-                id = ?;''', (obj.node_id, obj.type.value, obj.id)
+                node_id = ?;''', (obj.type.value, obj.node_id)
                           )
 
     @staticmethod

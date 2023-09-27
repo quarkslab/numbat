@@ -15,7 +15,7 @@ class SourcetrailDB(object):
 
     # Sourcetrail files extension
     SOURCETRAIL_PROJECT_EXT = '.srctrlprj'
-    SOURCETRAIL_DB_EXT = '.srctrldb'
+    SOURCETRAIL_DB_EXT      = '.srctrldb'
 
     SOURCETRAIL_XML = '\n'.join([
         '<?xml version="1.0" encoding="utf-8" ?>',
@@ -26,12 +26,13 @@ class SourcetrailDB(object):
 
     def __init__(self) -> None:
         self.database = None
+        self.path     = None
 
     # ------------------------------------------------------------------------ #
     # Database file management functions                                       #
     # ------------------------------------------------------------------------ #
 
-    def open(self, path: pathlib.Path) -> None:
+    def open(self, path: pathlib.Path, clear: bool = False) -> None:
         """ 
             This method allow to open an existing sourcetrail database 
         """
@@ -42,7 +43,7 @@ class SourcetrailDB(object):
 
         # Check that a database is not already opened
         if self.database:
-            raise Exception('Database already opened')
+            raise exceptions.AlreayOpenDatabase() 
 
         self.path = path
         # Check that the file has the correct extension
@@ -52,9 +53,12 @@ class SourcetrailDB(object):
         # Check that the file exists 
         self.path = self.path.absolute()
         if not self.path.exists() or not self.path.is_file():
-            raise Exception('File not found')
+            raise FileNotFoundError('%s not found' % str(self.path))
 
         self.database = dao.SqliteHelper.connect(str(self.path))
+        if clear:
+            # Clear the database if the user ask to
+            self.clear() 
 
     def create(self, path: pathlib.Path) -> None:
         """
@@ -66,7 +70,7 @@ class SourcetrailDB(object):
 
         # Check that a database is not already opened
         if self.database:
-            raise Exception('Database already opened')
+            raise exceptions.AlreayOpenDatabase() 
 
         self.path = path
         # Check that the file has the correct extension
@@ -76,7 +80,7 @@ class SourcetrailDB(object):
         # Check that the file exists 
         self.path = self.path.absolute()
         if self.path.exists():
-            raise Exception('File already exists')
+            raise FileExistsError('%s already exists' % str(self.path))
 
         self.database = dao.SqliteHelper.connect(str(self.path))
         # Try to create the tables
@@ -91,28 +95,35 @@ class SourcetrailDB(object):
 
     def commit(self) -> None:
         """
-            This method allow to commit changes made to a sourcetrail database
+            This method allow to commit changes made to a sourcetrail database.
+            Any change made to the database using this API will be lost if not 
+            committed before closing the database. 
         """
         if self.database:
             self.database.commit()
         else:
-            raise Exception('Database is not opened yet')
+            raise exceptions.NoDatabaseOpen() 
 
     def clear(self) -> None:
         """
-            Clear all elements present in the database 
+            Clear all elements present in the database. 
         """
-        self.__clear_sql_tables()
+        if self.database:
+            self.__clear_sql_tables()
+        else:
+            raise exceptions.NoDatabaseOpen() 
 
     def close(self) -> None:
         """
-            This method allow to close a sourcetrail database
+            This method allow to close a sourcetrail database.
+            The database must be closed after use in order to liberate
+            memory and ressources allocated for it.
         """
         if self.database:
             self.database.close()
             self.database = None
         else:
-            raise Exception('Database is not opened yet')
+            raise exceptions.NoDatabaseOpen() 
 
     def __create_sql_tables(self) -> None:
         """
@@ -397,7 +408,7 @@ class SourcetrailDB(object):
     def record_file(self, path: pathlib.Path, indexed: bool = True) -> int:
 
         if not path.exists() or not path.is_file():
-            raise Exception('File not found')
+            raise FileNotFoundError()
 
         # Create a new name hierarchy 
         hierarchy = base.NameHierarchy(
@@ -448,7 +459,7 @@ class SourcetrailDB(object):
                                    )
                                    )
 
-            # Return the newly created element id
+        # Return the newly created element id
         return elem_id
 
     def record_file_language(self, id_: int, language: str) -> None:
@@ -511,7 +522,12 @@ class SourcetrailDB(object):
             Record a new indexer error in the database 
         """
 
+        # Add a new error
+        elem = base.Element()
+        elem.id = dao.ElementDAO.new(self.database, elem)
+
         error_id = dao.ErrorDAO.new(self.database, base.Error(
+            elem.id,
             msg,
             fatal,
             True,
@@ -553,7 +569,7 @@ class SourcetrailDB(object):
         else:
             return node.id
 
-    def get_symbol(self, hierarchy: base.NameHierarchy) -> int:
+    def get_symbol(self, hierarchy: base.NameHierarchy) -> int | None:
         """
             Return the corresponding Symbol from the database
         """
@@ -563,7 +579,7 @@ class SourcetrailDB(object):
         if node:
             return node.id
 
-    def record_symbol_child(self, parent_id: int, element: base.NameElement) -> int:
+    def record_symbol_child(self, parent_id: int, element: base.NameElement) -> int | None:
         """
             Add a child to an existing node without having to give the full
             hierarchy of the element
@@ -585,7 +601,10 @@ def main():
         srctrl.open('generated/database')
         srctrl.clear()
 
+    print('Starting')
+
     # ----- Test for SourcetrailDB core features ----- #
+
     file_id = srctrl.record_file(pathlib.Path('generated/file.py'))
     srctrl.record_file_language(file_id, 'python')
 
@@ -638,6 +657,10 @@ def main():
     useage_id = srctrl.record_reference(method_id, member_id, base.EdgeType.USAGE)
     srctrl.record_reference_location(useage_id, file_id, 7, 10, 7, 18)
 
+    # Just for testing purpose, let's say that true is a local symbol
+    local_symbol = srctrl.record_local_symbol('true')
+    srctrl.record_local_symbol_location(local_symbol, file_id, 4, 14, 4, 17)
+
     # ----- Test for new features ----- #
 
     # This should return the same id as the one we inserted
@@ -657,6 +680,7 @@ def main():
     srctrl.commit()
     srctrl.close()
 
+    print('Ending')
 
 if __name__ == '__main__':
     main()

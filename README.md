@@ -33,8 +33,8 @@ Except theses differences, Numbat implement the same API than SourcetrailDB with
 To install locally from the git repository:    
 ```bash
 # Download the repo
-git clone https://gitlab.qb/firmware-re/cartography/Numbat
-cd Numbat
+git clone https://gitlab.qb/firmware-re/cartography/numbat
+cd numbat
 # Create a new virtual environement 
 python -m venv venv
 source venv/bin/activate

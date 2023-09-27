@@ -1,5 +1,6 @@
 import enum
-import exceptions
+
+from .exceptions import SerializeException, DeserializeException
 
 
 # ------------------------------------------------------------------------ #
@@ -751,7 +752,7 @@ class NameHierarchy(object):
         if not self._elements:
             # @Warning: This is not the same behavior as SourcetrailDB
             # We are returning a exception instead of a empty string 
-            raise exceptions.SerializeException()
+            raise SerializeException()
 
         elements = self._elements[start:end]
         for i, elem in enumerate(elements):
@@ -760,7 +761,7 @@ class NameHierarchy(object):
 
             result += elem.get_name() + self.PART_DELIMITER
             result += elem.get_prefix() + self.SIGNATURE_DELIMITER
-            result += elem.get_postix()
+            result += elem.get_postfix()
         return result
 
     def extend(self, element: NameElement) -> None:
@@ -824,7 +825,7 @@ class NameHierarchy(object):
             # @Warning: This is not the same behavior as SourcetrailDB
             # We are returning a exception instead of a empty NameHierarchy 
             # return NameHierarchy(NameHierarchy.NAME_DELIMITER_UNKNOWN, None)
-            raise exceptions.DeserializeException()
+            raise DeserializeException()
 
         elements = list()
         result = NameHierarchy(serialized_name[0: idx], None)
@@ -839,7 +840,7 @@ class NameHierarchy(object):
                 # @Warning: This is not the same behavior as SourcetrailDB
                 # We are returning a exception instead of a empty NameHierarchy 
                 # return NameHierarchy(NameHierarchy.NAME_DELIMITER_UNKNOWN, None)
-                raise exceptions.DeserializeException()
+                raise DeserializeException()
 
             name = serialized_name[idx: spos]
             spos += len(NameHierarchy.PART_DELIMITER)
@@ -852,7 +853,7 @@ class NameHierarchy(object):
                 # @Warning: This is not the same behavior as SourcetrailDB
                 # We are returning a exception instead of a empty NameHierarchy 
                 # return NameHierarchy(NameHierarchy.NAME_DELIMITER_UNKNOWN, None)
-                raise exceptions.DeserializeException()
+                raise DeserializeException()
 
             prefix = serialized_name[spos: ppos]
             ppos += len(NameHierarchy.SIGNATURE_DELIMITER)

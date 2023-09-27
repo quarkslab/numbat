@@ -1,5 +1,9 @@
-import base
 import sqlite3
+
+from .base import Element, ElementComponent, ElementComponentType, Edge,   \
+    EdgeType, Node, NodeType, Symbol, SymbolType, File, FileContent,       \
+    LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error,    \
+    ComponentAccess
 
 
 # ------------------------------------------------------------------------ #
@@ -108,13 +112,13 @@ class ElementDAO(object):
                           )
 
     @staticmethod
-    def new(database: sqlite3.Connection, obj: base.Element) -> int:
+    def new(database: sqlite3.Connection, obj: Element) -> int:
         """
             Insert a new Element inside the element table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: base.Element
+            :type obj: Element
             :return: The id of the inserted element
             :rtype: int
         """
@@ -123,13 +127,13 @@ class ElementDAO(object):
                                  )
 
     @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.Element) -> None:
+    def delete(database: sqlite3.Connection, obj: Element) -> None:
         """
             Delete an Element from the element table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: base.Element
+            :type obj: Element
             :return: None 
             :rtype: NoneType
         """
@@ -151,7 +155,7 @@ class ElementDAO(object):
                           )
 
     @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.Element:
+    def get(database: sqlite3.Connection, elem_id: int) -> Element:
         """
             Return an element from the database with the matching id
             :param database: A database handle
@@ -160,23 +164,23 @@ class ElementDAO(object):
             :type elem_id: int 
             :return: A Element object that reflect the content inside 
             the database 
-            :rtype: base.Element
+            :rtype: Element
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM element WHERE id = ?;''', (elem_id,)
                                  )
 
         if len(out) == 1:
-            return base.Element(*out[0])
+            return Element(*out[0])
 
     @staticmethod
-    def update(database: sqlite3.Connection, obj: base.Element) -> None:
+    def update(database: sqlite3.Connection, obj: Element) -> None:
         """
             Update an Element inside the element table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The Element object to update 
-            :type obj: base.Element
+            :type obj: Element
             :return: None 
             :rtype: NoneType
         """
@@ -185,13 +189,13 @@ class ElementDAO(object):
         pass
 
     @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.Element]:
+    def list(database: sqlite3.Connection) -> list[Element]:
         """
             Return the list of all the elements from the element table. 
             :param database: A database handle
             :type database: sqlite3.Connection           
             :return: The list of Elements 
-            :rtype: list[base.Element]
+            :rtype: list[Element]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM element;'''
@@ -199,7 +203,7 @@ class ElementDAO(object):
 
         result = list()
         for row in rows:
-            result.append(base.Element(*row))
+            result.append(Element(*row))
 
         return result
 
@@ -242,13 +246,13 @@ class ElementComponentDAO(object):
                           )
 
     @staticmethod
-    def new(database: sqlite3.Connection, obj: base.ElementComponent) -> int:
+    def new(database: sqlite3.Connection, obj: ElementComponent) -> int:
         """
             Insert a new ElementComponent inside the element_component table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: base.ElementComponent
+            :type obj: ElementComponent
             :return: The id of the inserted element
             :rtype: int
         """
@@ -259,13 +263,13 @@ class ElementComponentDAO(object):
                                  )
 
     @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.ElementComponent) -> None:
+    def delete(database: sqlite3.Connection, obj: ElementComponent) -> None:
         """
             Delete an ElementComponent from the element_component table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: base.ElementComponent
+            :type obj: ElementComponent
             :return: None 
             :rtype: NoneType
         """
@@ -287,7 +291,7 @@ class ElementComponentDAO(object):
                           )
 
     @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.ElementComponent:
+    def get(database: sqlite3.Connection, elem_id: int) -> ElementComponent:
         """
             Return a ElementComponent from the database with the matching id 
             :param database: A database handle
@@ -296,7 +300,7 @@ class ElementComponentDAO(object):
             :type elem_id: int 
             :return: A ElementComponent object that reflect the content 
             inside the database 
-            :rtype: base.ElementComponent
+            :rtype: ElementComponent
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM element_component WHERE id = ?;''', (elem_id,)
@@ -304,18 +308,18 @@ class ElementComponentDAO(object):
 
         if len(out) == 1:
             id_, element_id, type_, data = out[0]
-            return base.ElementComponent(id_, element_id,
-                                         base.ElementComponentType(type_), data
+            return ElementComponent(id_, element_id,
+                                         ElementComponentType(type_), data
                                          )
 
     @staticmethod
-    def update(database: sqlite3.Connection, obj: base.ElementComponent) -> None:
+    def update(database: sqlite3.Connection, obj: ElementComponent) -> None:
         """
             Update an ElementComponent inside the element_component table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The Element object to update 
-            :type obj: base.ElementComponent
+            :type obj: ElementComponent
             :return: None 
             :rtype: NoneType
         """
@@ -329,13 +333,13 @@ class ElementComponentDAO(object):
                           )
 
     @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.ElementComponent]:
+    def list(database: sqlite3.Connection) -> list[ElementComponent]:
         """
             Return the list of all the elements from the element_component table. 
             :param database: A database handle
             :type database: sqlite3.Connection           
             :return: The list of ElementComponents 
-            :rtype: list[base.ElementComponent]
+            :rtype: list[ElementComponent]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM element_component;'''
@@ -344,8 +348,8 @@ class ElementComponentDAO(object):
         result = list()
         for row in rows:
             id_, element_id, type_, data = row
-            result.append(base.ElementComponent(
-                id_, element_id, base.ElementComponentType(type_), data
+            result.append(ElementComponent(
+                id_, element_id, ElementComponentType(type_), data
             ))
 
         return result
@@ -391,13 +395,13 @@ class EdgeDAO(object):
                           )
 
     @staticmethod
-    def new(database: sqlite3.Connection, obj: base.Edge) -> int:
+    def new(database: sqlite3.Connection, obj: Edge) -> int:
         """
             Insert a new Edge inside the edge table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: base.Edge
+            :type obj: Edge
             :return: The id of the inserted element
             :rtype: int
         """
@@ -408,13 +412,13 @@ class EdgeDAO(object):
                                  )
 
     @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.Edge) -> None:
+    def delete(database: sqlite3.Connection, obj: Edge) -> None:
         """
             Delete an Edge from the edge table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: base.Edge
+            :type obj: Edge
             :return: None 
             :rtype: NoneType
         """
@@ -436,7 +440,7 @@ class EdgeDAO(object):
                           )
 
     @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.Edge:
+    def get(database: sqlite3.Connection, elem_id: int) -> Edge:
         """
             Return an Edge from the database with the matching id 
             :param database: A database handle
@@ -445,7 +449,7 @@ class EdgeDAO(object):
             :type elem_id: int 
             :return: A Edge object that reflect the content inside 
             the database 
-            :rtype: base.Edge
+            :rtype: Edge
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM edge WHERE id = ?;''', (elem_id,)
@@ -453,16 +457,16 @@ class EdgeDAO(object):
 
         if len(out) == 1:
             id_, type_, src, dst = out[0]
-            return base.Edge(id_, base.EdgeType(type_), src, dst)
+            return Edge(id_, EdgeType(type_), src, dst)
 
     @staticmethod
-    def update(database: sqlite3.Connection, obj: base.Edge) -> None:
+    def update(database: sqlite3.Connection, obj: Edge) -> None:
         """
             Update an Edge inside the element table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The Edge object to update 
-            :type obj: base.Edge
+            :type obj: Edge
             :return: None 
             :rtype: NoneType
         """
@@ -476,13 +480,13 @@ class EdgeDAO(object):
                           )
 
     @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.Edge]:
+    def list(database: sqlite3.Connection) -> list[Edge]:
         """
             Return the list of all the elements from the edge table. 
             :param database: A database handle
             :type database: sqlite3.Connection           
             :return: The list of Edges 
-            :rtype: list[base.Edge]
+            :rtype: list[Edge]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM edge;'''
@@ -491,8 +495,8 @@ class EdgeDAO(object):
         result = list()
         for row in rows:
             id_, type_, src, dst = row
-            result.append(base.Edge(
-                id_, base.EdgeType(type_), src, dst
+            result.append(Edge(
+                id_, EdgeType(type_), src, dst
             ))
 
         return result
@@ -535,13 +539,13 @@ class NodeDAO(object):
                           )
 
     @staticmethod
-    def new(database: sqlite3.Connection, obj: base.Node) -> int:
+    def new(database: sqlite3.Connection, obj: Node) -> int:
         """
             Insert a new Node inside the node table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: base.Node
+            :type obj: Node
             :return: The id of the inserted element
             :rtype: int
         """
@@ -552,13 +556,13 @@ class NodeDAO(object):
                                  )
 
     @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.Node) -> None:
+    def delete(database: sqlite3.Connection, obj: Node) -> None:
         """
             Delete a Node from the node table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: base.Node
+            :type obj: Node
             :return: None 
             :rtype: NoneType
         """
@@ -580,7 +584,7 @@ class NodeDAO(object):
                           )
 
     @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.Node:
+    def get(database: sqlite3.Connection, elem_id: int) -> Node:
         """
             Return a Node from the database with the matching id 
             :param database: A database handle
@@ -589,7 +593,7 @@ class NodeDAO(object):
             :type elem_id: int 
             :return: A Node object that reflect the content inside 
             the database 
-            :rtype: base.Node
+            :rtype: Node
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM node WHERE id = ?;''', (elem_id,)
@@ -597,10 +601,10 @@ class NodeDAO(object):
 
         if len(out) == 1:
             id_, type_, serialized_name = out[0]
-            return base.Node(id_, base.NodeType(type_), serialized_name)
+            return Node(id_, NodeType(type_), serialized_name)
 
     @staticmethod
-    def get_by_name(database: sqlite3.Connection, name: str) -> base.Node:
+    def get_by_name(database: sqlite3.Connection, name: str) -> Node:
         """
             Return a Node from the database with the matching serialized_name 
             :param database: A database handle
@@ -609,7 +613,7 @@ class NodeDAO(object):
             :type elem_id: str 
             :return: A Node object that reflect the content inside 
             the database 
-            :rtype: base.Node
+            :rtype: Node
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM node WHERE serialized_name = ? LIMIT 1;''', (name,)
@@ -617,16 +621,16 @@ class NodeDAO(object):
 
         if len(out) == 1:
             id_, type_, serialized_name = out[0]
-            return base.Node(id_, base.NodeType(type_), serialized_name)
+            return Node(id_, NodeType(type_), serialized_name)
 
     @staticmethod
-    def update(database: sqlite3.Connection, obj: base.Node) -> None:
+    def update(database: sqlite3.Connection, obj: Node) -> None:
         """
             Update a Node inside the node table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The Node object to update 
-            :type obj: base.Node
+            :type obj: Node
             :return: None 
             :rtype: NoneType
         """
@@ -639,13 +643,13 @@ class NodeDAO(object):
                           )
 
     @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.Node]:
+    def list(database: sqlite3.Connection) -> list[Node]:
         """
             Return the list of all the elements from the node table. 
             :param database: A database handle
             :type database: sqlite3.Connection           
             :return: The list of Nodes 
-            :rtype: list[base.Node]
+            :rtype: list[Node]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM node;'''
@@ -655,7 +659,7 @@ class NodeDAO(object):
         for row in rows:
             id_, type_, serialized_name = row
             result.append(base.Node(
-                id_, base.NodeType(type_), serialized_name
+                id_, NodeType(type_), serialized_name
             ))
 
         return result
@@ -697,13 +701,13 @@ class SymbolDAO(object):
                           )
 
     @staticmethod
-    def new(database: sqlite3.Connection, obj: base.Symbol) -> int:
+    def new(database: sqlite3.Connection, obj: Symbol) -> int:
         """
             Insert a new Symbol inside the symbol table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: base.Symbol
+            :type obj: Symbol
             :return: The id of the inserted symbol
             :rtype: int
         """
@@ -714,13 +718,13 @@ class SymbolDAO(object):
                                  )
 
     @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.Symbol) -> None:
+    def delete(database: sqlite3.Connection, obj: Symbol) -> None:
         """
             Delete an Symbol from the symbol table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: base.Symbol
+            :type obj: Symbol
             :return: None 
             :rtype: NoneType
         """
@@ -742,7 +746,7 @@ class SymbolDAO(object):
                           )
 
     @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.Symbol:
+    def get(database: sqlite3.Connection, elem_id: int) -> Symbol:
         """
             Return a symbol from the database with the matching id 
             :param database: A database handle
@@ -751,7 +755,7 @@ class SymbolDAO(object):
             :type elem_id: int 
             :return: A Symbol object that reflect the content inside 
             the database 
-            :rtype: base.Symbol
+            :rtype: Symbol
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM symbol WHERE id = ?;''', (elem_id,)
@@ -759,16 +763,16 @@ class SymbolDAO(object):
 
         if len(out) == 1:
             id_, type_ = out[0]
-            return base.Symbol(id_, base.SymbolType(type_))
+            return Symbol(id_, SymbolType(type_))
 
     @staticmethod
-    def update(database: sqlite3.Connection, obj: base.Symbol) -> None:
+    def update(database: sqlite3.Connection, obj: Symbol) -> None:
         """
             Update a Symbol inside the symbol table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The Symbol object to update 
-            :type obj: base.Symbol
+            :type obj: Symbol
             :return: None 
             :rtype: NoneType
         """
@@ -780,13 +784,13 @@ class SymbolDAO(object):
                           )
 
     @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.Symbol]:
+    def list(database: sqlite3.Connection) -> list[Symbol]:
         """
             Return the list of all the symbols from the symbol table. 
             :param database: A database handle
             :type database: sqlite3.Connection           
             :return: The list of Symbols 
-            :rtype: list[base.Symbol]
+            :rtype: list[Symbol]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM symbol;'''
@@ -796,7 +800,7 @@ class SymbolDAO(object):
         for row in rows:
             id_, type_ = row
             result.append(base.Symbol(
-                id_, base.SymbolType(type_)
+                id_, SymbolType(type_)
             ))
 
         return result
@@ -843,13 +847,13 @@ class FileDAO(object):
                           )
 
     @staticmethod
-    def new(database: sqlite3.Connection, obj: base.File) -> int:
+    def new(database: sqlite3.Connection, obj: File) -> int:
         """
             Insert a new File inside the file table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: base.File
+            :type obj: File
             :return: The id of the inserted file
             :rtype: int
         """
@@ -863,13 +867,13 @@ class FileDAO(object):
                                  )
 
     @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.File) -> None:
+    def delete(database: sqlite3.Connection, obj: File) -> None:
         """
             Delete a File from the file table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: base.File
+            :type obj: File
             :return: None 
             :rtype: NoneType
         """
@@ -891,7 +895,7 @@ class FileDAO(object):
                           )
 
     @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.File:
+    def get(database: sqlite3.Connection, elem_id: int) -> File:
         """
             Return a file from the database with the matching id 
             :param database: A database handle
@@ -900,23 +904,23 @@ class FileDAO(object):
             :type elem_id: int 
             :return: A File object that reflect the content inside 
             the database 
-            :rtype: base.File
+            :rtype: File
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM file WHERE id = ?;''', (elem_id,)
                                  )
 
         if len(out) == 1:
-            return base.File(*out[0])
+            return File(*out[0])
 
     @staticmethod
-    def update(database: sqlite3.Connection, obj: base.File) -> None:
+    def update(database: sqlite3.Connection, obj: File) -> None:
         """
             Update a File inside the file table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The File object to update 
-            :type obj: base.File
+            :type obj: File
             :return: None 
             :rtype: NoneType
         """
@@ -936,13 +940,13 @@ class FileDAO(object):
                           )
 
     @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.File]:
+    def list(database: sqlite3.Connection) -> list[File]:
         """
             Return the list of all the files from the file table. 
             :param database: A database handle
             :type database: sqlite3.Connection           
             :return: The list of Files 
-            :rtype: list[base.File]
+            :rtype: list[File]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM file;'''
@@ -991,13 +995,13 @@ class FileContentDAO(object):
                           )
 
     @staticmethod
-    def new(database: sqlite3.Connection, obj: base.FileContent) -> int:
+    def new(database: sqlite3.Connection, obj: FileContent) -> int:
         """
             Insert a new FileContent inside the filecontent table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: base.FileContent
+            :type obj: FileContent
             :return: The id of the inserted filecontent
             :rtype: int
         """
@@ -1008,13 +1012,13 @@ class FileContentDAO(object):
                                  )
 
     @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.FileContent) -> None:
+    def delete(database: sqlite3.Connection, obj: FileContent) -> None:
         """
             Delete an FileContent from the filecontent table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: base.FileContent
+            :type obj: FileContent
             :return: None 
             :rtype: NoneType
         """
@@ -1036,7 +1040,7 @@ class FileContentDAO(object):
                           )
 
     @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.FileContent:
+    def get(database: sqlite3.Connection, elem_id: int) -> FileContent:
         """
             Return a filecontent from the database with the matching id 
             :param database: A database handle
@@ -1045,23 +1049,23 @@ class FileContentDAO(object):
             :type elem_id: int 
             :return: A FileContent object that reflect the content inside 
             the database 
-            :rtype: base.FileContent
+            :rtype: FileContent
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM filecontent WHERE id = ?;''', (elem_id,)
                                  )
 
         if len(out) == 1:
-            return base.FileContent(*out[0])
+            return FileContent(*out[0])
 
     @staticmethod
-    def update(database: sqlite3.Connection, obj: base.FileContent) -> None:
+    def update(database: sqlite3.Connection, obj: FileContent) -> None:
         """
             Update an FileContent inside the filecontent table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The FileContent object to update 
-            :type obj: base.FileContent
+            :type obj: FileContent
             :return: None 
             :rtype: NoneType
         """
@@ -1073,13 +1077,13 @@ class FileContentDAO(object):
                           )
 
     @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.FileContent]:
+    def list(database: sqlite3.Connection) -> list[FileContent]:
         """
             Return the list of all the filecontents from the filecontent table. 
             :param database: A database handle
             :type database: sqlite3.Connection           
             :return: The list of FileContents 
-            :rtype: list[base.FileContent]
+            :rtype: list[FileContent]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM filecontent;'''
@@ -1128,13 +1132,13 @@ class LocalSymbolDAO(object):
                           )
 
     @staticmethod
-    def new(database: sqlite3.Connection, obj: base.LocalSymbol) -> int:
+    def new(database: sqlite3.Connection, obj: LocalSymbol) -> int:
         """
             Insert a new LocalSymbol inside the local_symbol table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: base.LocalSymbol
+            :type obj: LocalSymbol
             :return: The id of the inserted local_symbol
             :rtype: int
         """
@@ -1145,13 +1149,13 @@ class LocalSymbolDAO(object):
                                  )
 
     @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.LocalSymbol) -> None:
+    def delete(database: sqlite3.Connection, obj: LocalSymbol) -> None:
         """
             Delete an LocalSymbol from the local_symbol table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: base.LocalSymbol
+            :type obj: LocalSymbol
             :return: None 
             :rtype: NoneType
         """
@@ -1173,7 +1177,7 @@ class LocalSymbolDAO(object):
                           )
 
     @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.LocalSymbol:
+    def get(database: sqlite3.Connection, elem_id: int) -> LocalSymbol:
         """
             Return a local_symbol from the database with the matching id 
             :param database: A database handle
@@ -1182,17 +1186,17 @@ class LocalSymbolDAO(object):
             :type elem_id: int 
             :return: A LocalSymbol object that reflect the content inside 
             the database 
-            :rtype: base.LocalSymbol
+            :rtype: LocalSymbol
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM local_symbol WHERE id = ?;''', (elem_id,)
                                  )
 
         if len(out) == 1:
-            return base.LocalSymbol(*out[0])
+            return LocalSymbol(*out[0])
 
     @staticmethod
-    def get_from_name(database: sqlite3.Connection, name: str) -> base.LocalSymbol:
+    def get_from_name(database: sqlite3.Connection, name: str) -> LocalSymbol:
         """
             Return a local_symbol from the database with the matching name
             :param database: A database handle
@@ -1201,23 +1205,23 @@ class LocalSymbolDAO(object):
             :type elem_id: str
             :return: A LocalSymbol object that reflect the content inside 
             the database 
-            :rtype: base.LocalSymbol
+            :rtype: LocalSymbol
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM local_symbol WHERE name = ? LIMIT 1;''', (name,)
                                  )
 
         if len(out) == 1:
-            return base.LocalSymbol(*out[0])
+            return LocalSymbol(*out[0])
 
     @staticmethod
-    def update(database: sqlite3.Connection, obj: base.LocalSymbol) -> None:
+    def update(database: sqlite3.Connection, obj: LocalSymbol) -> None:
         """
             Update an LocalSymbol inside the local_symbol table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The LocalSymbol object to update 
-            :type obj: base.LocalSymbol
+            :type obj: LocalSymbol
             :return: None 
             :rtype: NoneType
         """
@@ -1229,13 +1233,13 @@ class LocalSymbolDAO(object):
                           )
 
     @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.LocalSymbol]:
+    def list(database: sqlite3.Connection) -> list[LocalSymbol]:
         """
             Return the list of all the local_symbols from the local_symbol table. 
             :param database: A database handle
             :type database: sqlite3.Connection           
             :return: The list of LocalSymbols 
-            :rtype: list[base.LocalSymbol]
+            :rtype: list[LocalSymbol]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM local_symbol;'''
@@ -1289,13 +1293,13 @@ class SourceLocationDAO(object):
                           )
 
     @staticmethod
-    def new(database: sqlite3.Connection, obj: base.SourceLocation) -> int:
+    def new(database: sqlite3.Connection, obj: SourceLocation) -> int:
         """
             Insert a new SourceLocation inside the source_location table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: base.SourceLocation
+            :type obj: SourceLocation
             :return: The id of the inserted source_location
             :rtype: int
         """
@@ -1309,13 +1313,13 @@ class SourceLocationDAO(object):
                                  )
 
     @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.SourceLocation) -> None:
+    def delete(database: sqlite3.Connection, obj: SourceLocation) -> None:
         """
             Delete an SourceLocation from the source_location table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: base.SourceLocation
+            :type obj: SourceLocation
             :return: None 
             :rtype: NoneType
         """
@@ -1337,7 +1341,7 @@ class SourceLocationDAO(object):
                           )
 
     @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.SourceLocation:
+    def get(database: sqlite3.Connection, elem_id: int) -> SourceLocation:
         """
             Return a source_location from the database with the matching id 
             :param database: A database handle
@@ -1346,7 +1350,7 @@ class SourceLocationDAO(object):
             :type elem_id: int 
             :return: A SourceLocation object that reflect the content inside 
             the database 
-            :rtype: base.SourceLocation
+            :rtype: SourceLocation
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM source_location WHERE id = ?;''', (elem_id,)
@@ -1354,18 +1358,18 @@ class SourceLocationDAO(object):
 
         if len(out) == 1:
             id_, fid, sl, sc, el, ec, type_ = out[0]
-            return base.SourceLocation(id_, fid, sl, sc, el, ec,
-                                       base.SourceLocationType(type_)
+            return SourceLocation(id_, fid, sl, sc, el, ec,
+                                       SourceLocationType(type_)
                                        )
 
     @staticmethod
-    def update(database: sqlite3.Connection, obj: base.SourceLocation) -> None:
+    def update(database: sqlite3.Connection, obj: SourceLocation) -> None:
         """
             Update an SourceLocation inside the source_location table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The SourceLocation object to update 
-            :type obj: base.SourceLocation
+            :type obj: SourceLocation
             :return: None 
             :rtype: NoneType
         """
@@ -1385,13 +1389,13 @@ class SourceLocationDAO(object):
                           )
 
     @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.SourceLocation]:
+    def list(database: sqlite3.Connection) -> list[SourceLocation]:
         """
             Return the list of all the source_locations from the source_location table. 
             :param database: A database handle
             :type database: sqlite3.Connection           
             :return: The list of SourceLocations 
-            :rtype: list[base.SourceLocation]
+            :rtype: list[SourceLocation]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM source_location;'''
@@ -1401,7 +1405,7 @@ class SourceLocationDAO(object):
         for row in rows:
             id_, fid, sl, sc, el, ec, type_ = row
             result.append(base.SourceLocation(
-                id_, fid, sl, sc, el, ec, base.SourceLocationType(type_)
+                id_, fid, sl, sc, el, ec, SourceLocationType(type_)
             ))
 
         return result
@@ -1445,13 +1449,13 @@ class OccurrenceDAO(object):
                           )
 
     @staticmethod
-    def new(database: sqlite3.Connection, obj: base.Occurrence) -> int:
+    def new(database: sqlite3.Connection, obj: Occurrence) -> int:
         """
             Insert a new Occurrence inside the occurrence table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: base.Occurrence
+            :type obj: Occurrence
             :return: The id of the inserted occurrence
             :rtype: int
         """
@@ -1462,13 +1466,13 @@ class OccurrenceDAO(object):
                                  )
 
     @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.Occurrence) -> None:
+    def delete(database: sqlite3.Connection, obj: Occurrence) -> None:
         """
             Delete an Occurrence from the occurrence table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: base.Occurrence
+            :type obj: Occurrence
             :return: None 
             :rtype: NoneType
         """
@@ -1490,7 +1494,7 @@ class OccurrenceDAO(object):
                           )
 
     @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.Occurrence:
+    def get(database: sqlite3.Connection, elem_id: int) -> Occurrence:
         """
             Return an occurrence from the database with the matching id
             :param database: A database handle
@@ -1499,23 +1503,23 @@ class OccurrenceDAO(object):
             :type elem_id: int 
             :return: A Occurrence object that reflect the content inside 
             the database 
-            :rtype: base.Occurrence
+            :rtype: Occurrence
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM occurrence WHERE element_id = ?;''', (elem_id,)
                                  )
 
         if len(out) == 1:
-            return base.Occurrence(*out[0])
+            return Occurrence(*out[0])
 
     @staticmethod
-    def update(database: sqlite3.Connection, obj: base.Occurrence) -> None:
+    def update(database: sqlite3.Connection, obj: Occurrence) -> None:
         """
             Update an Occurrence inside the occurrence table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The Occurrence object to update 
-            :type obj: base.Occurrence
+            :type obj: Occurrence
             :return: None 
             :rtype: NoneType
         """
@@ -1527,13 +1531,13 @@ class OccurrenceDAO(object):
                           )
 
     @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.Occurrence]:
+    def list(database: sqlite3.Connection) -> list[Occurrence]:
         """
             Return the list of all the occurrences from the occurrence table. 
             :param database: A database handle
             :type database: sqlite3.Connection           
             :return: The list of Occurrences 
-            :rtype: list[base.Occurrence]
+            :rtype: list[Occurrence]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM occurrence;'''
@@ -1582,13 +1586,13 @@ class ComponentAccessDAO(object):
                           )
 
     @staticmethod
-    def new(database: sqlite3.Connection, obj: base.ComponentAccess) -> int:
+    def new(database: sqlite3.Connection, obj: ComponentAccess) -> int:
         """
             Insert a new ComponentAccess inside the component_access table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: base.ComponentAccess
+            :type obj: ComponentAccess
             :return: The id of the inserted component_access
             :rtype: int
         """
@@ -1599,13 +1603,13 @@ class ComponentAccessDAO(object):
                                  )
 
     @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.ComponentAccess) -> None:
+    def delete(database: sqlite3.Connection, obj: ComponentAccess) -> None:
         """
             Delete an ComponentAccess from the component_access table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: base.ComponentAccess
+            :type obj: ComponentAccess
             :return: None 
             :rtype: NoneType
         """
@@ -1627,7 +1631,7 @@ class ComponentAccessDAO(object):
                           )
 
     @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.ComponentAccess:
+    def get(database: sqlite3.Connection, elem_id: int) -> ComponentAccess:
         """
             Return a component_access from the database with the matching id 
             :param database: A database handle
@@ -1636,7 +1640,7 @@ class ComponentAccessDAO(object):
             :type elem_id: int 
             :return: A ComponentAccess object that reflect the content inside 
             the database 
-            :rtype: base.ComponentAccess
+            :rtype: ComponentAccess
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM component_access WHERE node_id = ?;''', (elem_id,)
@@ -1644,18 +1648,18 @@ class ComponentAccessDAO(object):
 
         if len(out) == 1:
             node_id, type_ = out[0]
-            return base.ComponentAccess(node_id,
-                                        base.ComponentAccessType(type_)
+            return ComponentAccess(node_id,
+                                        ComponentAccessType(type_)
                                         )
 
     @staticmethod
-    def update(database: sqlite3.Connection, obj: base.ComponentAccess) -> None:
+    def update(database: sqlite3.Connection, obj: ComponentAccess) -> None:
         """
             Update an ComponentAccess inside the component_access table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The ComponentAccess object to update 
-            :type obj: base.ComponentAccess
+            :type obj: ComponentAccess
             :return: None 
             :rtype: NoneType
         """
@@ -1667,13 +1671,13 @@ class ComponentAccessDAO(object):
                           )
 
     @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.ComponentAccess]:
+    def list(database: sqlite3.Connection) -> list[ComponentAccess]:
         """
             Return the list of all the component_access from the component_access table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :return: The list of ComponentAccess
-            :rtype: list[base.ComponentAccess]
+            :rtype: list[ComponentAccess]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM component_access;'''
@@ -1683,7 +1687,7 @@ class ComponentAccessDAO(object):
         for row in rows:
             node_id, type_ = row
             result.append(base.ComponentAccess(
-                node_id, base.ComponentAccessType(type_)
+                node_id, ComponentAccessType(type_)
             ))
 
         return result
@@ -1728,13 +1732,13 @@ class ErrorDAO(object):
                           )
 
     @staticmethod
-    def new(database: sqlite3.Connection, obj: base.Error) -> int:
+    def new(database: sqlite3.Connection, obj: Error) -> int:
         """
             Insert a new Error inside the error table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: base.Error
+            :type obj: Error
             :return: The id of the inserted error
             :rtype: int
         """
@@ -1747,13 +1751,13 @@ class ErrorDAO(object):
                                  )
 
     @staticmethod
-    def delete(database: sqlite3.Connection, obj: base.Error) -> None:
+    def delete(database: sqlite3.Connection, obj: Error) -> None:
         """
             Delete an Error from the error table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: base.Error
+            :type obj: Error
             :return: None 
             :rtype: NoneType
         """
@@ -1762,7 +1766,7 @@ class ErrorDAO(object):
                           )
 
     @staticmethod
-    def get(database: sqlite3.Connection, elem_id: int) -> base.Error:
+    def get(database: sqlite3.Connection, elem_id: int) -> Error:
         """
             Return an error from the database with the matching id
             :param database: A database handle
@@ -1771,14 +1775,14 @@ class ErrorDAO(object):
             :type elem_id: int 
             :return: A Error object that reflect the content inside 
             the database 
-            :rtype: base.Error
+            :rtype: Error
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM error WHERE id = ?;''', (elem_id,)
                                  )
 
         if len(out) == 1:
-            return base.Error(*out[0])
+            return Error(*out[0])
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
@@ -1794,13 +1798,13 @@ class ErrorDAO(object):
                           )
 
     @staticmethod
-    def update(database: sqlite3.Connection, obj: base.Error) -> None:
+    def update(database: sqlite3.Connection, obj: Error) -> None:
         """
             Update an Error inside the error table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The Error object to update 
-            :type obj: base.Error
+            :type obj: Error
             :return: None 
             :rtype: NoneType
         """
@@ -1818,17 +1822,17 @@ class ErrorDAO(object):
                           )
 
     @staticmethod
-    def list(database: sqlite3.Connection) -> list[base.Error]:
+    def list(database: sqlite3.Connection) -> list[Error]:
         """
             Return the list of all the errors from the error table. 
             :param database: A database handle
             :type database: sqlite3.Connection           
             :return: The list of Errors 
-            :rtype: list[base.Error]
+            :rtype: list[Error]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM error;'''
-                                  )
+        )
 
         result = list()
         for row in rows:
@@ -1856,7 +1860,7 @@ class MetaDAO(object):
                 value TEXT, 
                 PRIMARY KEY(id)
             );'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -1879,7 +1883,7 @@ class MetaDAO(object):
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: base.Meta
+            :type obj: Meta
             :return: The id of the inserted meta
             :rtype: int
         """
@@ -1898,7 +1902,7 @@ class MetaDAO(object):
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: base.Meta
+            :type obj: Meta
             :return: None 
             :rtype: NoneType
         """
@@ -1916,7 +1920,7 @@ class MetaDAO(object):
             :type elem_id: int 
             :return: A Meta object that reflect the content inside 
             the database 
-            :rtype: base.Meta
+            :rtype: Meta
         """
         out = SqliteHelper.fetch(database, '''
             SELECT id, key, value FROM meta WHERE id = ?;''', (id_,)
@@ -1944,7 +1948,7 @@ class MetaDAO(object):
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The Meta object to update 
-            :type obj: base.Meta
+            :type obj: Meta
             :return: None 
             :rtype: NoneType
         """
@@ -1965,7 +1969,7 @@ class MetaDAO(object):
             :param database: A database handle
             :type database: sqlite3.Connection           
             :return: The list of Metas 
-            :rtype: list[base.Meta]
+            :rtype: list[Meta]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM meta;'''

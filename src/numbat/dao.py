@@ -1,9 +1,9 @@
 import sqlite3
 
-from .base import Element, ElementComponent, ElementComponentType, Edge,   \
-    EdgeType, Node, NodeType, Symbol, SymbolType, File, FileContent,       \
-    LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error,    \
-    ComponentAccess
+from .base import Element, ElementComponent, ElementComponentType, Edge, \
+    EdgeType, Node, NodeType, Symbol, SymbolType, File, FileContent, \
+    LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error, \
+    ComponentAccess, ComponentAccessType
 
 
 # ------------------------------------------------------------------------ #

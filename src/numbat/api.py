@@ -11,7 +11,7 @@ from .dao import ComponentAccessDAO, EdgeDAO, ElementComponentDAO, FileDAO, \
     ElementDAO, ErrorDAO, FileContentDAO, LocalSymbolDAO, MetaDAO, \
     NodeDAO, OccurrenceDAO, SourceLocationDAO, SqliteHelper, SymbolDAO
 
-from .exceptions import NoDatabaseOpen, AlreayOpenDatabase, NumbatException
+from .exceptions import NoDatabaseOpen, AlreadyOpenDatabase, NumbatException
 
 
 class SourcetrailDB(object):
@@ -57,7 +57,7 @@ class SourcetrailDB(object):
 
         # Check that a database is not already opened
         if self.database:
-            raise AlreayOpenDatabase()
+            raise AlreadyOpenDatabase()
 
         self.path = path
         # Check that the file has the correct extension
@@ -93,7 +93,7 @@ class SourcetrailDB(object):
 
         # Check that a database is not already opened
         if self.database:
-            raise AlreayOpenDatabase()
+            raise AlreadyOpenDatabase()
 
         self.path = path
         # Check that the file has the correct extension

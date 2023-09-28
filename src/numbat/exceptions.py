@@ -7,7 +7,7 @@ class SerializeException(NumbatException):
 class DeserializeException(NumbatException):
     pass
 
-class AlreayOpenDatabase(NumbatException):
+class AlreadyOpenDatabase(NumbatException):
     pass
 
 class NoDatabaseOpen(NumbatException):

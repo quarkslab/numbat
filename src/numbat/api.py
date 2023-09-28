@@ -2,14 +2,17 @@ import os
 import pathlib
 import datetime
 
-from .base import Element, ElementComponent, ElementComponentType, Edge,   \
-    EdgeType, Node, NodeType, Symbol, SymbolType, File, FileContent,       \
-    LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error,    \
-    ComponentAccess, NameElement, NameHierarchy
+from .base import Element, ElementComponent, ElementComponentType, Edge, \
+    EdgeType, Node, NodeType, Symbol, SymbolType, File, FileContent, \
+    LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error, \
+    NameElement, NameHierarchy
 
-from .dao import ComponentAccessDAO, EdgeDAO, ElementComponentDAO, FileDAO,\
-    ElementDAO, ErrorDAO, FileContentDAO, LocalSymbolDAO, MetaDAO,         \
+from .dao import ComponentAccessDAO, EdgeDAO, ElementComponentDAO, FileDAO, \
+    ElementDAO, ErrorDAO, FileContentDAO, LocalSymbolDAO, MetaDAO, \
     NodeDAO, OccurrenceDAO, SourceLocationDAO, SqliteHelper, SymbolDAO
+
+from .exceptions import NoDatabaseOpen, AlreayOpenDatabase, NumbatException
+
 
 class SourcetrailDB(object):
     """

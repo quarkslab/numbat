@@ -23,7 +23,7 @@ class SourcetrailDB(object):
 
     # Sourcetrail files extension
     SOURCETRAIL_PROJECT_EXT = '.srctrlprj'
-    SOURCETRAIL_DB_EXT      = '.srctrldb'
+    SOURCETRAIL_DB_EXT = '.srctrldb'
 
     SOURCETRAIL_XML = '\n'.join([
         '<?xml version="1.0" encoding="utf-8" ?>',
@@ -34,7 +34,7 @@ class SourcetrailDB(object):
 
     def __init__(self) -> None:
         self.database = None
-        self.path     = None
+        self.path = None
 
     # ------------------------------------------------------------------------ #
     # Database file management functions                                       #
@@ -57,7 +57,7 @@ class SourcetrailDB(object):
 
         # Check that a database is not already opened
         if self.database:
-            raise exceptions.AlreayOpenDatabase() 
+            raise AlreayOpenDatabase()
 
         self.path = path
         # Check that the file has the correct extension
@@ -76,7 +76,7 @@ class SourcetrailDB(object):
 
         if clear:
             # Clear the database if the user ask to
-            self.clear() 
+            self.clear()
 
     def create(self, path: pathlib.Path) -> None:
         """
@@ -93,7 +93,7 @@ class SourcetrailDB(object):
 
         # Check that a database is not already opened
         if self.database:
-            raise exceptions.AlreayOpenDatabase() 
+            raise AlreayOpenDatabase()
 
         self.path = path
         # Check that the file has the correct extension
@@ -128,11 +128,11 @@ class SourcetrailDB(object):
             :return: None
             :rtype: NoneType
         """
- 
+
         if self.database:
             self.database.commit()
         else:
-            raise exceptions.NoDatabaseOpen() 
+            raise NoDatabaseOpen()
 
     def clear(self) -> None:
         """
@@ -140,17 +140,17 @@ class SourcetrailDB(object):
             :return: None
             :rtype: NoneType
         """
- 
+
         if self.database:
             self.__clear_sql_tables()
         else:
-            raise exceptions.NoDatabaseOpen() 
+            raise NoDatabaseOpen()
 
     def close(self) -> None:
         """
             This method allow to close a sourcetrail database.
             The database must be closed after use in order to liberate
-            memory and ressources allocated for it.
+            memory and resources allocated for it.
             :return: None
             :rtype: NoneType
         """
@@ -159,7 +159,7 @@ class SourcetrailDB(object):
             self.database.close()
             self.database = None
         else:
-            raise exceptions.NoDatabaseOpen() 
+            raise NoDatabaseOpen()
 
     def __create_sql_tables(self) -> None:
         """
@@ -301,8 +301,8 @@ class SourcetrailDB(object):
             SymbolDAO.new(self.database, symb)
 
     def __record_source_location(self, symbol_id: int, file_id: int,
-            start_line: int, start_column: int, end_line: int, end_column: int, 
-            type_: SourceLocationType) -> None:
+                                 start_line: int, start_column: int, end_line: int, end_column: int,
+                                 type_: SourceLocationType) -> None:
         """
             Wrapper for all the record_*_location
             :param symbol_id: The identifier of the symbol 
@@ -311,11 +311,11 @@ class SourcetrailDB(object):
             :type file_id: int 
             :param start_line: The line at which the element start. 
             :type start_line: int
-            :param start_column: The column at which the element start. 
+            :param start_column: The column at which the element starts.
             :type start_column: int
-            :param end_line: The line at which the element end. 
+            :param end_line: The line at which the element ends.
             :type end_line: int
-            :param end_column: The line at which the element end. 
+            :param end_column: The line at which the element ends.
             :type end_column: int
             :param type_: The type of the source location.
             :type type_: SourceLocationType 
@@ -348,13 +348,13 @@ class SourcetrailDB(object):
             :type symbol_id: int
             :param file_id: The identifier of the source file in which the symbol is located
             :type file_id: int 
-            :param start_line: The line at which the element start. 
+            :param start_line: The line at which the element starts.
             :type start_line: int
-            :param start_column: The column at which the element start. 
+            :param start_column: The column at which the element starts.
             :type start_column: int
-            :param end_line: The line at which the element end. 
+            :param end_line: The line at which the element ends.
             :type end_line: int
-            :param end_column: The line at which the element end. 
+            :param end_column: The line at which the element ends.
             :type end_column: int
             :return: None
             :rtype: NoneType
@@ -378,13 +378,13 @@ class SourcetrailDB(object):
             :type symbol_id: int
             :param file_id: The identifier of the source file in which the symbol is located
             :type file_id: int 
-            :param start_line: The line at which the element start. 
+            :param start_line: The line at which the element starts.
             :type start_line: int
-            :param start_column: The column at which the element start. 
+            :param start_column: The column at which the element starts.
             :type start_column: int
-            :param end_line: The line at which the element end. 
+            :param end_line: The line at which the element ends.
             :type end_line: int
-            :param end_column: The line at which the element end. 
+            :param end_column: The line at which the element ends.
             :type end_column: int
             :return: None
             :rtype: NoneType
@@ -408,13 +408,13 @@ class SourcetrailDB(object):
             :type symbol_id: int
             :param file_id: The identifier of the source file in which the symbol is located
             :type file_id: int 
-            :param start_line: The line at which the element start. 
+            :param start_line: The line at which the element starts.
             :type start_line: int
-            :param start_column: The column at which the element start. 
+            :param start_column: The column at which the element starts.
             :type start_column: int
-            :param end_line: The line at which the element end. 
+            :param end_line: The line at which the element ends.
             :type end_line: int
-            :param end_column: The line at which the element end. 
+            :param end_column: The line at which the element ends.
             :type end_column: int
             :return: None
             :rtype: NoneType
@@ -438,18 +438,18 @@ class SourcetrailDB(object):
             :type symbol_id: int
             :param file_id: The identifier of the source file in which the symbol is located
             :type file_id: int 
-            :param start_line: The line at which the element start. 
+            :param start_line: The line at which the element starts.
             :type start_line: int
-            :param start_column: The column at which the element start. 
+            :param start_column: The column at which the element starts.
             :type start_column: int
-            :param end_line: The line at which the element end. 
+            :param end_line: The line at which the element ends.
             :type end_line: int
-            :param end_column: The line at which the element end. 
+            :param end_column: The line at which the element ends.
             :type end_column: int
             :return: None
             :rtype: NoneType
         """
- 
+
         self.__record_source_location(
             reference_id,
             file_id,
@@ -468,18 +468,18 @@ class SourcetrailDB(object):
             :type symbol_id: int
             :param file_id: The identifier of the source file in which the symbol is located
             :type file_id: int 
-            :param start_line: The line at which the element start. 
+            :param start_line: The line at which the element starts.
             :type start_line: int
-            :param start_column: The column at which the element start. 
+            :param start_column: The column at which the element starts.
             :type start_column: int
-            :param end_line: The line at which the element end. 
+            :param end_line: The line at which the element ends.
             :type end_line: int
-            :param end_column: The line at which the element end. 
+            :param end_column: The line at which the element ends.
             :type end_column: int
             :return: None
             :rtype: NoneType
         """
- 
+
         self.__record_source_location(
             symbol_id,
             file_id,
@@ -498,18 +498,18 @@ class SourcetrailDB(object):
             :type symbol_id: int
             :param file_id: The identifier of the source file in which the symbol is located
             :type file_id: int 
-            :param start_line: The line at which the element start. 
+            :param start_line: The line at which the element starts.
             :type start_line: int
-            :param start_column: The column at which the element start. 
+            :param start_column: The column at which the element starts.
             :type start_column: int
-            :param end_line: The line at which the element end. 
+            :param end_line: The line at which the element ends.
             :type end_line: int
-            :param end_column: The line at which the element end. 
+            :param end_column: The line at which the element ends.
             :type end_column: int
             :return: None
             :rtype: NoneType
         """
- 
+
         self.__record_source_location(
             symbol_id,
             file_id,
@@ -528,13 +528,13 @@ class SourcetrailDB(object):
             :type symbol_id: int
             :param file_id: The identifier of the source file in which the symbol is located
             :type file_id: int 
-            :param start_line: The line at which the element start. 
+            :param start_line: The line at which the element starts.
             :type start_line: int
-            :param start_column: The column at which the element start. 
+            :param start_column: The column at which the element starts.
             :type start_column: int
-            :param end_line: The line at which the element end. 
+            :param end_line: The line at which the element ends.
             :type end_line: int
-            :param end_column: The line at which the element end. 
+            :param end_column: The line at which the element ends.
             :type end_column: int
             :return: None
             :rtype: NoneType
@@ -557,7 +557,7 @@ class SourcetrailDB(object):
             :type target_id: int
             :param dest_id: The destination identifier of the reference  
             :type dest_id: int 
-            :param type_: Th type of reference to add
+            :param type_: The type of reference to add
             :type type_: EdgeType
             :return: None
             :rtype: NoneType
@@ -602,18 +602,18 @@ class SourcetrailDB(object):
             :type reference_type: EdgeType
             :param file_id: The identifier of the source file in which the symbol is located
             :type file_id: int 
-            :param start_line: The line at which the element start. 
+            :param start_line: The line at which the element starts.
             :type start_line: int
-            :param start_column: The column at which the element start. 
+            :param start_column: The column at which the element starts.
             :type start_column: int
-            :param end_line: The line at which the element end. 
+            :param end_line: The line at which the element ends.
             :type end_line: int
-            :param end_column: The line at which the element end. 
+            :param end_column: The line at which the element ends.
             :type end_column: int
             :return: The identifier of the new reference
             :rtype: int
         """
- 
+
         # Don't blame me, it's done like this in sourcetrail source code
         hierarchy = NameHierarchy(
             NameHierarchy.NAME_DELIMITER_UNKNOWN,
@@ -710,11 +710,11 @@ class SourcetrailDB(object):
         if indexed:
             # Insert a new filecontent
             FileContentDAO.new(self.database,
-                FileContent(
-                    elem_id,
-                    ''.join(lines)
-                )
-            )
+                               FileContent(
+                                   elem_id,
+                                   ''.join(lines)
+                               )
+                               )
 
         # Return the newly created element id
         return elem_id
@@ -765,13 +765,13 @@ class SourcetrailDB(object):
             :type fatal: bool
             :param file_id: The identifier of the source file being parsed
             :type file_id: int
-            :param start_line: The line at which the element start. 
+            :param start_line: The line at which the element starts.
             :type start_line: int
-            :param start_column: The column at which the element start. 
+            :param start_column: The column at which the element starts.
             :type start_column: int
-            :param end_line: The line at which the element end. 
+            :param end_line: The line at which the element ends.
             :type end_line: int
-            :param end_column: The line at which the element end. 
+            :param end_column: The line at which the element ends.
             :type end_column: int
             :return: None
             :rtype: NoneType
@@ -839,7 +839,7 @@ class SourcetrailDB(object):
             :param hierarchy: The hierarchy of the symbol to retrieve
             :type hierarchy: NameHierarchy
             :return: The identifier of the existing symbol or None if the symbol
-                     does not exists.
+                     does not exist.
             :rtype: int | None
         """
 
@@ -856,8 +856,8 @@ class SourcetrailDB(object):
             :type parent_id: int
             :param element: The new element to insert
             :type element: NameElement
-            :return: The identifier of the newly insert symbol or None if the parent 
-                     does not exists
+            :return: The identifier of the newly inserted symbol or None if the parent
+                     does not exist.
             :rtype: int | None
         """
 
@@ -867,8 +867,8 @@ class SourcetrailDB(object):
             hierarchy.extend(element)
             return self.record_symbol(hierarchy)
 
-    def record_class(self, prefix: str = '', name: str = '', postfix: str = '', 
-            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX) -> int | None:
+    def record_class(self, prefix: str = '', name: str = '', postfix: str = '',
+                     delimiter: str = NameHierarchy.NAME_DELIMITER_CXX) -> int | None:
         """
             Higher level method that hide the NameHierarchy from the user
             :param prefix: The prefix of the element to insert
@@ -894,10 +894,10 @@ class SourcetrailDB(object):
 
         if class_id:
             self.record_symbol_kind(class_id, NodeType.NODE_CLASS)
-            return class_id  
+            return class_id
 
-    def record_function(self, prefix: str = '', name: str = '', postfix: str = '', 
-            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX) -> int | None:
+    def record_function(self, prefix: str = '', name: str = '', postfix: str = '',
+                        delimiter: str = NameHierarchy.NAME_DELIMITER_CXX) -> int | None:
         """
             Higher level method that hide the NameHierarchy from the user
             :param prefix: The prefix of the element to insert
@@ -923,13 +923,13 @@ class SourcetrailDB(object):
 
         if func_id:
             self.record_symbol_kind(func_id, NodeType.NODE_FUNCTION)
-            return func_id  
+            return func_id
 
-    def record_method(self, parent: int, prefix: str = '', name: str = '', 
-            postfix: str = '') -> int | None:
+    def record_method(self, parent: int, prefix: str = '', name: str = '',
+                      postfix: str = '') -> int | None:
         """
             Higher level method that hide the NameHierarchy from the user
-            :param parent: The identifier of the class in which the method is define
+            :param parent: The identifier of the class in which the method is defined.
             :type parent: int
             :param prefix: The prefix of the element to insert
             :type prefix: str
@@ -946,17 +946,17 @@ class SourcetrailDB(object):
         method = self.record_symbol_child(parent, NameElement(
             prefix,
             name,
-            postfix     
+            postfix
         ))
         if method:
             self.record_symbol_kind(method, NodeType.NODE_METHOD)
             return method
 
-    def record_field(self, parent: int, prefix: str = '', name: str = '', 
-            postfix: str = '') -> int | None:
+    def record_field(self, parent: int, prefix: str = '', name: str = '',
+                     postfix: str = '') -> int | None:
         """
             Higher level method that hide the NameHierarchy from the user
-            :param parent: The identifier of the class in which the field is define
+            :param parent: The identifier of the class in which the field is defined.
             :type parent: int
             :param prefix: The prefix of the element to insert
             :type prefix: str
@@ -973,9 +973,8 @@ class SourcetrailDB(object):
         field = self.record_symbol_child(parent, NameElement(
             prefix,
             name,
-            postfix     
+            postfix
         ))
         if field:
             self.record_symbol_kind(field, NodeType.NODE_FIELD)
             return field
-

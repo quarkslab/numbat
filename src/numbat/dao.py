@@ -38,7 +38,7 @@ class SqliteHelper(object):
             :type database: sqlite3.Connection
             :param request: The SQL request to execute
             :type request: str
-            :param parameters: A tuple containing values for the binded
+            :param parameters: A tuple containing values for the bind
             parameters of the SQL request (if any)
             :type parameters: tuple
             :return: The id of the last modified row (useful in case insertion)
@@ -61,7 +61,7 @@ class SqliteHelper(object):
             :type database: sqlite3.Connection
             :param request: The SQL request to execute
             :type request: str
-            :param parameters: A tuple containing values for the binded
+            :param parameters: A tuple containing values for the bind
             parameters of the SQL request (if any)
             :type parameters: tuple
             :return: A list containing the results of the SQL request 
@@ -309,8 +309,8 @@ class ElementComponentDAO(object):
         if len(out) == 1:
             id_, element_id, type_, data = out[0]
             return ElementComponent(id_, element_id,
-                                         ElementComponentType(type_), data
-                                         )
+                                    ElementComponentType(type_), data
+                                    )
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: ElementComponent) -> None:
@@ -658,9 +658,7 @@ class NodeDAO(object):
         result = list()
         for row in rows:
             id_, type_, serialized_name = row
-            result.append(base.Node(
-                id_, NodeType(type_), serialized_name
-            ))
+            result.append(Node(id_, NodeType(type_), serialized_name))
 
         return result
 
@@ -720,7 +718,7 @@ class SymbolDAO(object):
     @staticmethod
     def delete(database: sqlite3.Connection, obj: Symbol) -> None:
         """
-            Delete an Symbol from the symbol table.
+            Delete a Symbol from the symbol table.
             :param database: A database handle
             :type database: sqlite3.Connection           
             :param obj: The object to delete
@@ -799,9 +797,7 @@ class SymbolDAO(object):
         result = list()
         for row in rows:
             id_, type_ = row
-            result.append(base.Symbol(
-                id_, SymbolType(type_)
-            ))
+            result.append(Symbol(id_, SymbolType(type_)))
 
         return result
 
@@ -954,7 +950,7 @@ class FileDAO(object):
 
         result = list()
         for row in rows:
-            result.append(base.File(*row))
+            result.append(File(*row))
 
         return result
 
@@ -1091,7 +1087,7 @@ class FileContentDAO(object):
 
         result = list()
         for row in rows:
-            result.append(base.FileContent(*row))
+            result.append(FileContent(*row))
 
         return result
 
@@ -1247,7 +1243,7 @@ class LocalSymbolDAO(object):
 
         result = list()
         for row in rows:
-            result.append(base.LocalSymbol(*row))
+            result.append(LocalSymbol(*row))
 
         return result
 
@@ -1359,8 +1355,8 @@ class SourceLocationDAO(object):
         if len(out) == 1:
             id_, fid, sl, sc, el, ec, type_ = out[0]
             return SourceLocation(id_, fid, sl, sc, el, ec,
-                                       SourceLocationType(type_)
-                                       )
+                                  SourceLocationType(type_)
+                                  )
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: SourceLocation) -> None:
@@ -1404,7 +1400,7 @@ class SourceLocationDAO(object):
         result = list()
         for row in rows:
             id_, fid, sl, sc, el, ec, type_ = row
-            result.append(base.SourceLocation(
+            result.append(SourceLocation(
                 id_, fid, sl, sc, el, ec, SourceLocationType(type_)
             ))
 
@@ -1545,7 +1541,7 @@ class OccurrenceDAO(object):
 
         result = list()
         for row in rows:
-            result.append(base.Occurrence(*row))
+            result.append(Occurrence(*row))
 
         return result
 
@@ -1648,9 +1644,7 @@ class ComponentAccessDAO(object):
 
         if len(out) == 1:
             node_id, type_ = out[0]
-            return ComponentAccess(node_id,
-                                        ComponentAccessType(type_)
-                                        )
+            return ComponentAccess(node_id, ComponentAccessType(type_))
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: ComponentAccess) -> None:
@@ -1686,9 +1680,7 @@ class ComponentAccessDAO(object):
         result = list()
         for row in rows:
             node_id, type_ = row
-            result.append(base.ComponentAccess(
-                node_id, ComponentAccessType(type_)
-            ))
+            result.append(ComponentAccess(node_id, ComponentAccessType(type_)))
 
         return result
 
@@ -1832,11 +1824,11 @@ class ErrorDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM error;'''
-        )
+                                  )
 
         result = list()
         for row in rows:
-            result.append(base.Error(*row))
+            result.append(Error(*row))
 
         return result
 
@@ -1860,7 +1852,7 @@ class MetaDAO(object):
                 value TEXT, 
                 PRIMARY KEY(id)
             );'''
-        )
+                          )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:

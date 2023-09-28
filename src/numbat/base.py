@@ -18,7 +18,7 @@ class Element(object):
         
         The 'element' table is used in sourcetrail to be able to easily manage
         other elements of others tables. Since all higher level element are
-        referencing a element in the 'element' table it's possible to remove
+        referencing an element in the 'element' table it's possible to remove
         any element by removing the correct entry in the 'element' table.
     """
 
@@ -190,7 +190,7 @@ class Node(Element):
             FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
         ) 
 
-        The 'node' table is the main table of the sourcetrail database. It allow
+        The 'node' table is the main table of the sourcetrail database. It allows
         to store elements such as function, class, package, etc. However, this
         table is weirdly implemented as the field 'serialized_name' contains 
         another type called NameHierarchy with a custom serialization format.
@@ -228,8 +228,7 @@ class Node(Element):
 class SymbolType(enum.Enum):
     """
         Internal class that represent a Symbol type inside the 
-        sourcetrail database. This type define the type of a 
-        symbol in the database.    
+        sourcetrail database. This type define the symbol type in the database.
     """
     NONE = 0
     IMPLICIT = 1
@@ -396,9 +395,8 @@ class LocalSymbol(Element):
 class SourceLocationType(enum.Enum):
     """
         Internal class that represent a SymbolLocation type inside the 
-        sourcetrail database. This type define the type of a 
-        symbol location in the database and can be used to indicate
-        indexing errors.
+        sourcetrail database. This type define the symbol location type in the
+        database and can be used to indicate indexing errors.
     """
     TOKEN = 0
     SCOPE = 1
@@ -442,13 +440,13 @@ class SourceLocation(Element):
             :type id_: int           
             :param file_node_id: The id of the file element corresponding to this content. 
             :type path: int
-            :param start_line: The line at which the element start. 
+            :param start_line: The line at which the element starts.
             :type start_line: int
-            :param start_column: The column at which the element start. 
+            :param start_column: The column at which the element starts.
             :type start_column: int
-            :param end_line: The line at which the element end. 
+            :param end_line: The line at which the element ends.
             :type end_line: int
-            :param end_column: The line at which the element end. 
+            :param end_column: The line at which the element ends.
             :type end_column: int
             :param type_: The type of the source location.
             :type type_: SourceLocationType 
@@ -503,7 +501,7 @@ class ComponentAccessType(enum.Enum):
         the sourcetrail database. This type define the type of 
         ComponentAccess in the database and can be used to add extra
         information regarding the visibility of elements (in the 
-        Object Oriented sens)
+        "Object-Oriented" sens)
     """
     NONE = 0
     PUBLIC = 1
@@ -751,7 +749,7 @@ class NameHierarchy(object):
         result = self._delimiter + self.META_DELIMITER
         if not self._elements:
             # @Warning: This is not the same behavior as SourcetrailDB
-            # We are returning a exception instead of a empty string 
+            # We are returning an exception instead of an empty string
             raise SerializeException()
 
         elements = self._elements[start:end]
@@ -813,7 +811,7 @@ class NameHierarchy(object):
                 - NAME_DELIMITER_JAVA
                 - NAME_DELIMITER_UNKNOWN
             And then be followed by at least 3 elements separated by
-            the delimiter DELIMITER. 
+            the delimiter "DELIMITER".
             :type serialized_name: str
             :return: The NameHierarchy corresponding to the deserialize_name 
             :rtype: NameHierarchy
@@ -823,7 +821,7 @@ class NameHierarchy(object):
             # Invalid meta delimiter
 
             # @Warning: This is not the same behavior as SourcetrailDB
-            # We are returning a exception instead of a empty NameHierarchy 
+            # We are returning an exception instead of an empty NameHierarchy
             # return NameHierarchy(NameHierarchy.NAME_DELIMITER_UNKNOWN, None)
             raise DeserializeException()
 
@@ -838,7 +836,7 @@ class NameHierarchy(object):
                 # Invalid part delimiter
 
                 # @Warning: This is not the same behavior as SourcetrailDB
-                # We are returning a exception instead of a empty NameHierarchy 
+                # We are returning an exception instead of an empty NameHierarchy
                 # return NameHierarchy(NameHierarchy.NAME_DELIMITER_UNKNOWN, None)
                 raise DeserializeException()
 
@@ -851,7 +849,7 @@ class NameHierarchy(object):
                 # Invalid signature delimiter
 
                 # @Warning: This is not the same behavior as SourcetrailDB
-                # We are returning a exception instead of a empty NameHierarchy 
+                # We are returning an exception instead of an empty NameHierarchy
                 # return NameHierarchy(NameHierarchy.NAME_DELIMITER_UNKNOWN, None)
                 raise DeserializeException()
 

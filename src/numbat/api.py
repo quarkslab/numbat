@@ -1,6 +1,7 @@
 import os
 import pathlib
 import datetime
+import logging
 
 from .base import Element, ElementComponent, ElementComponentType, Edge, \
     EdgeType, Node, NodeType, Symbol, SymbolType, File, FileContent, \
@@ -32,9 +33,10 @@ class SourcetrailDB(object):
         '</config>'
     ])
 
-    def __init__(self) -> None:
+    def __init__(self, logger: logging.Logger = logging.getLogger()) -> None:
         self.database = None
         self.path = None
+        self.logger = logger 
 
     # ------------------------------------------------------------------------ #
     # Database file management functions                                       #
@@ -434,7 +436,7 @@ class SourcetrailDB(object):
                                   start_column: int, end_line: int, end_column: int) -> None:
         """
             Record a new reference location of type TOKEN
-            :param reference_id: The reference idnetifier
+            :param reference_id: The reference identifier
             :type reference_id: int
             :param file_id: The identifier of the source file in which the symbol is located
             :type file_id: int 

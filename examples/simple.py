@@ -1,3 +1,9 @@
+"""
+    This example use numbat to create a sourcetrail project (or open it if it already exists)
+    which contains a class providing one method and one field. This example only use the
+    same methods as the one defined in the SourcetrailDB project.
+"""
+
 from numbat import SourcetrailDB
 from numbat.base import NameHierarchy, NameElement, SymbolType, NodeType, EdgeType
 
@@ -71,22 +77,6 @@ def main():
     # Just for testing purpose, let's say that true is a local symbol
     local_symbol = srctrl.record_local_symbol('true')
     srctrl.record_local_symbol_location(local_symbol, file_id, 4, 14, 4, 17)
-
-    # ----- Test for new features ----- #
-
-    # This should return the same id as the one we inserted
-    symbol_id_ = srctrl.record_symbol(NameHierarchy(
-        NameHierarchy.NAME_DELIMITER_JAVA,
-        [NameElement(
-            '',
-            'MyType',
-            ''
-        )]
-    ))
-    assert (symbol_id == symbol_id_)
-
-    # Add a child to a symbol without having to give his whole hierarchy
-    srctrl.record_symbol_child(symbol_id, NameElement('', 'my_other_method', ''))
 
     srctrl.commit()
     srctrl.close()

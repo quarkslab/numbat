@@ -81,6 +81,10 @@ class SqliteHelper(object):
 
 
 class ElementDAO(object):
+    """
+        This class is a static class that can manipulate Element objects,
+        inserting and removing them from a sqlite database.
+    """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
@@ -96,7 +100,7 @@ class ElementDAO(object):
             CREATE TABLE IF NOT EXISTS element(
                 id INTEGER,                         
                 PRIMARY KEY(id));'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -110,7 +114,7 @@ class ElementDAO(object):
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.element;'''
-                          )
+        )
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: Element) -> int:
@@ -123,9 +127,14 @@ class ElementDAO(object):
             :return: The id of the inserted element
             :rtype: int
         """
+        # The 'obj' parameter is not used because we need to create a identifier
+        # that does not already exists in the database. So instead, we insert 
+        # NULL and the database does the rest.  
+        # The 'obj' parameter is present to add some consistency with the 
+        # rest of the API and also for futur proof consideration.
         return SqliteHelper.exec(database, '''
             INSERT INTO element(id) VALUES (NULL);'''
-                                 )
+        )
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: Element) -> None:
@@ -140,7 +149,7 @@ class ElementDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM element WHERE id = ?;''', (obj.id,)
-                          )
+        )
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
@@ -153,7 +162,7 @@ class ElementDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM element;'''
-                          )
+        )
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> Element:
@@ -169,7 +178,7 @@ class ElementDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM element WHERE id = ?;''', (elem_id,)
-                                 )
+        )
 
         if len(out) == 1:
             return Element(*out[0])
@@ -200,7 +209,7 @@ class ElementDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM element;'''
-                                  )
+        )
 
         result = list()
         for row in rows:
@@ -210,6 +219,10 @@ class ElementDAO(object):
 
 
 class ElementComponentDAO(object):
+    """
+        This class is a static class that can manipulate ElementComponent objects,
+        inserting and removing them from a sqlite database.
+    """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
@@ -230,7 +243,7 @@ class ElementComponentDAO(object):
                 PRIMARY KEY(id), 
                 FOREIGN KEY(element_id) REFERENCES element(id) ON DELETE CASCADE
             );'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -244,7 +257,7 @@ class ElementComponentDAO(object):
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.element_component;'''
-                          )
+        )
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: ElementComponent) -> int:
@@ -261,7 +274,7 @@ class ElementComponentDAO(object):
             INSERT INTO element_component(
                 id, element_id, type, data
             ) VALUES(NULL, ?, ?, ?);''', (obj.elem_id, obj.type.value, obj.data)
-                                 )
+        )
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: ElementComponent) -> None:
@@ -276,7 +289,7 @@ class ElementComponentDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM element_component WHERE id = ?;''', (obj.id,)
-                          )
+        )
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
@@ -289,7 +302,7 @@ class ElementComponentDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM element_component;'''
-                          )
+        )
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> ElementComponent:
@@ -305,13 +318,13 @@ class ElementComponentDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM element_component WHERE id = ?;''', (elem_id,)
-                                 )
+        )
 
         if len(out) == 1:
             id_, element_id, type_, data = out[0]
             return ElementComponent(id_, element_id,
-                                    ElementComponentType(type_), data
-                                    )
+                ElementComponentType(type_), data
+        )
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: ElementComponent) -> None:
@@ -331,7 +344,7 @@ class ElementComponentDAO(object):
                 data = ?
             WHERE
                 id = ?;''', (obj.elem_id, obj.type.value, obj.data, obj.id)
-                          )
+        )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[ElementComponent]:
@@ -344,7 +357,7 @@ class ElementComponentDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM element_component;'''
-                                  )
+        )
 
         result = list()
         for row in rows:
@@ -357,6 +370,10 @@ class ElementComponentDAO(object):
 
 
 class EdgeDAO(object):
+    """
+        This class is a static class that can manipulate Edge objects,
+        inserting and removing them from a sqlite database.
+    """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
@@ -379,7 +396,7 @@ class EdgeDAO(object):
                 FOREIGN KEY(source_node_id) REFERENCES node(id) ON DELETE CASCADE, 
                 FOREIGN KEY(target_node_id) REFERENCES node(id) ON DELETE CASCADE
             );'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -393,7 +410,7 @@ class EdgeDAO(object):
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.edge;'''
-                          )
+        )
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: Edge) -> int:
@@ -410,7 +427,7 @@ class EdgeDAO(object):
             INSERT INTO edge(
                 id, type, source_node_id, target_node_id
             ) VALUES(?, ?, ?, ?);''', (obj.id, obj.type.value, obj.src, obj.dst)
-                                 )
+        )
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: Edge) -> None:
@@ -425,7 +442,7 @@ class EdgeDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM edge WHERE id = ?;''', (obj.id,)
-                          )
+        )
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
@@ -438,7 +455,7 @@ class EdgeDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM edge;'''
-                          )
+        )
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> Edge:
@@ -454,7 +471,7 @@ class EdgeDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM edge WHERE id = ?;''', (elem_id,)
-                                 )
+        )
 
         if len(out) == 1:
             id_, type_, src, dst = out[0]
@@ -478,7 +495,7 @@ class EdgeDAO(object):
                 target_node_id = ?
             WHERE
                 id = ?;''', (obj.type.value, obj.src, obj.dst, obj.id)
-                          )
+        )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[Edge]:
@@ -491,7 +508,7 @@ class EdgeDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM edge;'''
-                                  )
+        )
 
         result = list()
         for row in rows:
@@ -504,6 +521,10 @@ class EdgeDAO(object):
 
 
 class NodeDAO(object):
+    """
+        This class is a static class that can manipulate Node objects,
+        inserting and removing them from a sqlite database.
+    """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
@@ -523,7 +544,7 @@ class NodeDAO(object):
                 PRIMARY KEY(id), 
                 FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
             );'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -537,7 +558,7 @@ class NodeDAO(object):
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.node;'''
-                          )
+        )
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: Node) -> int:
@@ -554,7 +575,7 @@ class NodeDAO(object):
             INSERT INTO node(
                 id, type, serialized_name 
             ) VALUES(?, ?, ?);''', (obj.id, obj.type.value, obj.name)
-                                 )
+        )
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: Node) -> None:
@@ -569,7 +590,7 @@ class NodeDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM node WHERE id = ?;''', (obj.id,)
-                          )
+        )
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
@@ -582,7 +603,7 @@ class NodeDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM node;'''
-                          )
+        )
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> Node:
@@ -598,7 +619,7 @@ class NodeDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM node WHERE id = ?;''', (elem_id,)
-                                 )
+        )
 
         if len(out) == 1:
             id_, type_, serialized_name = out[0]
@@ -618,7 +639,7 @@ class NodeDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM node WHERE serialized_name = ? LIMIT 1;''', (name,)
-                                 )
+        )
 
         if len(out) == 1:
             id_, type_, serialized_name = out[0]
@@ -641,7 +662,7 @@ class NodeDAO(object):
                 serialized_name = ?
             WHERE
                 id = ?;''', (obj.type.value, obj.name, obj.id)
-                          )
+        )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[Node]:
@@ -654,7 +675,7 @@ class NodeDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM node;'''
-                                  )
+        )
 
         result = list()
         for row in rows:
@@ -665,6 +686,10 @@ class NodeDAO(object):
 
 
 class SymbolDAO(object):
+    """
+        This class is a static class that can manipulate Symbol objects,
+        inserting and removing them from a sqlite database.
+    """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
@@ -683,7 +708,7 @@ class SymbolDAO(object):
                 PRIMARY KEY(id), 
                 FOREIGN KEY(id) REFERENCES node(id) ON DELETE CASCADE
             );'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -697,7 +722,7 @@ class SymbolDAO(object):
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.symbol;'''
-                          )
+        )
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: Symbol) -> int:
@@ -714,7 +739,7 @@ class SymbolDAO(object):
             INSERT INTO symbol(
                 id, definition_kind 
             ) VALUES(?, ?);''', (obj.id, obj.definition_kind.value)
-                                 )
+        )
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: Symbol) -> None:
@@ -729,7 +754,7 @@ class SymbolDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM symbol WHERE id = ?;''', (obj.id,)
-                          )
+        )
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
@@ -742,7 +767,7 @@ class SymbolDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM symbol;'''
-                          )
+        )
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> Symbol:
@@ -758,7 +783,7 @@ class SymbolDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM symbol WHERE id = ?;''', (elem_id,)
-                                 )
+        )
 
         if len(out) == 1:
             id_, type_ = out[0]
@@ -780,7 +805,7 @@ class SymbolDAO(object):
                 definition_kind = ?
             WHERE
                 id = ?;''', (obj.definition_kind.value, obj.id)
-                          )
+        )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[Symbol]:
@@ -793,7 +818,7 @@ class SymbolDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM symbol;'''
-                                  )
+        )
 
         result = list()
         for row in rows:
@@ -804,6 +829,10 @@ class SymbolDAO(object):
 
 
 class FileDAO(object):
+    """
+        This class is a static class that can manipulate File objects,
+        inserting and removing them from a sqlite database.
+    """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
@@ -827,7 +856,7 @@ class FileDAO(object):
                 PRIMARY KEY(id), 
                 FOREIGN KEY(id) REFERENCES node(id) ON DELETE CASCADE
             );'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -841,7 +870,7 @@ class FileDAO(object):
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.file;'''
-                          )
+        )
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: File) -> int:
@@ -858,10 +887,10 @@ class FileDAO(object):
             INSERT INTO file(
                 id, path, language, modification_time, indexed, complete, line_count 
             ) VALUES(?, ?, ?, ?, ?, ?, ?);''', (
-            obj.id, obj.path, obj.language, obj.modification_time,
-            obj.indexed, obj.complete, obj.line_count
+                obj.id, obj.path, obj.language, obj.modification_time,
+                obj.indexed, obj.complete, obj.line_count
+            )
         )
-                                 )
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: File) -> None:
@@ -876,7 +905,7 @@ class FileDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM file WHERE id = ?;''', (obj.id,)
-                          )
+        )
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
@@ -889,7 +918,7 @@ class FileDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM file;'''
-                          )
+        )
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> File:
@@ -905,7 +934,7 @@ class FileDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM file WHERE id = ?;''', (elem_id,)
-                                 )
+        )
 
         if len(out) == 1:
             return File(*out[0])
@@ -931,10 +960,10 @@ class FileDAO(object):
                 line_count = ? 
             WHERE
                 id = ?;''', (
-            obj.path, obj.language, obj.modification_time,
-            obj.indexed, obj.complete, obj.line_count, obj.id
+                obj.path, obj.language, obj.modification_time,
+                obj.indexed, obj.complete, obj.line_count, obj.id
+            )
         )
-                          )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[File]:
@@ -947,7 +976,7 @@ class FileDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM file;'''
-                                  )
+        )
 
         result = list()
         for row in rows:
@@ -957,6 +986,10 @@ class FileDAO(object):
 
 
 class FileContentDAO(object):
+    """
+        This class is a static class that can manipulate FileContent objects,
+        inserting and removing them from a sqlite database.
+    """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
@@ -975,7 +1008,7 @@ class FileContentDAO(object):
                 PRIMARY KEY(id), 
                 FOREIGN KEY(id) REFERENCES file(id)ON DELETE CASCADE ON UPDATE CASCADE
             );'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -989,7 +1022,7 @@ class FileContentDAO(object):
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.filecontent;'''
-                          )
+        )
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: FileContent) -> int:
@@ -1006,7 +1039,7 @@ class FileContentDAO(object):
             INSERT INTO filecontent(
                 id, content 
             ) VALUES(?, ?);''', (obj.id, obj.content)
-                                 )
+        )
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: FileContent) -> None:
@@ -1021,7 +1054,7 @@ class FileContentDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM filecontent WHERE id = ?;''', (obj.id,)
-                          )
+        )
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
@@ -1034,7 +1067,7 @@ class FileContentDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM filecontent;'''
-                          )
+        )
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> FileContent:
@@ -1050,7 +1083,7 @@ class FileContentDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM filecontent WHERE id = ?;''', (elem_id,)
-                                 )
+        )
 
         if len(out) == 1:
             return FileContent(*out[0])
@@ -1071,7 +1104,7 @@ class FileContentDAO(object):
                 content = ? 
             WHERE
                 id = ?;''', (obj.content, obj.id)
-                          )
+        )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[FileContent]:
@@ -1084,7 +1117,7 @@ class FileContentDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM filecontent;'''
-                                  )
+        )
 
         result = list()
         for row in rows:
@@ -1094,6 +1127,10 @@ class FileContentDAO(object):
 
 
 class LocalSymbolDAO(object):
+    """
+        This class is a static class that can manipulate LocalSymbol objects,
+        inserting and removing them from a sqlite database.
+    """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
@@ -1112,7 +1149,7 @@ class LocalSymbolDAO(object):
                 PRIMARY KEY(id), 
                 FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
             );'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -1126,7 +1163,7 @@ class LocalSymbolDAO(object):
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.local_symbol;'''
-                          )
+        )
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: LocalSymbol) -> int:
@@ -1143,7 +1180,7 @@ class LocalSymbolDAO(object):
             INSERT INTO local_symbol(
                 id, name 
             ) VALUES(?, ?);''', (obj.id, obj.name)
-                                 )
+        )
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: LocalSymbol) -> None:
@@ -1158,7 +1195,7 @@ class LocalSymbolDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM local_symbol WHERE id = ?;''', (obj.id,)
-                          )
+        )
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
@@ -1171,7 +1208,7 @@ class LocalSymbolDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM local_symbol;'''
-                          )
+        )
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> LocalSymbol:
@@ -1187,7 +1224,7 @@ class LocalSymbolDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM local_symbol WHERE id = ?;''', (elem_id,)
-                                 )
+        )
 
         if len(out) == 1:
             return LocalSymbol(*out[0])
@@ -1206,7 +1243,7 @@ class LocalSymbolDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM local_symbol WHERE name = ? LIMIT 1;''', (name,)
-                                 )
+        )
 
         if len(out) == 1:
             return LocalSymbol(*out[0])
@@ -1227,7 +1264,7 @@ class LocalSymbolDAO(object):
                 name = ? 
             WHERE
                 id = ?;''', (obj.name, obj.id)
-                          )
+        )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[LocalSymbol]:
@@ -1240,7 +1277,7 @@ class LocalSymbolDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM local_symbol;'''
-                                  )
+        )
 
         result = list()
         for row in rows:
@@ -1250,6 +1287,10 @@ class LocalSymbolDAO(object):
 
 
 class SourceLocationDAO(object):
+    """
+        This class is a static class that can manipulate SourceLocation objects,
+        inserting and removing them from a sqlite database.
+    """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
@@ -1273,7 +1314,7 @@ class SourceLocationDAO(object):
                 PRIMARY KEY(id), 
                 FOREIGN KEY(file_node_id) REFERENCES node(id) ON DELETE CASCADE
             );'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -1287,7 +1328,7 @@ class SourceLocationDAO(object):
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.source_location;'''
-                          )
+        )
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: SourceLocation) -> int:
@@ -1304,10 +1345,10 @@ class SourceLocationDAO(object):
             INSERT INTO source_location(
                 id, file_node_id, start_line, start_column, end_line, end_column, type 
             ) VALUES(NULL, ?, ?, ?, ?, ?, ?);''', (
-            obj.file_node_id, obj.start_line, obj.start_column,
-            obj.end_line, obj.end_column, obj.type.value
+                obj.file_node_id, obj.start_line, obj.start_column,
+                obj.end_line, obj.end_column, obj.type.value
+            )
         )
-                                 )
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: SourceLocation) -> None:
@@ -1322,7 +1363,7 @@ class SourceLocationDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM source_location WHERE id = ?;''', (obj.id,)
-                          )
+        )
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
@@ -1335,7 +1376,7 @@ class SourceLocationDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM source_location;'''
-                          )
+        )
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> SourceLocation:
@@ -1351,13 +1392,13 @@ class SourceLocationDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM source_location WHERE id = ?;''', (elem_id,)
-                                 )
+        )
 
         if len(out) == 1:
             id_, fid, sl, sc, el, ec, type_ = out[0]
             return SourceLocation(id_, fid, sl, sc, el, ec,
-                                  SourceLocationType(type_)
-                                  )
+                  SourceLocationType(type_)
+            )
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: SourceLocation) -> None:
@@ -1380,10 +1421,10 @@ class SourceLocationDAO(object):
                 type = ? 
             WHERE
                 id = ?;''', (
-            obj.file_node_id, obj.start_line, obj.start_column,
-            obj.end_line, obj.end_column, obj.type.value, obj.id
+                obj.file_node_id, obj.start_line, obj.start_column,
+                obj.end_line, obj.end_column, obj.type.value, obj.id
+            )
         )
-                          )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[SourceLocation]:
@@ -1396,7 +1437,7 @@ class SourceLocationDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM source_location;'''
-                                  )
+        )
 
         result = list()
         for row in rows:
@@ -1409,6 +1450,10 @@ class SourceLocationDAO(object):
 
 
 class OccurrenceDAO(object):
+    """
+        This class is a static class that can manipulate Occurrence objects,
+        inserting and removing them from a sqlite database.
+    """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
@@ -1429,7 +1474,7 @@ class OccurrenceDAO(object):
                 FOREIGN KEY(source_location_id) REFERENCES source_location(id) 
                     ON DELETE CASCADE
             );'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -1443,7 +1488,7 @@ class OccurrenceDAO(object):
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.occurrence;'''
-                          )
+        )
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: Occurrence) -> int:
@@ -1460,7 +1505,7 @@ class OccurrenceDAO(object):
             INSERT INTO occurrence(
                 element_id, source_location_id 
             ) VALUES(?, ?);''', (obj.element_id, obj.source_location_id)
-                                 )
+        )
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: Occurrence) -> None:
@@ -1475,7 +1520,7 @@ class OccurrenceDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM occurrence WHERE element_id = ?;''', (obj.element_id,)
-                          )
+        )
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
@@ -1488,7 +1533,7 @@ class OccurrenceDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM occurrence;'''
-                          )
+        )
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> Occurrence:
@@ -1504,7 +1549,7 @@ class OccurrenceDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM occurrence WHERE element_id = ?;''', (elem_id,)
-                                 )
+        )
 
         if len(out) == 1:
             return Occurrence(*out[0])
@@ -1525,7 +1570,7 @@ class OccurrenceDAO(object):
                 source_location_id = ? 
             WHERE
                 element_id = ?;''', (obj.source_location_id, obj.element_id)
-                          )
+        )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[Occurrence]:
@@ -1538,7 +1583,7 @@ class OccurrenceDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM occurrence;'''
-                                  )
+        )
 
         result = list()
         for row in rows:
@@ -1548,6 +1593,10 @@ class OccurrenceDAO(object):
 
 
 class ComponentAccessDAO(object):
+    """
+        This class is a static class that can manipulate ComponentAccess objects,
+        inserting and removing them from a sqlite database.
+    """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
@@ -1566,7 +1615,7 @@ class ComponentAccessDAO(object):
                 PRIMARY KEY(node_id), 
                 FOREIGN KEY(node_id) REFERENCES node(id) ON DELETE CASCADE
             );'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -1580,7 +1629,7 @@ class ComponentAccessDAO(object):
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.component_access;'''
-                          )
+        )
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: ComponentAccess) -> int:
@@ -1597,7 +1646,7 @@ class ComponentAccessDAO(object):
             INSERT INTO component_access(
                 node_id, type 
             ) VALUES(?, ?);''', (obj.node_id, obj.type.value)
-                                 )
+        )
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: ComponentAccess) -> None:
@@ -1612,7 +1661,7 @@ class ComponentAccessDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM component_access WHERE node_id = ?;''', (obj.node_id,)
-                          )
+        )
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
@@ -1625,7 +1674,7 @@ class ComponentAccessDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM component_access;'''
-                          )
+        )
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> ComponentAccess:
@@ -1641,7 +1690,7 @@ class ComponentAccessDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM component_access WHERE node_id = ?;''', (elem_id,)
-                                 )
+        )
 
         if len(out) == 1:
             node_id, type_ = out[0]
@@ -1663,7 +1712,7 @@ class ComponentAccessDAO(object):
                 type = ? 
             WHERE
                 node_id = ?;''', (obj.type.value, obj.node_id)
-                          )
+        )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[ComponentAccess]:
@@ -1676,7 +1725,7 @@ class ComponentAccessDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM component_access;'''
-                                  )
+        )
 
         result = list()
         for row in rows:
@@ -1687,6 +1736,10 @@ class ComponentAccessDAO(object):
 
 
 class ErrorDAO(object):
+    """
+        This class is a static class that can manipulate Error objects,
+        inserting and removing them from a sqlite database.
+    """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
@@ -1708,7 +1761,7 @@ class ErrorDAO(object):
                 PRIMARY KEY(id), 
                 FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
             );'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -1722,7 +1775,7 @@ class ErrorDAO(object):
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.error;'''
-                          )
+        )
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: Error) -> int:
@@ -1756,7 +1809,7 @@ class ErrorDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM error WHERE id = ?;''', (obj.id,)
-                          )
+        )
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> Error:
@@ -1772,7 +1825,7 @@ class ErrorDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM error WHERE id = ?;''', (elem_id,)
-                                 )
+        )
 
         if len(out) == 1:
             return Error(*out[0])
@@ -1788,7 +1841,7 @@ class ErrorDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM error;'''
-                          )
+        )
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: Error) -> None:
@@ -1809,10 +1862,10 @@ class ErrorDAO(object):
                 translation_unit = ?
             WHERE
                 id = ?;''', (
-            obj.message, obj.fatal, obj.indexed,
-            obj.translation_unit, obj.id
+                obj.message, obj.fatal, obj.indexed,
+                obj.translation_unit, obj.id
+            )
         )
-                          )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[Error]:
@@ -1825,7 +1878,7 @@ class ErrorDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM error;'''
-                                  )
+        )
 
         result = list()
         for row in rows:
@@ -1835,6 +1888,11 @@ class ErrorDAO(object):
 
 
 class MetaDAO(object):
+    """
+        This class is a static class that can manipulate Meta information,
+        inserting and removing them from a sqlite database. There is no
+        Meta object but a simple key, value pair can be used. 
+    """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
@@ -1853,7 +1911,7 @@ class MetaDAO(object):
                 value TEXT, 
                 PRIMARY KEY(id)
             );'''
-                          )
+        )
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
@@ -1867,7 +1925,7 @@ class MetaDAO(object):
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.meta;'''
-                          )
+        )
 
     @staticmethod
     def new(database: sqlite3.Connection, key: str, value: str) -> int:
@@ -1875,8 +1933,10 @@ class MetaDAO(object):
             Insert a new Meta inside the meta table.
             :param database: A database handle
             :type database: sqlite3.Connection           
-            :param obj: The object to insert
-            :type obj: Meta
+            :param key: The key to insert 
+            :type key: str
+            :param value: The value to insert
+            :type value: str
             :return: The id of the inserted meta
             :rtype: int
         """
@@ -1884,9 +1944,9 @@ class MetaDAO(object):
             INSERT INTO meta(
                 id, key, value  
             ) VALUES(NULL, ?, ?);''', (
-            key, value
+                key, value
+            )
         )
-                                 )
 
     @staticmethod
     def delete(database: sqlite3.Connection, id_: int) -> None:
@@ -1901,7 +1961,7 @@ class MetaDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM meta WHERE id = ?;''', (id_,)
-                          )
+        )
 
     @staticmethod
     def get(database: sqlite3.Connection, id_: int) -> tuple[int, str, str]:
@@ -1917,7 +1977,7 @@ class MetaDAO(object):
         """
         out = SqliteHelper.fetch(database, '''
             SELECT id, key, value FROM meta WHERE id = ?;''', (id_,)
-                                 )
+        )
         return tuple(out[0])
 
     @staticmethod
@@ -1931,7 +1991,7 @@ class MetaDAO(object):
         """
         SqliteHelper.exec(database, '''
             DELETE FROM meta;'''
-                          )
+        )
 
     @staticmethod
     def update(database: sqlite3.Connection, id_: int, key: str,
@@ -1940,8 +2000,12 @@ class MetaDAO(object):
             Update a Meta inside the meta table.
             :param database: A database handle
             :type database: sqlite3.Connection           
-            :param obj: The Meta object to update 
-            :type obj: Meta
+            :param id_: The id of the meta to update  
+            :type id_: int 
+            :param key: The key to update  
+            :type key: str
+            :param value: The value to insert
+            :type value: str
             :return: None 
             :rtype: NoneType
         """
@@ -1951,9 +2015,9 @@ class MetaDAO(object):
                 value = ?
             WHERE
                 id = ?;''', (
-            key, value, id_
+                key, value, id_
+            )
         )
-                          )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[tuple[int, str, str]]:
@@ -1966,7 +2030,7 @@ class MetaDAO(object):
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM meta;'''
-                                  )
+        )
 
         result = list()
         for row in rows:

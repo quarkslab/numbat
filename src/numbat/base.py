@@ -255,8 +255,8 @@ class Symbol(Element):
             Create a new Symbol object. 
             :param id_: The id of the element 
             :type id_: int           
-            :param type_: The type of the Symbol
-            :type type_: SymbolType 
+            :param definition: The type of the Symbol
+            :type definition: SymbolType 
             :return: None 
             :rtype: NoneType 
         """

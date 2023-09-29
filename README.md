@@ -1,6 +1,6 @@
 # Numbat
 
-<img align="right" src="https://gitlab.qb/sbabigeon/numbat/-/raw/main/numbat.png" width="250" heigh="250">
+<img align="right" src="https://gitlab.qb/sbabigeon/numbat/-/raw/main/docs/numbat.png" width="250" heigh="250">
 
 ## Introduction
 
@@ -14,7 +14,7 @@ Numbat will be used in the already existing project [pyrrha](https://gitlab.qb/f
 Here is an overview of Sourcetrail database, the main component is the element table which is used
 by almost all the other elements for simple cross referencing between tables. 
 
-![Sourcetrail Database](https://gitlab.qb/sbabigeon/numbat/-/raw/main/sourcetrail_db.png)
+![Sourcetrail Database](https://gitlab.qb/sbabigeon/numbat/-/raw/main/docs/sourcetrail_db.png)
 
 ## Difference with SourcetrailDB
 
@@ -94,3 +94,24 @@ srctrl.close()
 
 More examples are available under `examples/`.
 
+## Testing
+
+In order to test for regression, some tests are available inside the `tests/` directory. The tests are 
+using the package `pytest` which can be used and installed like this:
+```
+# Download the repo
+git clone https://gitlab.qb/firmware-re/cartography/numbat
+cd numbat
+# Create a new virtual environement 
+python -m venv venv
+source venv/bin/activate
+# Install numbat locally
+pip install '.[test]'
+# Run the test
+pytest
+```
+
+## Authors
+
+- Sami Babigeon (@sbabigeon), Quarkslab
+- Eloïse Brocas (@ebrocas), Quarkslab

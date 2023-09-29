@@ -439,7 +439,7 @@ class SourceLocation(Element):
             :param id_: The id of the element 
             :type id_: int           
             :param file_node_id: The id of the file element corresponding to this content. 
-            :type path: int
+            :type file_node_id: int
             :param start_line: The line at which the element starts.
             :type start_line: int
             :param start_column: The column at which the element starts.
@@ -718,7 +718,7 @@ class NameHierarchy(object):
             :param delimiter: The delimiter of for this NameHierarchy, must be one of the NAME_DELIMITERS
             :type delimiter: str
             :param elements: A list of NameElement representing the hierarchy of this element
-            :type list[NameElement]
+            :type elements: list[NameElement]
             :return: None
             :rtype: NoneType
         """

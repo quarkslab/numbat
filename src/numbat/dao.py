@@ -53,6 +53,7 @@ class SqliteHelper(object):
         cur.close()
         return cur.lastrowid
 
+    @staticmethod
     def fetch(database: sqlite3.Connection, request: str,
               parameters: tuple = ()) -> list:
         """
@@ -609,8 +610,8 @@ class NodeDAO(object):
             Return a Node from the database with the matching serialized_name 
             :param database: A database handle
             :type database: sqlite3.Connection           
-            :param elem_id: The serialized_name of the element to retrieve  
-            :type elem_id: str 
+            :param name: The serialized_name of the element to retrieve  
+            :type name: str 
             :return: A Node object that reflect the content inside 
             the database 
             :rtype: Node
@@ -1197,8 +1198,8 @@ class LocalSymbolDAO(object):
             Return a local_symbol from the database with the matching name
             :param database: A database handle
             :type database: sqlite3.Connection           
-            :param elem_id: The name of the local_symbol to retrieve  
-            :type elem_id: str
+            :param name: The name of the local_symbol to retrieve  
+            :type name: str
             :return: A LocalSymbol object that reflect the content inside 
             the database 
             :rtype: LocalSymbol
@@ -1893,8 +1894,8 @@ class MetaDAO(object):
             Delete a Meta from the meta table.
             :param database: A database handle
             :type database: sqlite3.Connection           
-            :param obj: The object to delete
-            :type obj: Meta
+            :param id_: The identifier of the object to delete
+            :type id_: int
             :return: None 
             :rtype: NoneType
         """
@@ -1908,8 +1909,8 @@ class MetaDAO(object):
             Return a meta from the database with the matching id 
             :param database: A database handle
             :type database: sqlite3.Connection           
-            :param elem_id: The id of the meta to retrieve  
-            :type elem_id: int 
+            :param id_: The id of the meta to retrieve  
+            :type id_: int 
             :return: A Meta object that reflect the content inside 
             the database 
             :rtype: Meta

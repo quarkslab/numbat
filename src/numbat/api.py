@@ -434,8 +434,8 @@ class SourcetrailDB(object):
                                   start_column: int, end_line: int, end_column: int) -> None:
         """
             Record a new reference location of type TOKEN
-            :param symbol_id: The identifier of the symbol 
-            :type symbol_id: int
+            :param reference_id: The reference idnetifier
+            :type reference_id: int
             :param file_id: The identifier of the source file in which the symbol is located
             :type file_id: int 
             :param start_line: The line at which the element starts.
@@ -937,8 +937,6 @@ class SourcetrailDB(object):
             :type name: str
             :param postfix: The postfix of the element to insert
             :type postfix: str
-            :param delimiter: The delimiter of the element 
-            :type delimiter: str
             :return: The id of the new method or None if it could not be inserted
             :rtype: int | None
         """
@@ -964,8 +962,6 @@ class SourcetrailDB(object):
             :type name: str
             :param postfix: The postfix of the element to insert
             :type postfix: str
-            :param delimiter: The delimiter of the element 
-            :type delimiter: str
             :return: The id of the new field or None if it could not be inserted
             :rtype: int | None
         """

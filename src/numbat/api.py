@@ -1,7 +1,8 @@
-import os
-import pathlib
-import datetime
 import logging
+import os
+import sqlite3
+from datetime import datetime
+from pathlib import Path
 
 from .base import Element, ElementComponent, ElementComponentType, Edge, \
     EdgeType, Node, NodeType, Symbol, SymbolType, File, FileContent, \
@@ -12,7 +13,7 @@ from .dao import ComponentAccessDAO, EdgeDAO, ElementComponentDAO, FileDAO, \
     ElementDAO, ErrorDAO, FileContentDAO, LocalSymbolDAO, MetaDAO, \
     NodeDAO, OccurrenceDAO, SourceLocationDAO, SqliteHelper, SymbolDAO
 
-from .exceptions import NoDatabaseOpen, AlreadyOpenDatabase, NumbatException
+from .exceptions import NoDatabaseOpen, NumbatException
 
 
 class SourcetrailDB(object):
@@ -33,94 +34,97 @@ class SourcetrailDB(object):
         '</config>'
     ])
 
-    def __init__(self, logger: logging.Logger = logging.getLogger()) -> None:
-        self.database = None
-        self.path = None
-        self.logger = logger 
+    def __init__(self, database: sqlite3.Connection, path: Path, logger: logging.Logger = None) -> None:
+        self.database = database
+        self.path = path
+        if logger is None:
+            self.logger = logging.getLogger()
+        else:
+            self.logger = logger
 
     # ------------------------------------------------------------------------ #
     # Database file management functions                                       #
     # ------------------------------------------------------------------------ #
 
-    def open(self, path: pathlib.Path | str, clear: bool = False) -> None:
+    @classmethod
+    def open(cls, path: Path | str, clear: bool = False) -> 'SourcetrailDB':
         """ 
             This method allow to open an existing sourcetrail database 
             :param path: The path to the existing database
             :type path: pathlib.Path | str
             :param clear: If set to True the database is cleared (Optional)
             :type clear: bool
-            :return: None
-            :rtype: NoneType
+            :return: the SourcetrailDB object corresponding to the given DB
+            :rtype: SourcetrailDB
         """
 
         # Convert str input
         if type(path) == str:
-            path = pathlib.Path(path)
+            path = Path(path)
 
-        # Check that a database is not already opened
-        if self.database:
-            raise AlreadyOpenDatabase()
-
-        self.path = path
         # Check that the file has the correct extension
-        if self.path.suffix != self.SOURCETRAIL_DB_EXT:
-            self.path = self.path.with_suffix(self.SOURCETRAIL_DB_EXT)
+        if path.suffix != cls.SOURCETRAIL_DB_EXT:
+            path = path.with_suffix(cls.SOURCETRAIL_DB_EXT)
 
         # Check that the file exists 
-        self.path = self.path.absolute()
-        if not self.path.exists() or not self.path.is_file():
-            raise FileNotFoundError('%s not found' % str(self.path))
+        path = path.absolute()
+        if not path.exists() or not path.is_file():
+            raise FileNotFoundError('%s not found' % str(path))
 
         try:
-            self.database = SqliteHelper.connect(str(self.path))
+            database = SqliteHelper.connect(str(path))
         except Exception as e:
             raise NumbatException(*e.args)
 
+        obj = SourcetrailDB(database, path)
+
         if clear:
             # Clear the database if the user ask to
-            self.clear()
+            obj.clear()
 
-    def create(self, path: pathlib.Path) -> None:
+        return obj
+
+    @classmethod
+    def create(cls, path: Path) -> 'SourcetrailDB':
         """
             This method allow to create a sourcetrail database 
             :param path: The path to the new database
             :type path: pathlib.Path | str
-            :return: None
-            :rtype: NoneType
+            ::return: the SourcetrailDB object corresponding to the given DB path
+            :rtype: SourcetrailDB
         """
 
         # Convert str input
         if type(path) == str:
-            path = pathlib.Path(path)
+            path = Path(path)
 
-        # Check that a database is not already opened
-        if self.database:
-            raise AlreadyOpenDatabase()
-
-        self.path = path
         # Check that the file has the correct extension
-        if self.path.suffix != self.SOURCETRAIL_DB_EXT:
-            self.path = self.path.with_suffix(self.SOURCETRAIL_DB_EXT)
+        if path.suffix != cls.SOURCETRAIL_DB_EXT:
+            path = path.with_suffix(cls.SOURCETRAIL_DB_EXT)
 
         # Check that the file exists 
-        self.path = self.path.absolute()
-        if self.path.exists():
-            raise FileExistsError('%s already exists' % str(self.path))
+        path = path.absolute()
+        if path.exists():
+            raise FileExistsError('%s already exists' % str(path))
 
         try:
-            self.database = SqliteHelper.connect(str(self.path))
+            database = SqliteHelper.connect(str(path))
         except Exception as e:
             raise NumbatException(*e.args)
+
+        obj = SourcetrailDB(database, path)
 
         # Try to create the tables
         try:
-            self.__create_sql_tables()
-            self.__create_project_file()
-            self.__add_meta_info()
+            obj.__create_sql_tables()
+            obj.__create_project_file()
+            obj.__add_meta_info()
         except Exception as e:
             # They already exists, fail
-            self.close()
+            obj.close()
             raise NumbatException(*e.args)
+
+        return obj
 
     def commit(self) -> None:
         """

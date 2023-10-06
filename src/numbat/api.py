@@ -873,6 +873,10 @@ class SourcetrailDB(object):
             hierarchy.extend(element)
             return self.record_symbol(hierarchy)
 
+    ####################################################################################
+    #                         WRAPPERS (Public API)                                    #
+    ####################################################################################
+
     def record_class(self, prefix: str = '', name: str = '', postfix: str = '',
                      delimiter: str = NameHierarchy.NAME_DELIMITER_CXX) -> int | None:
         """
@@ -980,3 +984,161 @@ class SourcetrailDB(object):
         if field:
             self.record_symbol_kind(field, NodeType.NODE_FIELD)
             return field
+
+    # ========================== REFERENCES ================================== #
+
+    def record_member(self, source_id: int, dest_id: int) -> int:
+        """
+            Add a member reference (aka an edge) between two elements
+            :param source_id: The source identifier
+            :type source_id: int
+            :param dest_id: The destination identifier
+            :type dest_id: int
+            :return: the reference id
+            :rtype: int
+        """
+        return self.record_reference(source_id, dest_id, type_=EdgeType.MEMBER)
+
+    def record_type_usage(self, source_id: int, dest_id: int) -> int:
+        """
+            Add a TYPE_USAGE reference (aka an edge) between two elements
+            :param source_id: The source identifier
+            :type source_id: int
+            :param dest_id: The destination identifier
+            :type dest_id: int
+            :return: the reference id
+            :rtype: int
+        """
+        return self.record_reference(source_id, dest_id, type_=EdgeType.TYPE_USAGE)
+
+    def record_usage(self, source_id: int, dest_id: int) -> int:
+        """
+            Add a USAGE reference (aka an edge) between two elements
+            :param source_id: The source identifier
+            :type source_id: int
+            :param dest_id: The destination identifier
+            :type dest_id: int
+            :return: the reference id
+            :rtype: int
+        """
+        return self.record_reference(source_id, dest_id, type_=EdgeType.USAGE)
+
+    def record_call(self, source_id: int, dest_id: int) -> int:
+        """
+            Add a CALL reference (aka an edge) between two elements
+            :param source_id: The source identifier
+            :type source_id: int
+            :param dest_id: The destination identifier
+            :type dest_id: int
+            :return: the reference id
+            :rtype: int
+        """
+        return self.record_reference(source_id, dest_id, type_=EdgeType.CALL)
+
+    def record_inheritance(self, source_id: int, dest_id: int) -> int:
+        """
+            Add an INHERITANCE reference (aka an edge) between two elements
+            :param source_id: The source identifier
+            :type source_id: int
+            :param dest_id: The destination identifier
+            :type dest_id: int
+            :return: the reference id
+            :rtype: int
+        """
+        return self.record_reference(source_id, dest_id, type_=EdgeType.INHERITANCE)
+
+    def record_override(self, source_id: int, dest_id: int) -> int:
+        """
+            Add an OVERRIDE reference (aka an edge) between two elements
+            :param source_id: The source identifier
+            :type source_id: int
+            :param dest_id: The destination identifier
+            :type dest_id: int
+            :return: the reference id
+            :rtype: int
+        """
+        return self.record_reference(source_id, dest_id, type_=EdgeType.OVERRIDE)
+
+    def record_type_argument(self, source_id: int, dest_id: int) -> int:
+        """
+            Add a TYPE_ARGUMENT reference (aka an edge) between two elements
+            :param source_id: The source identifier
+            :type source_id: int
+            :param dest_id: The destination identifier
+            :type dest_id: int
+            :return: the reference id
+            :rtype: int
+        """
+        return self.record_reference(source_id, dest_id, type_=EdgeType.TYPE_ARGUMENT)
+
+    def record_template_specialization(self, source_id: int, dest_id: int) -> int:
+        """
+            Add a TEMPLATE_SPECIALIZATION reference (aka an edge) between two elements
+            :param source_id: The source identifier
+            :type source_id: int
+            :param dest_id: The destination identifier
+            :type dest_id: int
+            :return: the reference id
+            :rtype: int
+        """
+        return self.record_reference(source_id, dest_id, type_=EdgeType.TEMPLATE_SPECIALIZATION)
+
+    def record_include(self, source_id: int, dest_id: int) -> int:
+        """
+            Add an INCLUDE reference (aka an edge) between two elements
+            :param source_id: The source identifier
+            :type source_id: int
+            :param dest_id: The destination identifier
+            :type dest_id: int
+            :return: the reference id
+            :rtype: int
+        """
+        return self.record_reference(source_id, dest_id, type_=EdgeType.INCLUDE)
+
+    def record_import(self, source_id: int, dest_id: int) -> int:
+        """
+            Add an import reference (aka an edge) between two elements
+            :param source_id: The source identifier (who imports)
+            :type source_id: int
+            :param dest_id: The destination identifier (who is imported)
+            :type dest_id: int
+            :return: the reference id
+            :rtype: int
+        """
+        return self.record_reference(source_id, dest_id, type_=EdgeType.IMPORT)
+
+    def record_bundled_edges(self, source_id: int, dest_id: int) -> int:
+        """
+            Add a BUNDLED_EDGES reference (aka an edge) between two elements
+            :param source_id: The source identifier
+            :type source_id: int
+            :param dest_id: The destination identifier
+            :type dest_id: int
+            :return: the reference id
+            :rtype: int
+        """
+        return self.record_reference(source_id, dest_id, type_=EdgeType.BUNDLED_EDGES)
+
+    def record_macro_usage(self, source_id: int, dest_id: int) -> int:
+        """
+            Add a MACRO_USAGE reference (aka an edge) between two elements
+            :param source_id: The source identifier
+            :type source_id: int
+            :param dest_id: The destination identifier
+            :type dest_id: int
+            :return: the reference id
+            :rtype: int
+        """
+        return self.record_reference(source_id, dest_id, type_=EdgeType.MACRO_USAGE)
+
+    def record_annotation_usage(self, source_id: int, dest_id: int) -> int:
+        """
+            Add a MACRO_USAGE reference (aka an edge) between two elements
+            :param source_id: The source identifier
+            :type source_id: int
+            :param dest_id: The destination identifier
+            :type dest_id: int
+            :return: the reference id
+            :rtype: int
+        """
+        return self.record_reference(source_id, dest_id, type_=EdgeType.MACRO_USAGE)

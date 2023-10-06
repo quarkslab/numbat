@@ -556,11 +556,11 @@ class SourcetrailDB(object):
             SourceLocationType.ATOMIC_RANGE
         )
 
-    def record_reference(self, target_id: int, dest_id: int, type_: EdgeType) -> int:
+    def record_reference(self, source_id: int, dest_id: int, type_: EdgeType) -> int:
         """
             Add a new reference (aka an edge) between two elements
-            :param target_id: The source identifier of the reference
-            :type target_id: int
+            :param source_id: The source identifier of the reference
+            :type source_id: int
             :param dest_id: The destination identifier of the reference  
             :type dest_id: int 
             :param type_: The type of reference to add
@@ -575,7 +575,7 @@ class SourcetrailDB(object):
         EdgeDAO.new(self.database, Edge(
             elem.id,
             type_,
-            target_id,
+            source_id,
             dest_id
         ))
 
@@ -584,7 +584,7 @@ class SourcetrailDB(object):
     def record_reference_is_ambiguous(self, reference_id: int) -> None:
         """
             Add an indication in the database to tell that the reference is ambiguous
-            :param reference_id: the identifer of the reference
+            :param reference_id: the identifier of the reference
             :type reference_id: int
             :return: None
             :rtype: NodeType
@@ -658,7 +658,7 @@ class SourcetrailDB(object):
         # Return edge id
         return reference_id
 
-    def record_file(self, path: pathlib.Path, indexed: bool = True) -> int:
+    def record_file(self, path: Path, indexed: bool = True) -> int:
         """
             Record a source file in the database 
             :param path: The path to the existing source file
@@ -684,7 +684,7 @@ class SourcetrailDB(object):
         )
 
         # Retrieve the modification date in the correct format
-        modification_time = datetime.datetime.fromtimestamp(
+        modification_time = datetime.fromtimestamp(
             os.path.getmtime(path)
         ).strftime("%Y-%m-%d %H:%M:%S")
 

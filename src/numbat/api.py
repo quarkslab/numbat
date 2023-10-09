@@ -1,3 +1,4 @@
+"""Public API of Numbat. Allow to create and manipulate Sourcetrail DB"""
 import logging
 import os
 import sqlite3
@@ -231,7 +232,7 @@ class SourcetrailDB(object):
         else:
             return node.id
 
-    def record_symbol(self, hierarchy: NameHierarchy) -> int:
+    def _record_symbol(self, hierarchy: NameHierarchy) -> int:
         """
         Record a new Symbol in the database
 
@@ -283,26 +284,6 @@ class SourcetrailDB(object):
         if node:
             return node.id
 
-    def record_symbol_child(self, parent_id: int, element: NameElement) -> int | None:
-        """
-        Add a child to an existing node without having to give the full
-        hierarchy of the element
-
-        :param parent_id: The identifier of the existing parent
-        :type parent_id: int
-        :param element: The new element to insert
-        :type element: NameElement
-        :return: The identifier of the newly inserted symbol or None if the parent
-                 does not exist.
-        :rtype: int | None
-        """
-
-        node = NodeDAO.get(self.database, parent_id)
-        if node:
-            hierarchy = NameHierarchy.deserialize_name(node.name)
-            hierarchy.extend(element)
-            return self.record_symbol(hierarchy)
-
     def record_local_symbol(self, name: str) -> int:
         """
         Record a new local symbol
@@ -324,7 +305,7 @@ class SourcetrailDB(object):
 
         return local.id
 
-    def record_symbol_kind(self, id_: int, type_: NodeType) -> None:
+    def _record_symbol_kind(self, id_: int, type_: NodeType) -> None:
         """
         Set the type of the symbol which is equivalent to setting the
 
@@ -342,7 +323,7 @@ class SourcetrailDB(object):
             node.type = type_
             NodeDAO.update(self.database, node)
 
-    def record_symbol_definition_kind(self, id_: int, type_: SymbolType) -> None:
+    def _record_symbol_definition_kind(self, id_: int, type_: SymbolType) -> None:
         """
         Set the type of definition of the corresponding element
 
@@ -366,121 +347,658 @@ class SourcetrailDB(object):
     #                                 NODES                                            #
     ####################################################################################
 
-    def record_class(self, prefix: str = '', name: str = '', postfix: str = '',
-                     delimiter: str = NameHierarchy.NAME_DELIMITER_CXX) -> int | None:
+    def __full_record_node(self,
+                           name: str,
+                           prefix: str,
+                           postfix: str,
+                           delimiter: str,
+                           parent_id: int | None,
+                           is_indexed: bool,
+                           type_: NodeType) -> int | None:
         """
-        Record a class symbol into the DB
+        Internal function which will be wrapped by all the record_XX methods
+        where XX is a node type (class, method, field, etc.). It creates the
+        appropriated structures (NameElement, NameHierarchy, etc.) and then insert
+        them in the DB. It also handles the typing of the created node plus its
+        definition type (explicit or implicit).
 
-        :param prefix: The prefix of the element to insert
-        :type prefix: str
+        This method also handle the case where the node is the child of an already
+        existing node. It automatically creates the hierarchy and so on.
+
         :param name: The name of the element to insert
         :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
         :param postfix: The postfix of the element to insert
         :type postfix: str
-        :param delimiter: The delimiter of the element
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
         :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool
+        :param type_: type of the node to add
+        :param
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+        name_element = NameElement(prefix, name, postfix)
+        if parent_id:
+            node = NodeDAO.get(self.database, parent_id)
+            if not node:
+                return
+            hierarchy = NameHierarchy.deserialize_name(node.name)
+            hierarchy.extend(name_element)
+            obj_id = self._record_symbol(hierarchy)
+        else:
+            obj_id = self._record_symbol(NameHierarchy(delimiter, [name_element]))
+
+        if obj_id:
+            self._record_symbol_kind(obj_id, type_)
+            if is_indexed:
+                self._record_symbol_definition_kind(obj_id, SymbolType.EXPLICIT)
+            return obj_id
+
+    def record_symbol_node(self,
+                           name: str = '',
+                           prefix: str = '',
+                           postfix: str = '',
+                           delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                           parent_id: int = None,
+                           is_indexed: bool = True) -> int | None:
+        """
+        Record a "SYMBOL" symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
         :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
         :rtype: int | None
         """
 
-        class_id = self.record_symbol(NameHierarchy(
-            delimiter,
-            [NameElement(
-                prefix,
-                name,
-                postfix
-            )]
-        ))
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_SYMBOL)
 
-        if class_id:
-            self.record_symbol_kind(class_id, NodeType.NODE_CLASS)
-            return class_id
-
-    def record_function(self, prefix: str = '', name: str = '', postfix: str = '',
-                        delimiter: str = NameHierarchy.NAME_DELIMITER_CXX) -> int | None:
+    def record_type_node(self,
+                         name: str = '',
+                         prefix: str = '',
+                         postfix: str = '',
+                         delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                         parent_id: int = None,
+                         is_indexed: bool = True) -> int | None:
         """
-        Record a function symbol into the DB
+        Record a TYPE symbol into the DB
 
-        :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param name: The name of the element to insert
         :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
         :param postfix: The postfix of the element to insert
         :type postfix: str
-        :param delimiter: The delimiter of the element
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
         :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
         :type is_indexed: bool (default = True)
-        :return: The identifier of the new function or None if it could not be inserted
+        :return: The identifier of the new class or None if it could not be inserted
         :rtype: int | None
         """
 
-        func_id = self.record_symbol(NameHierarchy(
-            delimiter,
-            [NameElement(
-                prefix,
-                name,
-                postfix
-            )]
-        ))
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_TYPE)
 
-        if func_id:
-            self.record_symbol_kind(func_id, NodeType.NODE_FUNCTION)
-            return func_id
-
-    def record_method(self, parent: int, prefix: str = '', name: str = '',
-                      postfix: str = '', is_indexed: bool = True) -> int | None:
+    def record_buitin_type_node(self,
+                                name: str = '',
+                                prefix: str = '',
+                                postfix: str = '',
+                                delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                                parent_id: int = None,
+                                is_indexed: bool = True) -> int | None:
         """
-        Record a method symbol into the DB.
+        Record a BUILTIN_TYPE symbol into the DB
 
-        :param parent: The identifier of the class in which the method is defined.
-        :type parent: int
-        :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param name: The name of the element to insert
         :type name: str
-        :param postfix: The postfix of the element to insert
-        :type postfix: str
-        :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
-        :return: The id of the new method or None if it could not be inserted
-        :rtype: int | None
-        """
-
-        method = self.record_symbol_child(parent, NameElement(prefix, name, postfix))
-        if method:
-            self.record_symbol_kind(method, NodeType.NODE_METHOD)
-            if is_indexed:
-                self.record_symbol_definition_kind(method, SymbolType.EXPLICIT)
-            return method
-
-    def record_field(self, parent: int, prefix: str = '', name: str = '',
-                     postfix: str = '', is_indexed: bool = True) -> int | None:
-        """
-        Record a field symbol into the DB.
-
-        :param parent: The identifier of the class in which the field is defined.
-        :type parent: int
         :param prefix: The prefix of the element to insert
         :type prefix: str
-        :param name: The name of the element to insert
-        :type name: str
         :param postfix: The postfix of the element to insert
         :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
         :type is_indexed: bool (default = True)
-        :return: The id of the new field or None if it could not be inserted
+        :return: The identifier of the new class or None if it could not be inserted
         :rtype: int | None
         """
 
-        field = self.record_symbol_child(parent, NameElement(prefix, name, postfix))
-        if field:
-            self.record_symbol_kind(field, NodeType.NODE_FIELD)
-            if is_indexed:
-                self.record_symbol_definition_kind(field, SymbolType.EXPLICIT)
-            return field
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_BUILTIN_TYPE)
+
+    def record_module(self,
+                      name: str = '',
+                      prefix: str = '',
+                      postfix: str = '',
+                      delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                      parent_id: int = None,
+                      is_indexed: bool = True) -> int | None:
+        """
+        Record a MODULE symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_MODULE)
+
+    def record_namespace(self,
+                         name: str = '',
+                         prefix: str = '',
+                         postfix: str = '',
+                         delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                         parent_id: int = None,
+                         is_indexed: bool = True) -> int | None:
+        """
+        Record a NAMESPACE symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_NAMESPACE)
+
+    def record_package(self,
+                       name: str = '',
+                       prefix: str = '',
+                       postfix: str = '',
+                       delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                       parent_id: int = None,
+                       is_indexed: bool = True) -> int | None:
+        """
+        Record a PACKAGE symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_PACKAGE)
+
+    def record_struct(self,
+                      name: str = '',
+                      prefix: str = '',
+                      postfix: str = '',
+                      delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                      parent_id: int = None,
+                      is_indexed: bool = True) -> int | None:
+        """
+        Record a STRUCT symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_STRUCT)
+
+    def record_class(self,
+                     name: str = '',
+                     prefix: str = '',
+                     postfix: str = '',
+                     delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                     parent_id: int = None,
+                     is_indexed: bool = True) -> int | None:
+        """
+        Record a CLASS symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_CLASS)
+
+    def record_interface(self,
+                         name: str = '',
+                         prefix: str = '',
+                         postfix: str = '',
+                         delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                         parent_id: int = None,
+                         is_indexed: bool = True) -> int | None:
+        """
+        Record a INTERFACE symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_INTERFACE)
+
+    def record_annotation(self,
+                          name: str = '',
+                          prefix: str = '',
+                          postfix: str = '',
+                          delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                          parent_id: int = None,
+                          is_indexed: bool = True) -> int | None:
+        """
+        Record a ANNOTATION symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_ANNOTATION)
+
+    def record_global_variable(self,
+                               name: str = '',
+                               prefix: str = '',
+                               postfix: str = '',
+                               delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                               parent_id: int = None,
+                               is_indexed: bool = True) -> int | None:
+        """
+        Record a GLOBAL_VARIABLE symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_GLOBAL_VARIABLE)
+
+    def record_field(self,
+                     name: str = '',
+                     prefix: str = '',
+                     postfix: str = '',
+                     delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                     parent_id: int = None,
+                     is_indexed: bool = True) -> int | None:
+        """
+        Record a FIELD symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_FIELD)
+
+    def record_function(self,
+                        name: str = '',
+                        prefix: str = '',
+                        postfix: str = '',
+                        delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                        parent_id: int = None,
+                        is_indexed: bool = True) -> int | None:
+        """
+        Record a FUNCTION symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_FUNCTION)
+
+    def record_method(self,
+                      name: str = '',
+                      prefix: str = '',
+                      postfix: str = '',
+                      delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                      parent_id: int = None,
+                      is_indexed: bool = True) -> int | None:
+        """
+        Record a METHOD symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_METHOD)
+
+    def record_enum(self,
+                    name: str = '',
+                    prefix: str = '',
+                    postfix: str = '',
+                    delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                    parent_id: int = None,
+                    is_indexed: bool = True) -> int | None:
+        """
+        Record a ENUM symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_ENUM)
+
+    def record_enum_constant(self,
+                             name: str = '',
+                             prefix: str = '',
+                             postfix: str = '',
+                             delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                             parent_id: int = None,
+                             is_indexed: bool = True) -> int | None:
+        """
+        Record a ENUM_CONSTANT symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_ENUM_CONSTANT)
+
+    def record_typedef_node(self,
+                            name: str = '',
+                            prefix: str = '',
+                            postfix: str = '',
+                            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                            parent_id: int = None,
+                            is_indexed: bool = True) -> int | None:
+        """
+        Record a TYPEDEF symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_TYPEDEF)
+
+    def record_type_parameter_node(self,
+                                   name: str = '',
+                                   prefix: str = '',
+                                   postfix: str = '',
+                                   delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                                   parent_id: int = None,
+                                   is_indexed: bool = True) -> int | None:
+        """
+        Record a TYPE_PARAMETER symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_TYPE_PARAMETER)
+
+    def record_macro(self,
+                     name: str = '',
+                     prefix: str = '',
+                     postfix: str = '',
+                     delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                     parent_id: int = None,
+                     is_indexed: bool = True) -> int | None:
+        """
+        Record a MACRO symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_MACRO)
+
+    def record_union(self,
+                     name: str = '',
+                     prefix: str = '',
+                     postfix: str = '',
+                     delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+                     parent_id: int = None,
+                     is_indexed: bool = True) -> int | None:
+        """
+        Record a UNION symbol into the DB
+
+        :param name: The name of the element to insert
+        :type name: str
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element, if the element has a parent,
+        it will not be taken into account as the parent delimiter will be used
+        :type delimiter: str
+        :param parent_id: The identifier of the class in which the method is defined.
+        :type parent_id: int
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
+        """
+
+        return self.__full_record_node(name, prefix, postfix, delimiter,
+                                       parent_id, is_indexed, NodeType.NODE_UNION)
 
     ####################################################################################
     #                               REFERENCES                                         #
@@ -713,7 +1231,7 @@ class SourcetrailDB(object):
         )
 
         # Insert the new node
-        unsolved_symbol_id = self.record_symbol(hierarchy)
+        unsolved_symbol_id = self._record_symbol(hierarchy)
 
         # Add a new edge
         elem = Element()

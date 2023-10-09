@@ -97,12 +97,8 @@ class SourcetrailDB(object):
         # Convert str input
         if type(path) == str:
             path = Path(path)
-
-        # Check that the file has the correct extension
         if path.suffix != cls.SOURCETRAIL_DB_EXT:
             path = path.with_suffix(cls.SOURCETRAIL_DB_EXT)
-
-        # Check that the file exists 
         path = path.absolute()
         if path.exists():
             raise FileExistsError('%s already exists' % str(path))
@@ -113,68 +109,28 @@ class SourcetrailDB(object):
             raise NumbatException(*e.args)
 
         obj = SourcetrailDB(database, path)
-
-        # Try to create the tables
         try:
             obj.__create_sql_tables()
-            obj.__create_project_file()
-            obj.__add_meta_info()
+            # add metadata in db
+            MetaDAO.new(obj.database, 'storage_version', '25')
+            MetaDAO.new(obj.database, 'project_settings', obj.SOURCETRAIL_XML)
+            # Create Sourcetrail Project file
+            project_file = obj.path.with_suffix(cls.SOURCETRAIL_PROJECT_EXT)
+            project_file.write_text(cls.SOURCETRAIL_XML)
         except Exception as e:
             # They already exists, fail
             obj.close()
             raise NumbatException(*e.args)
-
         return obj
-
-    def commit(self) -> None:
-        """
-            This method allow to commit changes made to a sourcetrail database.
-            Any change made to the database using this API will be lost if not 
-            committed before closing the database. 
-            :return: None
-            :rtype: NoneType
-        """
-
-        if self.database:
-            self.database.commit()
-        else:
-            raise NoDatabaseOpen()
-
-    def clear(self) -> None:
-        """
-            Clear all elements present in the database. 
-            :return: None
-            :rtype: NoneType
-        """
-
-        if self.database:
-            self.__clear_sql_tables()
-        else:
-            raise NoDatabaseOpen()
-
-    def close(self) -> None:
-        """
-            This method allow to close a sourcetrail database.
-            The database must be closed after use in order to liberate
-            memory and resources allocated for it.
-            :return: None
-            :rtype: NoneType
-        """
-
-        if self.database:
-            self.database.close()
-            self.database = None
-        else:
-            raise NoDatabaseOpen()
 
     def __create_sql_tables(self) -> None:
         """
-            This method allow to create all the sql tables needed 
-            by sourcetrail 
-            :return: None
-            :rtype: NoneType
-        """
+        This method allow to create all the sql tables needed
+        by sourcetrail
 
+        :return: None
+        :rtype: NoneType
+        """
         ElementDAO.create_table(self.database)
         ElementComponentDAO.create_table(self.database)
         EdgeDAO.create_table(self.database)

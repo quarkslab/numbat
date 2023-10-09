@@ -18,9 +18,9 @@ from .exceptions import NoDatabaseOpen, NumbatException
 
 class SourcetrailDB(object):
     """
-        This class implement a wrapper to Sourcetrail internal database,
-        it is able to create, edit and delete the underlying sqlite3
-        database used by Sourcetrail.
+    This class implement a wrapper to Sourcetrail internal database,
+    it is able to create, edit and delete the underlying sqlite3
+    database used by Sourcetrail.
     """
 
     # Sourcetrail files extension
@@ -49,15 +49,15 @@ class SourcetrailDB(object):
     @classmethod
     def open(cls, path: Path | str, clear: bool = False) -> 'SourcetrailDB':
         """ 
-            This method allow to open an existing sourcetrail database 
-            :param path: The path to the existing database
-            :type path: pathlib.Path | str
-            :param clear: If set to True the database is cleared (Optional)
-            :type clear: bool
-            :return: the SourcetrailDB object corresponding to the given DB
-            :rtype: SourcetrailDB
-        """
+        This method allow to open an existing sourcetrail database
 
+        :param path: The path to the existing database
+        :type path: pathlib.Path | str
+        :param clear: If set to True the database is cleared (Optional)
+        :type clear: bool
+        :return: the SourcetrailDB object corresponding to the given DB
+        :rtype: SourcetrailDB
+        """
         # Convert str input
         if type(path) == str:
             path = Path(path)
@@ -85,16 +85,16 @@ class SourcetrailDB(object):
         return obj
 
     @classmethod
-    def create(cls, path: Path) -> 'SourcetrailDB':
+    def create(cls, path: Path | str) -> 'SourcetrailDB':
         """
-            This method allow to create a sourcetrail database 
-            :param path: The path to the new database
-            :type path: pathlib.Path | str
-            ::return: the SourcetrailDB object corresponding to the given DB path
-            :rtype: SourcetrailDB
-        """
+        This method allow to create a sourcetrail database
 
-        # Convert str input
+        :param path: The path to the new database
+        :type path: pathlib.Path | str
+        ::return: the SourcetrailDB object corresponding to the given DB path
+        :rtype: SourcetrailDB
+        """
+        # Path checks
         if type(path) == str:
             path = Path(path)
         if path.suffix != cls.SOURCETRAIL_DB_EXT:
@@ -145,14 +145,29 @@ class SourcetrailDB(object):
         ErrorDAO.create_table(self.database)
         MetaDAO.create_table(self.database)
 
-    def __clear_sql_tables(self) -> None:
+    def commit(self) -> None:
         """
-            This method allow to clear all the sql tables 
-            used by sourcetrail 
-            :return: None
-            :rtype: NoneType
-        """
+        This method allow to commit changes made to a sourcetrail database.
+        Any change made to the database using this API will be lost if not
+        committed before closing the database.
 
+        :return: None
+        :rtype: NoneType
+        """
+        if self.database:
+            self.database.commit()
+        else:
+            raise NoDatabaseOpen()
+
+    def clear(self) -> None:
+        """
+        Clear all elements present in the database.
+
+        :return: None
+        :rtype: NoneType
+        """
+        if not self.database:
+            raise NoDatabaseOpen()
         ElementDAO.clear(self.database)
         ElementComponentDAO.clear(self.database)
         EdgeDAO.clear(self.database)
@@ -166,26 +181,20 @@ class SourcetrailDB(object):
         ComponentAccessDAO.clear(self.database)
         ErrorDAO.clear(self.database)
 
-    def __create_project_file(self) -> None:
+    def close(self) -> None:
         """
-            This method create a simple project file 
-            for sourcetrail
-            :return: None
-            :rtype: NoneType
-        """
+        This method allow to close a sourcetrail database.
+        The database must be closed after use in order to liberate
+        memory and resources allocated for it.
 
-        filename = self.path.with_suffix(self.SOURCETRAIL_PROJECT_EXT)
-        filename.write_text(self.SOURCETRAIL_XML)
-
-    def __add_meta_info(self) -> None:
+        :return: None
+        :rtype: NoneType
         """
-            Add the meta information inside sourcetrail database  
-            :return: None
-            :rtype: NoneType
-        """
-
-        MetaDAO.new(self.database, 'storage_version', '25')
-        MetaDAO.new(self.database, 'project_settings', self.SOURCETRAIL_XML)
+        if self.database:
+            self.database.close()
+            self.database = None
+        else:
+            raise NoDatabaseOpen()
 
     ####################################################################################
     #                        GENERAL SYMBOLS OPERATIONS                                #

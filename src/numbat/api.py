@@ -231,22 +231,54 @@ class SourcetrailDB(object):
         MetaDAO.new(self.database, 'storage_version', '25')
         MetaDAO.new(self.database, 'project_settings', self.SOURCETRAIL_XML)
 
-    # ------------------------------------------------------------------------ #
-    # Sourcetrail API (Existing one)                                           #
-    # ------------------------------------------------------------------------ #
+    ####################################################################################
+    #                        GENERAL SYMBOLS OPERATIONS                                #
+    ####################################################################################
+
+    def __add_if_not_existing(self, name: str, type_: NodeType) -> int:
+        """
+        Create a new node if it does not already exist
+
+        @Warning: This is not the same behavior as SourcetrailDB
+        We are not allowing nodes with same serialized_name
+
+        :param name: The serialized_name of the node
+        :type name: str
+        :param type_: The type of the node to insert
+        :type type_: NodeType
+        :return: The identifier of the new node or the identifier of
+                 the existing one
+        :rtype: int
+        """
+
+        node = NodeDAO.get_by_name(self.database, name)
+        if not node:
+            elem = Element()
+            elem.id = ElementDAO.new(self.database, elem)
+
+            NodeDAO.new(self.database, Node(
+                elem.id,
+                type_,
+                name
+            ))
+
+            return elem.id
+        else:
+            return node.id
 
     def record_symbol(self, hierarchy: NameHierarchy) -> int:
         """
-            Record a new Symbol in the database
-            :param hierarchy: The hierarchy of the symbol to insert
-            :type hierarchy: NameHierarchy
-            :return: An unique integer that identify the inserted element
-            :rtype: int
+        Record a new Symbol in the database
+
+        :param hierarchy: The hierarchy of the symbol to insert
+        :type hierarchy: NameHierarchy
+        :return: An unique integer that identify the inserted element
+        :rtype: int
         """
 
         ids = []
 
-        # Add all the nodes needed 
+        # Add all the nodes needed
         for i in range(0, hierarchy.size()):
             ids.append(self.__add_if_not_existing(
                 hierarchy.serialize_range(0, i + 1),
@@ -270,382 +302,50 @@ class SourcetrailDB(object):
                 # Return the id of the last inserted elements
         return ids[-1]
 
-    def record_symbol_kind(self, id_: int, type_: NodeType) -> None:
+    def get_symbol(self, hierarchy: NameHierarchy) -> int | None:
         """
-            Set the type of the symbol which is equivalent to setting the 
-            type of the underlying node.
-            :param id_: The identifier of the element 
-            :type id_: int
-            :param type_: The new type for the symbol 
-            :type type_: NodeType
-            :return: None
-            :rtype: NoneType
+        Return the corresponding Symbol from the database
+
+        :param hierarchy: The hierarchy of the symbol to retrieve
+        :type hierarchy: NameHierarchy
+        :return: The identifier of the existing symbol or None if the symbol
+                 does not exist.
+        :rtype: int | None
         """
 
-        node = NodeDAO.get(self.database, id_)
+        serialized_name = hierarchy.serialize_name()
+        node = NodeDAO.get_by_name(self.database, serialized_name)
         if node:
-            node.type = type_
-            NodeDAO.update(self.database, node)
+            return node.id
 
-    def record_symbol_definition_kind(self, id_: int, type_: SymbolType) -> None:
+    def record_symbol_child(self, parent_id: int, element: NameElement) -> int | None:
         """
-            Set the type of definition of the corresponding element
-            :param id_: The identifier of the element 
-            :type id_: int
-            :param type_: The new type for the symbol 
-            :type type_: SymbolType
-            :return: None
-            :rtype: NoneType
-        """
+        Add a child to an existing node without having to give the full
+        hierarchy of the element
 
-        symb = SymbolDAO.get(self.database, id_)
-        if symb and symb.type != type_:
-            symb.type = type_
-            SymbolDAO.update(self.database, symb)
-        else:
-            symb = Symbol(id_, type_)
-            SymbolDAO.new(self.database, symb)
-
-    def __record_source_location(self, symbol_id: int, file_id: int,
-                                 start_line: int, start_column: int, end_line: int, end_column: int,
-                                 type_: SourceLocationType) -> None:
-        """
-            Wrapper for all the record_*_location
-            :param symbol_id: The identifier of the symbol 
-            :type symbol_id: int
-            :param file_id: The identifier of the source file in which the symbol is located
-            :type file_id: int 
-            :param start_line: The line at which the element start. 
-            :type start_line: int
-            :param start_column: The column at which the element starts.
-            :type start_column: int
-            :param end_line: The line at which the element ends.
-            :type end_line: int
-            :param end_column: The line at which the element ends.
-            :type end_column: int
-            :param type_: The type of the source location.
-            :type type_: SourceLocationType 
-            :return: None
-            :rtype: NoneType
+        :param parent_id: The identifier of the existing parent
+        :type parent_id: int
+        :param element: The new element to insert
+        :type element: NameElement
+        :return: The identifier of the newly inserted symbol or None if the parent
+                 does not exist.
+        :rtype: int | None
         """
 
-        # First add a new source location entry
-        loc_id = SourceLocationDAO.new(self.database, SourceLocation(
-            0,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            type_
-        ))
-
-        # Now add an occurrence that refer to this location
-        OccurrenceDAO.new(self.database, Occurrence(
-            symbol_id, loc_id
-        ))
-
-    def record_symbol_location(self, symbol_id: int, file_id: int, start_line: int,
-                               start_column: int, end_line: int, end_column: int) -> None:
-
-        """
-            Record a new source location of type TOKEN
-            :param symbol_id: The identifier of the symbol 
-            :type symbol_id: int
-            :param file_id: The identifier of the source file in which the symbol is located
-            :type file_id: int 
-            :param start_line: The line at which the element starts.
-            :type start_line: int
-            :param start_column: The column at which the element starts.
-            :type start_column: int
-            :param end_line: The line at which the element ends.
-            :type end_line: int
-            :param end_column: The line at which the element ends.
-            :type end_column: int
-            :return: None
-            :rtype: NoneType
-        """
-
-        self.__record_source_location(
-            symbol_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.TOKEN
-        )
-
-    def record_symbol_scope_location(self, symbol_id: int, file_id: int, start_line: int,
-                                     start_column: int, end_line: int, end_column: int) -> None:
-        """
-            Record a new source location of type SCOPE
-            :param symbol_id: The identifier of the symbol 
-            :type symbol_id: int
-            :param file_id: The identifier of the source file in which the symbol is located
-            :type file_id: int 
-            :param start_line: The line at which the element starts.
-            :type start_line: int
-            :param start_column: The column at which the element starts.
-            :type start_column: int
-            :param end_line: The line at which the element ends.
-            :type end_line: int
-            :param end_column: The line at which the element ends.
-            :type end_column: int
-            :return: None
-            :rtype: NoneType
-        """
-
-        self.__record_source_location(
-            symbol_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.SCOPE
-        )
-
-    def record_symbol_signature_location(self, symbol_id: int, file_id: int, start_line: int,
-                                         start_column: int, end_line: int, end_column: int) -> None:
-        """
-            Record a new source location of type SCOPE
-            :param symbol_id: The identifier of the symbol 
-            :type symbol_id: int
-            :param file_id: The identifier of the source file in which the symbol is located
-            :type file_id: int 
-            :param start_line: The line at which the element starts.
-            :type start_line: int
-            :param start_column: The column at which the element starts.
-            :type start_column: int
-            :param end_line: The line at which the element ends.
-            :type end_line: int
-            :param end_column: The line at which the element ends.
-            :type end_column: int
-            :return: None
-            :rtype: NoneType
-        """
-
-        self.__record_source_location(
-            symbol_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.SIGNATURE
-        )
-
-    def record_reference_location(self, reference_id: int, file_id: int, start_line: int,
-                                  start_column: int, end_line: int, end_column: int) -> None:
-        """
-            Record a new reference location of type TOKEN
-            :param reference_id: The reference identifier
-            :type reference_id: int
-            :param file_id: The identifier of the source file in which the symbol is located
-            :type file_id: int 
-            :param start_line: The line at which the element starts.
-            :type start_line: int
-            :param start_column: The column at which the element starts.
-            :type start_column: int
-            :param end_line: The line at which the element ends.
-            :type end_line: int
-            :param end_column: The line at which the element ends.
-            :type end_column: int
-            :return: None
-            :rtype: NoneType
-        """
-
-        self.__record_source_location(
-            reference_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.TOKEN
-        )
-
-    def record_qualifier_location(self, symbol_id: int, file_id: int, start_line: int,
-                                  start_column: int, end_line: int, end_column: int) -> None:
-        """
-            Record a new source location of type QUALIFIER
-            :param symbol_id: The identifier of the symbol 
-            :type symbol_id: int
-            :param file_id: The identifier of the source file in which the symbol is located
-            :type file_id: int 
-            :param start_line: The line at which the element starts.
-            :type start_line: int
-            :param start_column: The column at which the element starts.
-            :type start_column: int
-            :param end_line: The line at which the element ends.
-            :type end_line: int
-            :param end_column: The line at which the element ends.
-            :type end_column: int
-            :return: None
-            :rtype: NoneType
-        """
-
-        self.__record_source_location(
-            symbol_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.QUALIFIER
-        )
-
-    def record_local_symbol_location(self, symbol_id: int, file_id: int, start_line: int,
-                                     start_column: int, end_line: int, end_column: int) -> None:
-        """
-            Record a new source location of type LOCAL_SYMBOL
-            :param symbol_id: The identifier of the symbol 
-            :type symbol_id: int
-            :param file_id: The identifier of the source file in which the symbol is located
-            :type file_id: int 
-            :param start_line: The line at which the element starts.
-            :type start_line: int
-            :param start_column: The column at which the element starts.
-            :type start_column: int
-            :param end_line: The line at which the element ends.
-            :type end_line: int
-            :param end_column: The line at which the element ends.
-            :type end_column: int
-            :return: None
-            :rtype: NoneType
-        """
-
-        self.__record_source_location(
-            symbol_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.LOCAL_SYMBOL
-        )
-
-    def record_atomic_source_range(self, symbol_id: int, file_id: int, start_line: int,
-                                   start_column: int, end_line: int, end_column: int) -> None:
-        """
-            Record a new source location of type ATOMIC_RANGE
-            :param symbol_id: The identifier of the symbol 
-            :type symbol_id: int
-            :param file_id: The identifier of the source file in which the symbol is located
-            :type file_id: int 
-            :param start_line: The line at which the element starts.
-            :type start_line: int
-            :param start_column: The column at which the element starts.
-            :type start_column: int
-            :param end_line: The line at which the element ends.
-            :type end_line: int
-            :param end_column: The line at which the element ends.
-            :type end_column: int
-            :return: None
-            :rtype: NoneType
-        """
-
-        self.__record_source_location(
-            symbol_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.ATOMIC_RANGE
-        )
-
-    def record_file(self, path: Path, indexed: bool = True) -> int:
-        """
-            Record a source file in the database 
-            :param path: The path to the existing source file
-            :type path: pathlib.Path
-            :param indexed: A boolean that indicates if the source file 
-                            was indexed by the parser
-            :type indexed: bool
-            :return: The identifier of the inserted file
-            :rtype: int
-        """
-
-        if not path.exists() or not path.is_file():
-            raise FileNotFoundError()
-
-        # Create a new name hierarchy 
-        hierarchy = NameHierarchy(
-            NameHierarchy.NAME_DELIMITER_FILE,
-            [NameElement(
-                '',
-                str(path.absolute()),
-                ''
-            )]
-        )
-
-        # Retrieve the modification date in the correct format
-        modification_time = datetime.fromtimestamp(
-            os.path.getmtime(path)
-        ).strftime("%Y-%m-%d %H:%M:%S")
-
-        # Read the file
-        lines = []
-        if indexed:
-            lines = open(path, 'r').readlines()
-
-        # Insert a new node
-        elem_id = self.__add_if_not_existing(
-            hierarchy.serialize_name(),
-            NodeType.NODE_FILE
-        )
-
-        # Insert a new file
-        FileDAO.new(
-            self.database,
-            File(
-                elem_id,
-                str(path.absolute()),
-                '',  # Empty language identifier for now
-                modification_time,
-                indexed,
-                True,
-                len(lines)
-            )
-        )
-
-        if indexed:
-            # Insert a new filecontent
-            FileContentDAO.new(self.database,
-                               FileContent(
-                                   elem_id,
-                                   ''.join(lines)
-                               )
-                               )
-
-        # Return the newly created element id
-        return elem_id
-
-    def record_file_language(self, id_: int, language: str) -> None:
-        """
-            Set the language of an existing file inside the database
-            :param id_: The identifier of the file 
-            :type id_: int
-            :param language: A string that indicate the programming language of the file
-            :type language: str
-            :return: None
-            :rtype: NodeType
-        """
-
-        file = FileDAO.get(self.database, id_)
-        if file:
-            file.language = language
-            FileDAO.update(self.database, file)
+        node = NodeDAO.get(self.database, parent_id)
+        if node:
+            hierarchy = NameHierarchy.deserialize_name(node.name)
+            hierarchy.extend(element)
+            return self.record_symbol(hierarchy)
 
     def record_local_symbol(self, name: str) -> int:
         """
-            Record a new local symbol
-            :param name: The name of the new local symbol
-            :type name: str
-            :return: The identifier of the new local symbol
-            :rtype: int
+        Record a new local symbol
+
+        :param name: The name of the new local symbol
+        :type name: str
+        :return: The identifier of the new local symbol
+        :rtype: int
         """
 
         # Check that the symbol does not already exist
@@ -659,136 +359,65 @@ class SourcetrailDB(object):
 
         return local.id
 
-    def record_error(self, msg: str, fatal: bool, file_id: int, start_line: int,
-                     start_column: int, end_line: int, end_column: int) -> None:
+    def record_symbol_kind(self, id_: int, type_: NodeType) -> None:
         """
-            Record a new indexer error in the database 
-            :param msg: The description of the error
-            :type msg: str
-            :param fatal: A boolean indicating if the error stop the execution of the parser
-            :type fatal: bool
-            :param file_id: The identifier of the source file being parsed
-            :type file_id: int
-            :param start_line: The line at which the element starts.
-            :type start_line: int
-            :param start_column: The column at which the element starts.
-            :type start_column: int
-            :param end_line: The line at which the element ends.
-            :type end_line: int
-            :param end_column: The line at which the element ends.
-            :type end_column: int
-            :return: None
-            :rtype: NoneType
+        Set the type of the symbol which is equivalent to setting the
+
+        type of the underlying node.
+        :param id_: The identifier of the element
+        :type id_: int
+        :param type_: The new type for the symbol
+        :type type_: NodeType
+        :return: None
+        :rtype: NoneType
         """
 
-        # Add a new error
-        elem = Element()
-        elem.id = ElementDAO.new(self.database, elem)
+        node = NodeDAO.get(self.database, id_)
+        if node:
+            node.type = type_
+            NodeDAO.update(self.database, node)
 
-        error_id = ErrorDAO.new(self.database, Error(
-            elem.id,
-            msg,
-            fatal,
-            True,
-            ''
-        ))
-        self.__record_source_location(
-            error_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.INDEXER_ERROR
-        )
-
-    # ------------------------------------------------------------------------ #
-    # Sourcetrail API (New features)                                           #
-    # ------------------------------------------------------------------------ #
-
-    def __add_if_not_existing(self, name: str, type_: NodeType) -> int:
+    def record_symbol_definition_kind(self, id_: int, type_: SymbolType) -> None:
         """
-            Create a new node if it does not already exist
-              
-            @Warning: This is not the same behavior as SourcetrailDB
-            We are not allowing nodes with same serialized_name
+        Set the type of definition of the corresponding element
 
-            :param name: The serialized_name of the node
-            :type name: str
-            :param type_: The type of the node to insert
-            :type type_: NodeType
-            :return: The identifier of the new node or the identifier of 
-                     the existing one
-            :rtype: int
+        :param id_: The identifier of the element
+        :type id_: int
+        :param type_: The new type for the symbol
+        :type type_: SymbolType
+        :return: None
+        :rtype: NoneType
         """
 
-        node = NodeDAO.get_by_name(self.database, name)
-        if not node:
-            elem = Element()
-            elem.id = ElementDAO.new(self.database, elem)
-
-            NodeDAO.new(self.database, Node(
-                elem.id,
-                type_,
-                name
-            ))
-
-            return elem.id
+        symb = SymbolDAO.get(self.database, id_)
+        if symb and symb.type != type_:
+            symb.type = type_
+            SymbolDAO.update(self.database, symb)
         else:
-            return node.id
-
-    def get_symbol(self, hierarchy: NameHierarchy) -> int | None:
-        """
-            Return the corresponding Symbol from the database
-            :param hierarchy: The hierarchy of the symbol to retrieve
-            :type hierarchy: NameHierarchy
-            :return: The identifier of the existing symbol or None if the symbol
-                     does not exist.
-            :rtype: int | None
-        """
-
-        serialized_name = hierarchy.serialize_name()
-        node = NodeDAO.get_by_name(self.database, serialized_name)
-        if node:
-            return node.id
-
-    def record_symbol_child(self, parent_id: int, element: NameElement) -> int | None:
-        """
-            Add a child to an existing node without having to give the full
-            hierarchy of the element
-            :param parent_id: The identifier of the existing parent
-            :type parent_id: int
-            :param element: The new element to insert
-            :type element: NameElement
-            :return: The identifier of the newly inserted symbol or None if the parent
-                     does not exist.
-            :rtype: int | None
-        """
-
-        node = NodeDAO.get(self.database, parent_id)
-        if node:
-            hierarchy = NameHierarchy.deserialize_name(node.name)
-            hierarchy.extend(element)
-            return self.record_symbol(hierarchy)
+            symb = Symbol(id_, type_)
+            SymbolDAO.new(self.database, symb)
 
     ####################################################################################
-    #                         WRAPPERS (Public API)                                    #
+    #                                 NODES                                            #
     ####################################################################################
 
     def record_class(self, prefix: str = '', name: str = '', postfix: str = '',
                      delimiter: str = NameHierarchy.NAME_DELIMITER_CXX) -> int | None:
         """
-            Higher level method that hide the NameHierarchy from the user
-            :param prefix: The prefix of the element to insert
-            :type prefix: str
-            :param name: The name of the element to insert
-            :type name: str
-            :param postfix: The postfix of the element to insert
-            :type postfix: str
-            :param delimiter: The delimiter of the element 
-            :type delimiter: str
-            :return: The identifier of the new class or None if it could not be inserted
-            :rtype: int | None
+        Record a class symbol into the DB
+
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param name: The name of the element to insert
+        :type name: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element
+        :type delimiter: str
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new class or None if it could not be inserted
+        :rtype: int | None
         """
 
         class_id = self.record_symbol(NameHierarchy(
@@ -807,17 +436,20 @@ class SourcetrailDB(object):
     def record_function(self, prefix: str = '', name: str = '', postfix: str = '',
                         delimiter: str = NameHierarchy.NAME_DELIMITER_CXX) -> int | None:
         """
-            Higher level method that hide the NameHierarchy from the user
-            :param prefix: The prefix of the element to insert
-            :type prefix: str
-            :param name: The name of the element to insert
-            :type name: str
-            :param postfix: The postfix of the element to insert
-            :type postfix: str
-            :param delimiter: The delimiter of the element 
-            :type delimiter: str
-            :return: The identifier of the new function or None if it could not be inserted
-            :rtype: int | None
+        Record a function symbol into the DB
+
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param name: The name of the element to insert
+        :type name: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param delimiter: The delimiter of the element
+        :type delimiter: str
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The identifier of the new function or None if it could not be inserted
+        :rtype: int | None
         """
 
         func_id = self.record_symbol(NameHierarchy(
@@ -834,53 +466,55 @@ class SourcetrailDB(object):
             return func_id
 
     def record_method(self, parent: int, prefix: str = '', name: str = '',
-                      postfix: str = '') -> int | None:
+                      postfix: str = '', is_indexed: bool = True) -> int | None:
         """
-            Higher level method that hide the NameHierarchy from the user
-            :param parent: The identifier of the class in which the method is defined.
-            :type parent: int
-            :param prefix: The prefix of the element to insert
-            :type prefix: str
-            :param name: The name of the element to insert
-            :type name: str
-            :param postfix: The postfix of the element to insert
-            :type postfix: str
-            :return: The id of the new method or None if it could not be inserted
-            :rtype: int | None
+        Record a method symbol into the DB.
+
+        :param parent: The identifier of the class in which the method is defined.
+        :type parent: int
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param name: The name of the element to insert
+        :type name: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The id of the new method or None if it could not be inserted
+        :rtype: int | None
         """
 
-        method = self.record_symbol_child(parent, NameElement(
-            prefix,
-            name,
-            postfix
-        ))
+        method = self.record_symbol_child(parent, NameElement(prefix, name, postfix))
         if method:
             self.record_symbol_kind(method, NodeType.NODE_METHOD)
+            if is_indexed:
+                self.record_symbol_definition_kind(method, SymbolType.EXPLICIT)
             return method
 
     def record_field(self, parent: int, prefix: str = '', name: str = '',
-                     postfix: str = '') -> int | None:
+                     postfix: str = '', is_indexed: bool = True) -> int | None:
         """
-            Higher level method that hide the NameHierarchy from the user
-            :param parent: The identifier of the class in which the field is defined.
-            :type parent: int
-            :param prefix: The prefix of the element to insert
-            :type prefix: str
-            :param name: The name of the element to insert
-            :type name: str
-            :param postfix: The postfix of the element to insert
-            :type postfix: str
-            :return: The id of the new field or None if it could not be inserted
-            :rtype: int | None
+        Record a field symbol into the DB.
+
+        :param parent: The identifier of the class in which the field is defined.
+        :type parent: int
+        :param prefix: The prefix of the element to insert
+        :type prefix: str
+        :param name: The name of the element to insert
+        :type name: str
+        :param postfix: The postfix of the element to insert
+        :type postfix: str
+        :param is_indexed: if the element is explicit or non-indexed
+        :type is_indexed: bool (default = True)
+        :return: The id of the new field or None if it could not be inserted
+        :rtype: int | None
         """
 
-        field = self.record_symbol_child(parent, NameElement(
-            prefix,
-            name,
-            postfix
-        ))
+        field = self.record_symbol_child(parent, NameElement(prefix, name, postfix))
         if field:
             self.record_symbol_kind(field, NodeType.NODE_FIELD)
+            if is_indexed:
+                self.record_symbol_definition_kind(field, SymbolType.EXPLICIT)
             return field
 
     ####################################################################################
@@ -1158,3 +792,393 @@ class SourcetrailDB(object):
             ElementComponentType.IS_AMBIGUOUS,
             ''
         ))
+
+    ####################################################################################
+    #                           SOURCE CODE MANIPULATION                               #
+    ####################################################################################
+
+    def record_file(self, path: Path, indexed: bool = True) -> int:
+        """
+        Record a source file in the database
+
+        :param path: The path to the existing source file
+        :type path: pathlib.Path
+        :param indexed: A boolean that indicates if the source file
+                        was indexed by the parser
+        :type indexed: bool
+        :return: The identifier of the inserted file
+        :rtype: int
+        """
+
+        if not path.exists() or not path.is_file():
+            raise FileNotFoundError()
+
+        # Create a new name hierarchy
+        hierarchy = NameHierarchy(
+            NameHierarchy.NAME_DELIMITER_FILE,
+            [NameElement(
+                '',
+                str(path.absolute()),
+                ''
+            )]
+        )
+
+        # Retrieve the modification date in the correct format
+        modification_time = datetime.fromtimestamp(
+            os.path.getmtime(path)
+        ).strftime("%Y-%m-%d %H:%M:%S")
+
+        # Read the file
+        lines = []
+        if indexed:
+            lines = open(path, 'r').readlines()
+
+        # Insert a new node
+        elem_id = self.__add_if_not_existing(
+            hierarchy.serialize_name(),
+            NodeType.NODE_FILE
+        )
+
+        # Insert a new file
+        FileDAO.new(
+            self.database,
+            File(
+                elem_id,
+                str(path.absolute()),
+                '',  # Empty language identifier for now
+                modification_time,
+                indexed,
+                True,
+                len(lines)
+            )
+        )
+
+        if indexed:
+            # Insert a new filecontent
+            FileContentDAO.new(self.database,
+                               FileContent(
+                                   elem_id,
+                                   ''.join(lines)
+                               )
+                               )
+
+        # Return the newly created element id
+        return elem_id
+
+    def record_file_language(self, id_: int, language: str) -> None:
+        """
+            Set the language of an existing file inside the database
+            :param id_: The identifier of the file
+            :type id_: int
+            :param language: A string that indicate the programming language of the file
+            :type language: str
+            :return: None
+            :rtype: NodeType
+        """
+
+        file = FileDAO.get(self.database, id_)
+        if file:
+            file.language = language
+            FileDAO.update(self.database, file)
+
+    def __record_source_location(self, symbol_id: int, file_id: int,
+                                 start_line: int, start_column: int, end_line: int, end_column: int,
+                                 type_: SourceLocationType) -> None:
+        """
+        Wrapper for all the record_*_location
+
+        :param symbol_id: The identifier of the symbol
+        :type symbol_id: int
+        :param file_id: The identifier of the source file in which the symbol is located
+        :type file_id: int
+        :param start_line: The line at which the element starts.
+        :type start_line: int
+        :param start_column: The column at which the element starts.
+        :type start_column: int
+        :param end_line: The line at which the element ends.
+        :type end_line: int
+        :param end_column: The line at which the element ends.
+        :type end_column: int
+        :param type_: The type of the source location.
+        :type type_: SourceLocationType
+        :return: None
+        :rtype: NoneType
+        """
+
+        # First add a new source location entry
+        loc_id = SourceLocationDAO.new(self.database, SourceLocation(
+            0,
+            file_id,
+            start_line,
+            start_column,
+            end_line,
+            end_column,
+            type_
+        ))
+
+        # Now add an occurrence that refer to this location
+        OccurrenceDAO.new(self.database, Occurrence(
+            symbol_id, loc_id
+        ))
+
+    def record_symbol_location(self, symbol_id: int, file_id: int, start_line: int,
+                               start_column: int, end_line: int, end_column: int) -> None:
+
+        """
+        Record a new source location of type TOKEN
+
+        :param symbol_id: The identifier of the symbol
+        :type symbol_id: int
+        :param file_id: The identifier of the source file in which the symbol is located
+        :type file_id: int
+        :param start_line: The line at which the element starts.
+        :type start_line: int
+        :param start_column: The column at which the element starts.
+        :type start_column: int
+        :param end_line: The line at which the element ends.
+        :type end_line: int
+        :param end_column: The line at which the element ends.
+        :type end_column: int
+        :return: None
+        :rtype: NoneType
+        """
+
+        self.__record_source_location(
+            symbol_id,
+            file_id,
+            start_line,
+            start_column,
+            end_line,
+            end_column,
+            SourceLocationType.TOKEN
+        )
+
+    def record_symbol_scope_location(self, symbol_id: int, file_id: int, start_line: int,
+                                     start_column: int, end_line: int, end_column: int) -> None:
+        """
+        Record a new source location of type SCOPE
+
+        :param symbol_id: The identifier of the symbol
+        :type symbol_id: int
+        :param file_id: The identifier of the source file in which the symbol is located
+        :type file_id: int
+        :param start_line: The line at which the element starts.
+        :type start_line: int
+        :param start_column: The column at which the element starts.
+        :type start_column: int
+        :param end_line: The line at which the element ends.
+        :type end_line: int
+        :param end_column: The line at which the element ends.
+        :type end_column: int
+        :return: None
+        :rtype: NoneType
+        """
+
+        self.__record_source_location(
+            symbol_id,
+            file_id,
+            start_line,
+            start_column,
+            end_line,
+            end_column,
+            SourceLocationType.SCOPE
+        )
+
+    def record_symbol_signature_location(self, symbol_id: int, file_id: int, start_line: int,
+                                         start_column: int, end_line: int, end_column: int) -> None:
+        """
+        Record a new source location of type SCOPE
+
+        :param symbol_id: The identifier of the symbol
+        :type symbol_id: int
+        :param file_id: The identifier of the source file in which the symbol is located
+        :type file_id: int
+        :param start_line: The line at which the element starts.
+        :type start_line: int
+        :param start_column: The column at which the element starts.
+        :type start_column: int
+        :param end_line: The line at which the element ends.
+        :type end_line: int
+        :param end_column: The line at which the element ends.
+        :type end_column: int
+        :return: None
+        :rtype: NoneType
+        """
+
+        self.__record_source_location(
+            symbol_id,
+            file_id,
+            start_line,
+            start_column,
+            end_line,
+            end_column,
+            SourceLocationType.SIGNATURE
+        )
+
+    def record_reference_location(self, reference_id: int, file_id: int, start_line: int,
+                                  start_column: int, end_line: int, end_column: int) -> None:
+        """
+        Record a new reference location of type TOKEN
+
+        :param reference_id: The reference identifier
+        :type reference_id: int
+        :param file_id: The identifier of the source file in which the symbol is located
+        :type file_id: int
+        :param start_line: The line at which the element starts.
+        :type start_line: int
+        :param start_column: The column at which the element starts.
+        :type start_column: int
+        :param end_line: The line at which the element ends.
+        :type end_line: int
+        :param end_column: The line at which the element ends.
+        :type end_column: int
+        :return: None
+        :rtype: NoneType
+        """
+
+        self.__record_source_location(
+            reference_id,
+            file_id,
+            start_line,
+            start_column,
+            end_line,
+            end_column,
+            SourceLocationType.TOKEN
+        )
+
+    def record_qualifier_location(self, symbol_id: int, file_id: int, start_line: int,
+                                  start_column: int, end_line: int, end_column: int) -> None:
+        """
+        Record a new source location of type QUALIFIER
+
+        :param symbol_id: The identifier of the symbol
+        :type symbol_id: int
+        :param file_id: The identifier of the source file in which the symbol is located
+        :type file_id: int
+        :param start_line: The line at which the element starts.
+        :type start_line: int
+        :param start_column: The column at which the element starts.
+        :type start_column: int
+        :param end_line: The line at which the element ends.
+        :type end_line: int
+        :param end_column: The line at which the element ends.
+        :type end_column: int
+        :return: None
+        :rtype: NoneType
+        """
+
+        self.__record_source_location(
+            symbol_id,
+            file_id,
+            start_line,
+            start_column,
+            end_line,
+            end_column,
+            SourceLocationType.QUALIFIER
+        )
+
+    def record_local_symbol_location(self, symbol_id: int, file_id: int, start_line: int,
+                                     start_column: int, end_line: int, end_column: int) -> None:
+        """
+        Record a new source location of type LOCAL_SYMBOL
+
+        :param symbol_id: The identifier of the symbol
+        :type symbol_id: int
+        :param file_id: The identifier of the source file in which the symbol is located
+        :type file_id: int
+        :param start_line: The line at which the element starts.
+        :type start_line: int
+        :param start_column: The column at which the element starts.
+        :type start_column: int
+        :param end_line: The line at which the element ends.
+        :type end_line: int
+        :param end_column: The line at which the element ends.
+        :type end_column: int
+        :return: None
+        :rtype: NoneType
+        """
+
+        self.__record_source_location(
+            symbol_id,
+            file_id,
+            start_line,
+            start_column,
+            end_line,
+            end_column,
+            SourceLocationType.LOCAL_SYMBOL
+        )
+
+    def record_atomic_source_range(self, symbol_id: int, file_id: int, start_line: int,
+                                   start_column: int, end_line: int, end_column: int) -> None:
+        """
+        Record a new source location of type ATOMIC_RANGE
+
+        :param symbol_id: The identifier of the symbol
+        :type symbol_id: int
+        :param file_id: The identifier of the source file in which the symbol is located
+        :type file_id: int
+        :param start_line: The line at which the element starts.
+        :type start_line: int
+        :param start_column: The column at which the element starts.
+        :type start_column: int
+        :param end_line: The line at which the element ends.
+        :type end_line: int
+        :param end_column: The line at which the element ends.
+        :type end_column: int
+        :return: None
+        :rtype: NoneType
+    """
+
+        self.__record_source_location(
+            symbol_id,
+            file_id,
+            start_line,
+            start_column,
+            end_line,
+            end_column,
+            SourceLocationType.ATOMIC_RANGE
+        )
+
+    def record_error(self, msg: str, fatal: bool, file_id: int, start_line: int,
+                     start_column: int, end_line: int, end_column: int) -> None:
+        """
+        Record a new indexer error in the database
+
+        :param msg: The description of the error
+        :type msg: str
+        :param fatal: A boolean indicating if the error stop the execution of the parser
+        :type fatal: bool
+        :param file_id: The identifier of the source file being parsed
+        :type file_id: int
+        :param start_line: The line at which the element starts.
+        :type start_line: int
+        :param start_column: The column at which the element starts.
+        :type start_column: int
+        :param end_line: The line at which the element ends.
+        :type end_line: int
+        :param end_column: The line at which the element ends.
+        :type end_column: int
+        :return: None
+        :rtype: NoneType
+        """
+
+        # Add a new error
+        elem = Element()
+        elem.id = ElementDAO.new(self.database, elem)
+
+        error_id = ErrorDAO.new(self.database, Error(
+            elem.id,
+            msg,
+            fatal,
+            True,
+            ''
+        ))
+        self.__record_source_location(
+            error_id,
+            file_id,
+            start_line,
+            start_column,
+            end_line,
+            end_column,
+            SourceLocationType.INDEXER_ERROR
+        )

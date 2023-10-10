@@ -1317,12 +1317,10 @@ class SourcetrailDB(object):
 
         if indexed:
             # Insert a new filecontent
-            FileContentDAO.new(self.database,
-                               FileContent(
-                                   elem_id,
-                                   ''.join(lines)
-                               )
-                               )
+            FileContentDAO.new(
+                self.database,
+                FileContent(elem_id, ''.join(lines))
+            )
 
         # Return the newly created element id
         return elem_id

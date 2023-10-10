@@ -268,7 +268,7 @@ class SourcetrailDB(object):
                 # Return the id of the last inserted elements
         return ids[-1]
 
-    def get_symbol(self, hierarchy: NameHierarchy) -> int | None:
+    def _get_symbol(self, hierarchy: NameHierarchy) -> int | None:
         """
         Return the corresponding Symbol from the database
 
@@ -283,27 +283,6 @@ class SourcetrailDB(object):
         node = NodeDAO.get_by_name(self.database, serialized_name)
         if node:
             return node.id
-
-    def record_local_symbol(self, name: str) -> int:
-        """
-        Record a new local symbol
-
-        :param name: The name of the new local symbol
-        :type name: str
-        :return: The identifier of the new local symbol
-        :rtype: int
-        """
-
-        # Check that the symbol does not already exist
-        local = LocalSymbolDAO.get_from_name(self.database, name)
-        if not local:
-            # Insert a new local symbol
-            elem = Element()
-            elem.id = ElementDAO.new(self.database, elem)
-            local = LocalSymbol(elem.id, name)
-            LocalSymbolDAO.new(self.database, local)
-
-        return local.id
 
     def _record_symbol_kind(self, id_: int, type_: NodeType) -> None:
         """
@@ -1559,6 +1538,27 @@ class SourcetrailDB(object):
             end_column,
             SourceLocationType.QUALIFIER
         )
+
+    def record_local_symbol(self, name: str) -> int:
+        """
+        Record a new local symbol
+
+        :param name: The name of the new local symbol
+        :type name: str
+        :return: The identifier of the new local symbol
+        :rtype: int
+        """
+
+        # Check that the symbol does not already exist
+        local = LocalSymbolDAO.get_from_name(self.database, name)
+        if not local:
+            # Insert a new local symbol
+            elem = Element()
+            elem.id = ElementDAO.new(self.database, elem)
+            local = LocalSymbol(elem.id, name)
+            LocalSymbolDAO.new(self.database, local)
+
+        return local.id
 
     def record_local_symbol_location(self, symbol_id: int, file_id: int, start_line: int,
                                      start_column: int, end_line: int, end_column: int) -> None:

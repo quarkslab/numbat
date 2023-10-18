@@ -34,7 +34,7 @@ from .dao import ComponentAccessDAO, EdgeDAO, ElementComponentDAO, FileDAO, \
 from .exceptions import NoDatabaseOpen, NumbatException
 
 
-class SourcetrailDB(object):
+class SourcetrailDB():
     """
     This class implement a wrapper to Sourcetrail internal database,
     it is able to create, edit and delete the underlying sqlite3
@@ -66,15 +66,12 @@ class SourcetrailDB(object):
 
     @classmethod
     def open(cls, path: Path | str, clear: bool = False) -> 'SourcetrailDB':
-        """ 
+        """
         This method allow to open an existing sourcetrail database
 
         :param path: The path to the existing database
-        :type path: pathlib.Path | str
         :param clear: If set to True the database is cleared (Optional)
-        :type clear: bool
         :return: the SourcetrailDB object corresponding to the given DB
-        :rtype: SourcetrailDB
         """
         # Convert str input
         if type(path) == str:
@@ -84,7 +81,7 @@ class SourcetrailDB(object):
         if path.suffix != cls.SOURCETRAIL_DB_EXT:
             path = path.with_suffix(cls.SOURCETRAIL_DB_EXT)
 
-        # Check that the file exists 
+        # Check that the file exists
         path = path.absolute()
         if not path.exists() or not path.is_file():
             raise FileNotFoundError('%s not found' % str(path))
@@ -108,9 +105,7 @@ class SourcetrailDB(object):
         This method allow to create a sourcetrail database
 
         :param path: The path to the new database
-        :type path: pathlib.Path | str
-        ::return: the SourcetrailDB object corresponding to the given DB path
-        :rtype: SourcetrailDB
+        :return: the SourcetrailDB object corresponding to the given DB path
         """
         # Path checks
         if type(path) == str:
@@ -147,7 +142,6 @@ class SourcetrailDB(object):
         by sourcetrail
 
         :return: None
-        :rtype: NoneType
         """
         ElementDAO.create_table(self.database)
         ElementComponentDAO.create_table(self.database)
@@ -170,7 +164,6 @@ class SourcetrailDB(object):
         committed before closing the database.
 
         :return: None
-        :rtype: NoneType
         """
         if self.database:
             self.database.commit()
@@ -182,7 +175,6 @@ class SourcetrailDB(object):
         Clear all elements present in the database.
 
         :return: None
-        :rtype: NoneType
         """
         if not self.database:
             raise NoDatabaseOpen()
@@ -206,7 +198,6 @@ class SourcetrailDB(object):
         memory and resources allocated for it.
 
         :return: None
-        :rtype: NoneType
         """
         if self.database:
             self.database.close()
@@ -226,12 +217,9 @@ class SourcetrailDB(object):
         We are not allowing nodes with same serialized_name
 
         :param name: The serialized_name of the node
-        :type name: str
         :param type_: The type of the node to insert
-        :type type_: NodeType
         :return: The identifier of the new node or the identifier of
                  the existing one
-        :rtype: int
         """
 
         node = NodeDAO.get_by_name(self.database, name)
@@ -254,9 +242,7 @@ class SourcetrailDB(object):
         Record a new Symbol in the database
 
         :param hierarchy: The hierarchy of the symbol to insert
-        :type hierarchy: NameHierarchy
         :return: An unique integer that identify the inserted element
-        :rtype: int
         """
 
         ids = []
@@ -290,10 +276,8 @@ class SourcetrailDB(object):
         Return the corresponding Symbol from the database
 
         :param hierarchy: The hierarchy of the symbol to retrieve
-        :type hierarchy: NameHierarchy
         :return: The identifier of the existing symbol or None if the symbol
                  does not exist.
-        :rtype: int | None
         """
 
         serialized_name = hierarchy.serialize_name()
@@ -304,14 +288,11 @@ class SourcetrailDB(object):
     def _record_symbol_kind(self, id_: int, type_: NodeType) -> None:
         """
         Set the type of the symbol which is equivalent to setting the
-
         type of the underlying node.
+
         :param id_: The identifier of the element
-        :type id_: int
         :param type_: The new type for the symbol
-        :type type_: NodeType
         :return: None
-        :rtype: NoneType
         """
 
         node = NodeDAO.get(self.database, id_)
@@ -324,11 +305,8 @@ class SourcetrailDB(object):
         Set the type of definition of the corresponding element
 
         :param id_: The identifier of the element
-        :type id_: int
         :param kind: The new type for the symbol
-        :type kind: SymbolType
         :return: None
-        :rtype: NoneType
         """
 
         symb = SymbolDAO.get(self.database, id_)
@@ -363,22 +341,14 @@ class SourcetrailDB(object):
         existing node. It automatically creates the hierarchy and so on.
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool
         :param type_: type of the node to add
-        :param
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
         name_element = NameElement(prefix, name, postfix)
         if parent_id:
@@ -408,20 +378,13 @@ class SourcetrailDB(object):
         Record a "SYMBOL" symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -438,20 +401,13 @@ class SourcetrailDB(object):
         Record a TYPE symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -468,20 +424,13 @@ class SourcetrailDB(object):
         Record a BUILTIN_TYPE symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -498,20 +447,13 @@ class SourcetrailDB(object):
         Record a MODULE symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -528,20 +470,13 @@ class SourcetrailDB(object):
         Record a NAMESPACE symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -558,20 +493,13 @@ class SourcetrailDB(object):
         Record a PACKAGE symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -588,20 +516,13 @@ class SourcetrailDB(object):
         Record a STRUCT symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -618,20 +539,13 @@ class SourcetrailDB(object):
         Record a CLASS symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -648,20 +562,13 @@ class SourcetrailDB(object):
         Record a INTERFACE symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -678,20 +585,13 @@ class SourcetrailDB(object):
         Record a ANNOTATION symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -708,20 +608,13 @@ class SourcetrailDB(object):
         Record a GLOBAL_VARIABLE symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -738,20 +631,13 @@ class SourcetrailDB(object):
         Record a FIELD symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -768,20 +654,13 @@ class SourcetrailDB(object):
         Record a FUNCTION symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -798,20 +677,13 @@ class SourcetrailDB(object):
         Record a METHOD symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -828,20 +700,13 @@ class SourcetrailDB(object):
         Record a ENUM symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -858,20 +723,13 @@ class SourcetrailDB(object):
         Record a ENUM_CONSTANT symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -888,20 +746,13 @@ class SourcetrailDB(object):
         Record a TYPEDEF symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -918,20 +769,13 @@ class SourcetrailDB(object):
         Record a TYPE_PARAMETER symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -948,20 +792,13 @@ class SourcetrailDB(object):
         Record a MACRO symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -978,20 +815,13 @@ class SourcetrailDB(object):
         Record a UNION symbol into the DB
 
         :param name: The name of the element to insert
-        :type name: str
         :param prefix: The prefix of the element to insert
-        :type prefix: str
         :param postfix: The postfix of the element to insert
-        :type postfix: str
         :param delimiter: The delimiter of the element, if the element has a parent,
         it will not be taken into account as the parent delimiter will be used
-        :type delimiter: str
         :param parent_id: The identifier of the class in which the method is defined.
-        :type parent_id: int
         :param is_indexed: if the element is explicit or non-indexed
-        :type is_indexed: bool (default = True)
         :return: The identifier of the new class or None if it could not be inserted
-        :rtype: int | None
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
@@ -1008,13 +838,9 @@ class SourcetrailDB(object):
         Add a new reference (an edge) between two elements
 
         :param source_id: The source identifier of the reference
-        :type source_id: int
         :param dest_id: The destination identifier of the reference
-        :type dest_id: int
         :param type_: The type of reference to add
-        :type type_: EdgeType
         :return: None
-        :rtype: NoneType
         """
 
         elem = Element()
@@ -1029,11 +855,8 @@ class SourcetrailDB(object):
         Add a member reference (aka an edge) between two elements
 
         :param source_id: The source identifier
-        :type source_id: int
         :param dest_id: The destination identifier
-        :type dest_id: int
         :return: the reference id
-        :rtype: int
         """
         return self._record_reference(source_id, dest_id, type_=EdgeType.MEMBER)
 
@@ -1042,11 +865,8 @@ class SourcetrailDB(object):
         Add a TYPE_USAGE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
-        :type source_id: int
         :param dest_id: The destination identifier
-        :type dest_id: int
         :return: the reference id
-        :rtype: int
         """
         return self._record_reference(source_id, dest_id, type_=EdgeType.TYPE_USAGE)
 
@@ -1055,11 +875,8 @@ class SourcetrailDB(object):
         Add a USAGE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
-        :type source_id: int
         :param dest_id: The destination identifier
-        :type dest_id: int
         :return: the reference id
-        :rtype: int
         """
         return self._record_reference(source_id, dest_id, type_=EdgeType.USAGE)
 
@@ -1068,11 +885,8 @@ class SourcetrailDB(object):
         Add a CALL reference (aka an edge) between two elements
 
         :param source_id: The source identifier
-        :type source_id: int
         :param dest_id: The destination identifier
-        :type dest_id: int
         :return: the reference id
-        :rtype: int
         """
         return self._record_reference(source_id, dest_id, type_=EdgeType.CALL)
 
@@ -1081,11 +895,8 @@ class SourcetrailDB(object):
         Add an INHERITANCE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
-        :type source_id: int
         :param dest_id: The destination identifier
-        :type dest_id: int
         :return: the reference id
-        :rtype: int
         """
         return self._record_reference(source_id, dest_id, type_=EdgeType.INHERITANCE)
 
@@ -1094,11 +905,8 @@ class SourcetrailDB(object):
         Add an OVERRIDE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
-        :type source_id: int
         :param dest_id: The destination identifier
-        :type dest_id: int
         :return: the reference id
-        :rtype: int
         """
         return self._record_reference(source_id, dest_id, type_=EdgeType.OVERRIDE)
 
@@ -1107,11 +915,8 @@ class SourcetrailDB(object):
         Add a TYPE_ARGUMENT reference (aka an edge) between two elements
 
         :param source_id: The source identifier
-        :type source_id: int
         :param dest_id: The destination identifier
-        :type dest_id: int
         :return: the reference id
-        :rtype: int
         """
         return self._record_reference(source_id, dest_id, type_=EdgeType.TYPE_ARGUMENT)
 
@@ -1120,11 +925,8 @@ class SourcetrailDB(object):
         Add a TEMPLATE_SPECIALIZATION reference (aka an edge) between two elements
 
         :param source_id: The source identifier
-        :type source_id: int
         :param dest_id: The destination identifier
-        :type dest_id: int
         :return: the reference id
-        :rtype: int
         """
         return self._record_reference(source_id, dest_id, type_=EdgeType.TEMPLATE_SPECIALIZATION)
 
@@ -1133,11 +935,8 @@ class SourcetrailDB(object):
         Add an INCLUDE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
-        :type source_id: int
         :param dest_id: The destination identifier
-        :type dest_id: int
         :return: the reference id
-        :rtype: int
         """
         return self._record_reference(source_id, dest_id, type_=EdgeType.INCLUDE)
 
@@ -1146,11 +945,8 @@ class SourcetrailDB(object):
         Add an import reference (aka an edge) between two elements
 
         :param source_id: The source identifier (who imports)
-        :type source_id: int
         :param dest_id: The destination identifier (who is imported)
-        :type dest_id: int
         :return: the reference id
-        :rtype: int
         """
         return self._record_reference(source_id, dest_id, type_=EdgeType.IMPORT)
 
@@ -1159,11 +955,8 @@ class SourcetrailDB(object):
         Add a BUNDLED_EDGES reference (aka an edge) between two elements
 
         :param source_id: The source identifier
-        :type source_id: int
         :param dest_id: The destination identifier
-        :type dest_id: int
         :return: the reference id
-        :rtype: int
         """
         return self._record_reference(source_id, dest_id, type_=EdgeType.BUNDLED_EDGES)
 
@@ -1172,11 +965,8 @@ class SourcetrailDB(object):
         Add a MACRO_USAGE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
-        :type source_id: int
         :param dest_id: The destination identifier
-        :type dest_id: int
         :return: the reference id
-        :rtype: int
         """
         return self._record_reference(source_id, dest_id, type_=EdgeType.MACRO_USAGE)
 
@@ -1185,11 +975,8 @@ class SourcetrailDB(object):
         Add an ANNOTATION_USAGE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
-        :type source_id: int
         :param dest_id: The destination identifier
-        :type dest_id: int
         :return: the reference id
-        :rtype: int
         """
         return self._record_reference(source_id, dest_id, type_=EdgeType.ANNOTATION_USAGE)
 
@@ -1200,21 +987,13 @@ class SourcetrailDB(object):
         Record a reference to an unsolved symbol.
 
         :param symbol_id: The identifier of the symbol
-        :type symbol_id: int
         :param reference_type: The type of reference
-        :type reference_type: EdgeType
         :param file_id: The identifier of the source file in which the symbol is located
-        :type file_id: int
         :param start_line: The line at which the element starts.
-        :type start_line: int
         :param start_column: The column at which the element starts.
-        :type start_column: int
         :param end_line: The line at which the element ends.
-        :type end_line: int
         :param end_column: The line at which the element ends.
-        :type end_column: int
         :return: The identifier of the new reference
-        :rtype: int
         """
 
         # Don't blame me, it's done like this in sourcetrail source code
@@ -1261,9 +1040,7 @@ class SourcetrailDB(object):
         Add an indication in the database to tell that the reference is ambiguous
 
         :param reference_id: the identifier of the reference
-        :type reference_id: int
         :return: None
-        :rtype: NodeType
         """
 
         ElementComponentDAO.new(self.database, ElementComponent(
@@ -1282,12 +1059,9 @@ class SourcetrailDB(object):
         Record a source file in the database
 
         :param path: The path to the existing source file
-        :type path: pathlib.Path
         :param indexed: A boolean that indicates if the source file
                         was indexed by the parser
-        :type indexed: bool
         :return: The identifier of the inserted file
-        :rtype: int
         """
 
         if not path.exists() or not path.is_file():
@@ -1347,11 +1121,8 @@ class SourcetrailDB(object):
         """
             Set the language of an existing file inside the database
             :param id_: The identifier of the file
-            :type id_: int
             :param language: A string that indicate the programming language of the file
-            :type language: str
             :return: None
-            :rtype: NodeType
         """
 
         file = FileDAO.get(self.database, id_)
@@ -1366,21 +1137,13 @@ class SourcetrailDB(object):
         Wrapper for all the record_*_location
 
         :param symbol_id: The identifier of the symbol
-        :type symbol_id: int
         :param file_id: The identifier of the source file in which the symbol is located
-        :type file_id: int
         :param start_line: The line at which the element starts.
-        :type start_line: int
         :param start_column: The column at which the element starts.
-        :type start_column: int
         :param end_line: The line at which the element ends.
-        :type end_line: int
         :param end_column: The line at which the element ends.
-        :type end_column: int
         :param type_: The type of the source location.
-        :type type_: SourceLocationType
         :return: None
-        :rtype: NoneType
         """
 
         # First add a new source location entry
@@ -1406,19 +1169,12 @@ class SourcetrailDB(object):
         Record a new source location of type TOKEN
 
         :param symbol_id: The identifier of the symbol
-        :type symbol_id: int
         :param file_id: The identifier of the source file in which the symbol is located
-        :type file_id: int
         :param start_line: The line at which the element starts.
-        :type start_line: int
         :param start_column: The column at which the element starts.
-        :type start_column: int
         :param end_line: The line at which the element ends.
-        :type end_line: int
         :param end_column: The line at which the element ends.
-        :type end_column: int
         :return: None
-        :rtype: NoneType
         """
 
         self.__record_source_location(
@@ -1437,19 +1193,12 @@ class SourcetrailDB(object):
         Record a new source location of type SCOPE
 
         :param symbol_id: The identifier of the symbol
-        :type symbol_id: int
         :param file_id: The identifier of the source file in which the symbol is located
-        :type file_id: int
         :param start_line: The line at which the element starts.
-        :type start_line: int
         :param start_column: The column at which the element starts.
-        :type start_column: int
         :param end_line: The line at which the element ends.
-        :type end_line: int
         :param end_column: The line at which the element ends.
-        :type end_column: int
         :return: None
-        :rtype: NoneType
         """
 
         self.__record_source_location(
@@ -1468,19 +1217,12 @@ class SourcetrailDB(object):
         Record a new source location of type SCOPE
 
         :param symbol_id: The identifier of the symbol
-        :type symbol_id: int
         :param file_id: The identifier of the source file in which the symbol is located
-        :type file_id: int
         :param start_line: The line at which the element starts.
-        :type start_line: int
         :param start_column: The column at which the element starts.
-        :type start_column: int
         :param end_line: The line at which the element ends.
-        :type end_line: int
         :param end_column: The line at which the element ends.
-        :type end_column: int
         :return: None
-        :rtype: NoneType
         """
 
         self.__record_source_location(
@@ -1499,19 +1241,12 @@ class SourcetrailDB(object):
         Record a new reference location of type TOKEN
 
         :param reference_id: The reference identifier
-        :type reference_id: int
         :param file_id: The identifier of the source file in which the symbol is located
-        :type file_id: int
         :param start_line: The line at which the element starts.
-        :type start_line: int
         :param start_column: The column at which the element starts.
-        :type start_column: int
         :param end_line: The line at which the element ends.
-        :type end_line: int
         :param end_column: The line at which the element ends.
-        :type end_column: int
         :return: None
-        :rtype: NoneType
         """
 
         self.__record_source_location(
@@ -1530,19 +1265,12 @@ class SourcetrailDB(object):
         Record a new source location of type QUALIFIER
 
         :param symbol_id: The identifier of the symbol
-        :type symbol_id: int
         :param file_id: The identifier of the source file in which the symbol is located
-        :type file_id: int
         :param start_line: The line at which the element starts.
-        :type start_line: int
         :param start_column: The column at which the element starts.
-        :type start_column: int
         :param end_line: The line at which the element ends.
-        :type end_line: int
         :param end_column: The line at which the element ends.
-        :type end_column: int
         :return: None
-        :rtype: NoneType
         """
 
         self.__record_source_location(
@@ -1560,9 +1288,7 @@ class SourcetrailDB(object):
         Record a new local symbol
 
         :param name: The name of the new local symbol
-        :type name: str
         :return: The identifier of the new local symbol
-        :rtype: int
         """
 
         # Check that the symbol does not already exist
@@ -1582,19 +1308,12 @@ class SourcetrailDB(object):
         Record a new source location of type LOCAL_SYMBOL
 
         :param symbol_id: The identifier of the symbol
-        :type symbol_id: int
         :param file_id: The identifier of the source file in which the symbol is located
-        :type file_id: int
         :param start_line: The line at which the element starts.
-        :type start_line: int
         :param start_column: The column at which the element starts.
-        :type start_column: int
         :param end_line: The line at which the element ends.
-        :type end_line: int
         :param end_column: The line at which the element ends.
-        :type end_column: int
         :return: None
-        :rtype: NoneType
         """
 
         self.__record_source_location(
@@ -1613,19 +1332,12 @@ class SourcetrailDB(object):
         Record a new source location of type ATOMIC_RANGE
 
         :param symbol_id: The identifier of the symbol
-        :type symbol_id: int
         :param file_id: The identifier of the source file in which the symbol is located
-        :type file_id: int
         :param start_line: The line at which the element starts.
-        :type start_line: int
         :param start_column: The column at which the element starts.
-        :type start_column: int
         :param end_line: The line at which the element ends.
-        :type end_line: int
         :param end_column: The line at which the element ends.
-        :type end_column: int
         :return: None
-        :rtype: NoneType
     """
 
         self.__record_source_location(
@@ -1644,21 +1356,13 @@ class SourcetrailDB(object):
         Record a new indexer error in the database
 
         :param msg: The description of the error
-        :type msg: str
         :param fatal: A boolean indicating if the error stop the execution of the parser
-        :type fatal: bool
         :param file_id: The identifier of the source file being parsed
-        :type file_id: int
         :param start_line: The line at which the element starts.
-        :type start_line: int
         :param start_column: The column at which the element starts.
-        :type start_column: int
         :param end_line: The line at which the element ends.
-        :type end_line: int
         :param end_column: The line at which the element ends.
-        :type end_column: int
         :return: None
-        :rtype: NoneType
         """
 
         # Add a new error

@@ -302,24 +302,25 @@ class SourcetrailDB(object):
             node.type = type_
             NodeDAO.update(self.database, node)
 
-    def _record_symbol_definition_kind(self, id_: int, type_: SymbolType) -> None:
+    def _record_symbol_definition_kind(self, id_: int, kind: SymbolType) -> None:
         """
         Set the type of definition of the corresponding element
 
         :param id_: The identifier of the element
         :type id_: int
-        :param type_: The new type for the symbol
-        :type type_: SymbolType
+        :param kind: The new type for the symbol
+        :type kind: SymbolType
         :return: None
         :rtype: NoneType
         """
 
         symb = SymbolDAO.get(self.database, id_)
-        if symb and symb.type != type_:
-            symb.type = type_
-            SymbolDAO.update(self.database, symb)
+        if symb:
+            if symb.definition_kind != kind:
+                symb.definition_kind = kind
+                SymbolDAO.update(self.database, symb)
         else:
-            symb = Symbol(id_, type_)
+            symb = Symbol(id_, kind)
             SymbolDAO.new(self.database, symb)
 
     ####################################################################################

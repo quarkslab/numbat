@@ -83,8 +83,10 @@ class SourcetrailDB():
 
         # Check that the file exists
         path = path.absolute()
-        if not path.exists() or not path.is_file():
-            raise FileNotFoundError('%s not found' % str(path))
+        if not path.exists():
+            if path.is_file() or not clear:
+                raise FileNotFoundError('%s not found' % str(path))
+            return cls.create(path)
 
         try:
             database = SqliteHelper.connect(str(path))

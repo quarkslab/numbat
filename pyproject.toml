@@ -22,13 +22,13 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'numbat'
-ersion='0.1.0'
+version='0.1.0'
 authors = [
     {name = 'Sami Babigeon', email = 'sbabigeon@quarkslab.com'},
     { name = 'Eloïse Brocas', email = 'ebrocas@quarkslab.com' },
 ]
 readme = "README.md"
-description = 'Library to manipulate and cretae Sourcetrail databases'
+description = 'Library to manipulate and create Sourcetrail databases'
 requires-python = ">=3.10"
 license = {text = "Apache License 2.0"}
 classifiers = [
@@ -48,5 +48,16 @@ Tracker = "https://github.com/quarkslab/numbat/issues"
 [project.optional-dependencies]
 test = [
   'pytest'
+]
+doc = [
+    'black',
+    'mkdocs',
+    'mkdocs-autorefs',
+    'mkdocs-gen-files',
+    'mkdocs-glightbox',
+    'mkdocs-literate-nav',
+    'mkdocs-material',
+    'mkdocstrings-python',
+    'mkdocs-section-index'
 ]
 

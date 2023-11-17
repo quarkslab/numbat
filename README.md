@@ -26,6 +26,14 @@ cd numbat
 pip install .
 ```
 
+### Documentation
+If you want to build the documentation by first installing Numbat with the required doc dependencies and then serve the documentation on a local server.
+
+```bash
+pip install 'numbat @ git+https://github.com/quarkslab/numbat[doc]'
+mkdocs serve
+```
+
 ## Basic Usage
 
 A complete usage with examples is available in the [documentation](getting_started.md) but here is a quick usage to begin with Numbat.

@@ -38,10 +38,8 @@ class SqliteHelper(object):
             directly on sqlite and his more general 
             :param path: The path to the database, if the path doesn't point
             to an existing file, a new database file will be created
-            :type path: str
             :return: A connection handle that can be used for future
             operation on the database
-            :rtype: sqlite3.Connection 
         """
         return sqlite3.connect(path)
 
@@ -51,14 +49,10 @@ class SqliteHelper(object):
         """
             Execute the sqlite request without returning the result 
             :param database: A database handle
-            :type database: sqlite3.Connection
             :param request: The SQL request to execute
-            :type request: str
             :param parameters: A tuple containing values for the bind
             parameters of the SQL request (if any)
-            :type parameters: tuple
             :return: The id of the last modified row (useful in case insertion)
-            :rtype: int
         """
 
         if not database:
@@ -75,14 +69,10 @@ class SqliteHelper(object):
         """
             Return the result of the sqlite request as list 
             :param database: A database handle
-            :type database: sqlite3.Connection
             :param request: The SQL request to execute
-            :type request: str
             :param parameters: A tuple containing values for the bind
             parameters of the SQL request (if any)
-            :type parameters: tuple
             :return: A list containing the results of the SQL request 
-            :rtype: list
         """
 
         if not database:
@@ -108,9 +98,7 @@ class ElementDAO(object):
             Create the element table of the Sourcetrail database
             if it doesn't exist.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''    
             CREATE TABLE IF NOT EXISTS element(
@@ -124,9 +112,7 @@ class ElementDAO(object):
             Delete the element table of the Sourcetrail database
             only if it exists.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.element;'''
@@ -137,11 +123,8 @@ class ElementDAO(object):
         """
             Insert a new Element inside the element table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: Element
             :return: The id of the inserted element
-            :rtype: int
         """
         # The 'obj' parameter is not used because we need to create a identifier
         # that does not already exists in the database. So instead, we insert 
@@ -157,11 +140,8 @@ class ElementDAO(object):
         """
             Delete an Element from the element table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: Element
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM element WHERE id = ?;''', (obj.id,)
@@ -172,9 +152,7 @@ class ElementDAO(object):
         """
             Delete all Elements from the element table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM element;'''
@@ -185,12 +163,9 @@ class ElementDAO(object):
         """
             Return an element from the database with the matching id
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param elem_id: The id of the element to retrieve  
-            :type elem_id: int 
             :return: A Element object that reflect the content inside 
             the database 
-            :rtype: Element
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM element WHERE id = ?;''', (elem_id,)
@@ -204,11 +179,8 @@ class ElementDAO(object):
         """
             Update an Element inside the element table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The Element object to update 
-            :type obj: Element
             :return: None 
-            :rtype: NoneType
         """
         # Since the Element object does only contain a primary key
         # it can't be updated
@@ -219,9 +191,7 @@ class ElementDAO(object):
         """
             Return the list of all the elements from the element table. 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: The list of Elements 
-            :rtype: list[Element]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM element;'''
@@ -246,9 +216,7 @@ class ElementComponentDAO(object):
             Create the element_component table of the Sourcetrail database
             if it doesn't exist.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''    
             CREATE TABLE IF NOT EXISTS element_component(
@@ -267,9 +235,7 @@ class ElementComponentDAO(object):
             Delete the element_component table of the Sourcetrail database
             only if it exists.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.element_component;'''
@@ -280,11 +246,8 @@ class ElementComponentDAO(object):
         """
             Insert a new ElementComponent inside the element_component table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: ElementComponent
             :return: The id of the inserted element
-            :rtype: int
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO element_component(
@@ -297,11 +260,8 @@ class ElementComponentDAO(object):
         """
             Delete an ElementComponent from the element_component table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: ElementComponent
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM element_component WHERE id = ?;''', (obj.id,)
@@ -312,9 +272,7 @@ class ElementComponentDAO(object):
         """
             Delete all ElementComponents from the element_component table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM element_component;'''
@@ -325,12 +283,9 @@ class ElementComponentDAO(object):
         """
             Return a ElementComponent from the database with the matching id 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param elem_id: The id of the element_component to retrieve  
-            :type elem_id: int 
             :return: A ElementComponent object that reflect the content 
             inside the database 
-            :rtype: ElementComponent
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM element_component WHERE id = ?;''', (elem_id,)
@@ -347,11 +302,8 @@ class ElementComponentDAO(object):
         """
             Update an ElementComponent inside the element_component table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The Element object to update 
-            :type obj: ElementComponent
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             UPDATE element_component SET
@@ -367,9 +319,7 @@ class ElementComponentDAO(object):
         """
             Return the list of all the elements from the element_component table. 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: The list of ElementComponents 
-            :rtype: list[ElementComponent]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM element_component;'''
@@ -397,9 +347,7 @@ class EdgeDAO(object):
             Create the edge table of the Sourcetrail database
             if it doesn't exist.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''    
             CREATE TABLE IF NOT EXISTS edge(
@@ -420,9 +368,7 @@ class EdgeDAO(object):
             Delete the edge table of the Sourcetrail database
             only if it exists.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.edge;'''
@@ -433,11 +379,8 @@ class EdgeDAO(object):
         """
             Insert a new Edge inside the edge table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: Edge
             :return: The id of the inserted element
-            :rtype: int
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO edge(
@@ -450,11 +393,8 @@ class EdgeDAO(object):
         """
             Delete an Edge from the edge table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: Edge
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM edge WHERE id = ?;''', (obj.id,)
@@ -465,9 +405,7 @@ class EdgeDAO(object):
         """
             Delete all Edges from the edge table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM edge;'''
@@ -478,12 +416,9 @@ class EdgeDAO(object):
         """
             Return an Edge from the database with the matching id 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param elem_id: The id of the element to retrieve  
-            :type elem_id: int 
             :return: A Edge object that reflect the content inside 
             the database 
-            :rtype: Edge
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM edge WHERE id = ?;''', (elem_id,)
@@ -498,11 +433,8 @@ class EdgeDAO(object):
         """
             Update an Edge inside the element table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The Edge object to update 
-            :type obj: Edge
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             UPDATE edge SET
@@ -518,9 +450,7 @@ class EdgeDAO(object):
         """
             Return the list of all the elements from the edge table. 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: The list of Edges 
-            :rtype: list[Edge]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM edge;'''
@@ -548,9 +478,7 @@ class NodeDAO(object):
             Create the node table of the Sourcetrail database
             if it doesn't exist.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''    
             CREATE TABLE IF NOT EXISTS node(
@@ -568,9 +496,7 @@ class NodeDAO(object):
             Delete the node table of the Sourcetrail database
             only if it exists.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.node;'''
@@ -581,11 +507,8 @@ class NodeDAO(object):
         """
             Insert a new Node inside the node table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: Node
             :return: The id of the inserted element
-            :rtype: int
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO node(
@@ -598,11 +521,8 @@ class NodeDAO(object):
         """
             Delete a Node from the node table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: Node
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM node WHERE id = ?;''', (obj.id,)
@@ -613,9 +533,7 @@ class NodeDAO(object):
         """
             Delete all Nodes from the node table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM node;'''
@@ -626,12 +544,9 @@ class NodeDAO(object):
         """
             Return a Node from the database with the matching id 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param elem_id: The id of the element to retrieve  
-            :type elem_id: int 
             :return: A Node object that reflect the content inside 
             the database 
-            :rtype: Node
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM node WHERE id = ?;''', (elem_id,)
@@ -646,12 +561,9 @@ class NodeDAO(object):
         """
             Return a Node from the database with the matching serialized_name 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param name: The serialized_name of the element to retrieve  
-            :type name: str 
             :return: A Node object that reflect the content inside 
             the database 
-            :rtype: Node
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM node WHERE serialized_name = ? LIMIT 1;''', (name,)
@@ -666,11 +578,8 @@ class NodeDAO(object):
         """
             Update a Node inside the node table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The Node object to update 
-            :type obj: Node
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             UPDATE node SET
@@ -685,9 +594,7 @@ class NodeDAO(object):
         """
             Return the list of all the elements from the node table. 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: The list of Nodes 
-            :rtype: list[Node]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM node;'''
@@ -713,9 +620,7 @@ class SymbolDAO(object):
             Create the symbol table of the Sourcetrail database
             if it doesn't exist.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''    
             CREATE TABLE symbol(
@@ -732,9 +637,7 @@ class SymbolDAO(object):
             Delete the symbol table of the Sourcetrail database
             only if it exists.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.symbol;'''
@@ -745,11 +648,8 @@ class SymbolDAO(object):
         """
             Insert a new Symbol inside the symbol table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: Symbol
             :return: The id of the inserted symbol
-            :rtype: int
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO symbol(
@@ -762,11 +662,8 @@ class SymbolDAO(object):
         """
             Delete a Symbol from the symbol table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: Symbol
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM symbol WHERE id = ?;''', (obj.id,)
@@ -777,9 +674,7 @@ class SymbolDAO(object):
         """
             Delete all Symbols from the symbol table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM symbol;'''
@@ -790,12 +685,9 @@ class SymbolDAO(object):
         """
             Return a symbol from the database with the matching id 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param elem_id: The id of the symbol to retrieve  
-            :type elem_id: int 
             :return: A Symbol object that reflect the content inside 
             the database 
-            :rtype: Symbol
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM symbol WHERE id = ?;''', (elem_id,)
@@ -810,11 +702,8 @@ class SymbolDAO(object):
         """
             Update a Symbol inside the symbol table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The Symbol object to update 
-            :type obj: Symbol
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             UPDATE symbol SET
@@ -828,9 +717,7 @@ class SymbolDAO(object):
         """
             Return the list of all the symbols from the symbol table. 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: The list of Symbols 
-            :rtype: list[Symbol]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM symbol;'''
@@ -856,9 +743,7 @@ class FileDAO(object):
             Create the file table of the Sourcetrail database
             if it doesn't exist.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''    
             CREATE TABLE file(
@@ -880,9 +765,7 @@ class FileDAO(object):
             Delete the file table of the Sourcetrail database
             only if it exists.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.file;'''
@@ -893,11 +776,8 @@ class FileDAO(object):
         """
             Insert a new File inside the file table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: File
             :return: The id of the inserted file
-            :rtype: int
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO file(
@@ -913,11 +793,8 @@ class FileDAO(object):
         """
             Delete a File from the file table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: File
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM file WHERE id = ?;''', (obj.id,)
@@ -928,9 +805,7 @@ class FileDAO(object):
         """
             Delete all Files from the file table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM file;'''
@@ -941,12 +816,9 @@ class FileDAO(object):
         """
             Return a file from the database with the matching id 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param elem_id: The id of the file to retrieve  
-            :type elem_id: int 
             :return: A File object that reflect the content inside 
             the database 
-            :rtype: File
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM file WHERE id = ?;''', (elem_id,)
@@ -960,11 +832,8 @@ class FileDAO(object):
         """
             Update a File inside the file table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The File object to update 
-            :type obj: File
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             UPDATE file SET
@@ -986,9 +855,7 @@ class FileDAO(object):
         """
             Return the list of all the files from the file table. 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: The list of Files 
-            :rtype: list[File]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM file;'''
@@ -1013,9 +880,7 @@ class FileContentDAO(object):
             Create the filecontent table of the Sourcetrail database
             if it doesn't exist.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''    
             CREATE TABLE filecontent(
@@ -1032,9 +897,7 @@ class FileContentDAO(object):
             Delete the filecontent table of the Sourcetrail database
             only if it exists.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.filecontent;'''
@@ -1045,11 +908,8 @@ class FileContentDAO(object):
         """
             Insert a new FileContent inside the filecontent table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: FileContent
             :return: The id of the inserted filecontent
-            :rtype: int
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO filecontent(
@@ -1062,11 +922,8 @@ class FileContentDAO(object):
         """
             Delete an FileContent from the filecontent table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: FileContent
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM filecontent WHERE id = ?;''', (obj.id,)
@@ -1077,9 +934,7 @@ class FileContentDAO(object):
         """
             Delete all FileContents from the filecontent table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM filecontent;'''
@@ -1090,12 +945,9 @@ class FileContentDAO(object):
         """
             Return a filecontent from the database with the matching id 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param elem_id: The id of the filecontent to retrieve  
-            :type elem_id: int 
             :return: A FileContent object that reflect the content inside 
             the database 
-            :rtype: FileContent
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM filecontent WHERE id = ?;''', (elem_id,)
@@ -1109,11 +961,8 @@ class FileContentDAO(object):
         """
             Update an FileContent inside the filecontent table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The FileContent object to update 
-            :type obj: FileContent
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             UPDATE filecontent SET
@@ -1127,9 +976,7 @@ class FileContentDAO(object):
         """
             Return the list of all the filecontents from the filecontent table. 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: The list of FileContents 
-            :rtype: list[FileContent]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM filecontent;'''
@@ -1154,9 +1001,7 @@ class LocalSymbolDAO(object):
             Create the local_symbol table of the Sourcetrail database
             if it doesn't exist.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''    
             CREATE TABLE local_symbol(
@@ -1173,9 +1018,7 @@ class LocalSymbolDAO(object):
             Delete the local_symbol table of the Sourcetrail database
             only if it exists.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.local_symbol;'''
@@ -1186,11 +1029,8 @@ class LocalSymbolDAO(object):
         """
             Insert a new LocalSymbol inside the local_symbol table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: LocalSymbol
             :return: The id of the inserted local_symbol
-            :rtype: int
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO local_symbol(
@@ -1203,11 +1043,8 @@ class LocalSymbolDAO(object):
         """
             Delete an LocalSymbol from the local_symbol table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: LocalSymbol
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM local_symbol WHERE id = ?;''', (obj.id,)
@@ -1218,9 +1055,7 @@ class LocalSymbolDAO(object):
         """
             Delete all LocalSymbols from the local_symbol table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM local_symbol;'''
@@ -1231,12 +1066,9 @@ class LocalSymbolDAO(object):
         """
             Return a local_symbol from the database with the matching id 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param elem_id: The id of the local_symbol to retrieve  
-            :type elem_id: int 
             :return: A LocalSymbol object that reflect the content inside 
             the database 
-            :rtype: LocalSymbol
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM local_symbol WHERE id = ?;''', (elem_id,)
@@ -1250,12 +1082,9 @@ class LocalSymbolDAO(object):
         """
             Return a local_symbol from the database with the matching name
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param name: The name of the local_symbol to retrieve  
-            :type name: str
             :return: A LocalSymbol object that reflect the content inside 
             the database 
-            :rtype: LocalSymbol
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM local_symbol WHERE name = ? LIMIT 1;''', (name,)
@@ -1269,11 +1098,8 @@ class LocalSymbolDAO(object):
         """
             Update an LocalSymbol inside the local_symbol table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The LocalSymbol object to update 
-            :type obj: LocalSymbol
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             UPDATE local_symbol SET
@@ -1287,9 +1113,7 @@ class LocalSymbolDAO(object):
         """
             Return the list of all the local_symbols from the local_symbol table. 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: The list of LocalSymbols 
-            :rtype: list[LocalSymbol]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM local_symbol;'''
@@ -1314,9 +1138,7 @@ class SourceLocationDAO(object):
             Create the source_location table of the Sourcetrail database
             if it doesn't exist.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''    
             CREATE TABLE source_location(
@@ -1338,9 +1160,7 @@ class SourceLocationDAO(object):
             Delete the source_location table of the Sourcetrail database
             only if it exists.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.source_location;'''
@@ -1351,11 +1171,8 @@ class SourceLocationDAO(object):
         """
             Insert a new SourceLocation inside the source_location table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: SourceLocation
             :return: The id of the inserted source_location
-            :rtype: int
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO source_location(
@@ -1371,11 +1188,8 @@ class SourceLocationDAO(object):
         """
             Delete an SourceLocation from the source_location table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: SourceLocation
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM source_location WHERE id = ?;''', (obj.id,)
@@ -1386,9 +1200,7 @@ class SourceLocationDAO(object):
         """
             Delete all SourceLocations from the source_location table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM source_location;'''
@@ -1399,12 +1211,9 @@ class SourceLocationDAO(object):
         """
             Return a source_location from the database with the matching id 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param elem_id: The id of the source_location to retrieve  
-            :type elem_id: int 
             :return: A SourceLocation object that reflect the content inside 
             the database 
-            :rtype: SourceLocation
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM source_location WHERE id = ?;''', (elem_id,)
@@ -1421,11 +1230,8 @@ class SourceLocationDAO(object):
         """
             Update an SourceLocation inside the source_location table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The SourceLocation object to update 
-            :type obj: SourceLocation
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             UPDATE source_location SET
@@ -1447,9 +1253,7 @@ class SourceLocationDAO(object):
         """
             Return the list of all the source_locations from the source_location table. 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: The list of SourceLocations 
-            :rtype: list[SourceLocation]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM source_location;'''
@@ -1477,9 +1281,7 @@ class OccurrenceDAO(object):
             Create the occurrence table of the Sourcetrail database
             if it doesn't exist.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''    
             CREATE TABLE occurrence(
@@ -1498,9 +1300,7 @@ class OccurrenceDAO(object):
             Delete the occurrence table of the Sourcetrail database
             only if it exists.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.occurrence;'''
@@ -1511,11 +1311,8 @@ class OccurrenceDAO(object):
         """
             Insert a new Occurrence inside the occurrence table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: Occurrence
             :return: The id of the inserted occurrence
-            :rtype: int
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO occurrence(
@@ -1528,11 +1325,8 @@ class OccurrenceDAO(object):
         """
             Delete an Occurrence from the occurrence table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: Occurrence
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM occurrence WHERE element_id = ?;''', (obj.element_id,)
@@ -1543,9 +1337,7 @@ class OccurrenceDAO(object):
         """
             Delete all Occurrences from the occurrence table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM occurrence;'''
@@ -1556,12 +1348,9 @@ class OccurrenceDAO(object):
         """
             Return an occurrence from the database with the matching id
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param elem_id: The id of the occurrence to retrieve  
-            :type elem_id: int 
             :return: A Occurrence object that reflect the content inside 
             the database 
-            :rtype: Occurrence
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM occurrence WHERE element_id = ?;''', (elem_id,)
@@ -1575,11 +1364,8 @@ class OccurrenceDAO(object):
         """
             Update an Occurrence inside the occurrence table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The Occurrence object to update 
-            :type obj: Occurrence
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             UPDATE occurrence SET
@@ -1593,9 +1379,7 @@ class OccurrenceDAO(object):
         """
             Return the list of all the occurrences from the occurrence table. 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: The list of Occurrences 
-            :rtype: list[Occurrence]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM occurrence;'''
@@ -1620,9 +1404,7 @@ class ComponentAccessDAO(object):
             Create the component_access table of the Sourcetrail database
             if it doesn't exist.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''    
             CREATE TABLE component_access(
@@ -1639,9 +1421,7 @@ class ComponentAccessDAO(object):
             Delete the component_access table of the Sourcetrail database
             only if it exists.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.component_access;'''
@@ -1652,11 +1432,8 @@ class ComponentAccessDAO(object):
         """
             Insert a new ComponentAccess inside the component_access table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: ComponentAccess
             :return: The id of the inserted component_access
-            :rtype: int
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO component_access(
@@ -1669,11 +1446,8 @@ class ComponentAccessDAO(object):
         """
             Delete an ComponentAccess from the component_access table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: ComponentAccess
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM component_access WHERE node_id = ?;''', (obj.node_id,)
@@ -1684,9 +1458,7 @@ class ComponentAccessDAO(object):
         """
             Delete all ComponentAccess from the component_access table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM component_access;'''
@@ -1697,12 +1469,9 @@ class ComponentAccessDAO(object):
         """
             Return a component_access from the database with the matching id 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param elem_id: The id of the component_access to retrieve  
-            :type elem_id: int 
             :return: A ComponentAccess object that reflect the content inside 
             the database 
-            :rtype: ComponentAccess
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM component_access WHERE node_id = ?;''', (elem_id,)
@@ -1717,11 +1486,8 @@ class ComponentAccessDAO(object):
         """
             Update an ComponentAccess inside the component_access table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The ComponentAccess object to update 
-            :type obj: ComponentAccess
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             UPDATE component_access SET
@@ -1735,9 +1501,7 @@ class ComponentAccessDAO(object):
         """
             Return the list of all the component_access from the component_access table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: The list of ComponentAccess
-            :rtype: list[ComponentAccess]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM component_access;'''
@@ -1763,9 +1527,7 @@ class ErrorDAO(object):
             Create the error table of the Sourcetrail database
             if it doesn't exist.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''    
             CREATE TABLE error(
@@ -1785,9 +1547,7 @@ class ErrorDAO(object):
             Delete the error table of the Sourcetrail database
             only if it exists.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.error;'''
@@ -1798,11 +1558,8 @@ class ErrorDAO(object):
         """
             Insert a new Error inside the error table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to insert
-            :type obj: Error
             :return: The id of the inserted error
-            :rtype: int
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO error(
@@ -1817,11 +1574,8 @@ class ErrorDAO(object):
         """
             Delete an Error from the error table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The object to delete
-            :type obj: Error
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM error WHERE id = ?;''', (obj.id,)
@@ -1832,12 +1586,9 @@ class ErrorDAO(object):
         """
             Return an error from the database with the matching id
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param elem_id: The id of the error to retrieve  
-            :type elem_id: int 
             :return: A Error object that reflect the content inside 
             the database 
-            :rtype: Error
         """
         out = SqliteHelper.fetch(database, '''
             SELECT * FROM error WHERE id = ?;''', (elem_id,)
@@ -1851,9 +1602,7 @@ class ErrorDAO(object):
         """
             Delete all Errors from the error table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM error;'''
@@ -1864,11 +1613,8 @@ class ErrorDAO(object):
         """
             Update an Error inside the error table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param obj: The Error object to update 
-            :type obj: Error
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             UPDATE error SET
@@ -1888,9 +1634,7 @@ class ErrorDAO(object):
         """
             Return the list of all the errors from the error table. 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: The list of Errors 
-            :rtype: list[Error]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM error;'''
@@ -1916,9 +1660,7 @@ class MetaDAO(object):
             Create the meta table of the Sourcetrail database
             if it doesn't exist.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''    
             CREATE TABLE meta(
@@ -1935,9 +1677,7 @@ class MetaDAO(object):
             Delete the meta table of the Sourcetrail database
             only if it exists.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DROP TABLE IF EXISTS main.meta;'''
@@ -1948,13 +1688,9 @@ class MetaDAO(object):
         """
             Insert a new Meta inside the meta table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param key: The key to insert 
-            :type key: str
             :param value: The value to insert
-            :type value: str
             :return: The id of the inserted meta
-            :rtype: int
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO meta(
@@ -1969,11 +1705,8 @@ class MetaDAO(object):
         """
             Delete a Meta from the meta table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param id_: The identifier of the object to delete
-            :type id_: int
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM meta WHERE id = ?;''', (id_,)
@@ -1984,12 +1717,9 @@ class MetaDAO(object):
         """
             Return a meta from the database with the matching id 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param id_: The id of the meta to retrieve  
-            :type id_: int 
             :return: A Meta object that reflect the content inside 
             the database 
-            :rtype: Meta
         """
         out = SqliteHelper.fetch(database, '''
             SELECT id, key, value FROM meta WHERE id = ?;''', (id_,)
@@ -2001,9 +1731,7 @@ class MetaDAO(object):
         """
             Delete all Metas from the meta table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             DELETE FROM meta;'''
@@ -2015,15 +1743,10 @@ class MetaDAO(object):
         """
             Update a Meta inside the meta table.
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :param id_: The id of the meta to update  
-            :type id_: int 
             :param key: The key to update  
-            :type key: str
             :param value: The value to insert
-            :type value: str
             :return: None 
-            :rtype: NoneType
         """
         SqliteHelper.exec(database, '''
             UPDATE meta SET
@@ -2040,9 +1763,7 @@ class MetaDAO(object):
         """
             Return the list of all the metas from the meta table. 
             :param database: A database handle
-            :type database: sqlite3.Connection           
             :return: The list of Metas 
-            :rtype: list[Meta]
         """
         rows = SqliteHelper.fetch(database, '''
             SELECT * FROM meta;'''

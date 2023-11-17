@@ -26,25 +26,24 @@ from .exceptions import SerializeException, DeserializeException
 class Element(object):
     """
         Wrapper class for sourcetrail 'element' table:
-            
+
+        ```sql
         CREATE TABLE element(
             id INTEGER, 
             PRIMARY KEY(id)
         )
-        
+        ```
+
         The 'element' table is used in sourcetrail to be able to easily manage
         other elements of others tables. Since all higher level element are
         referencing an element in the 'element' table it's possible to remove
         any element by removing the correct entry in the 'element' table.
     """
 
-    def __init__(self, id_: int = 0) -> None:
+    def __init__(self, id_: int = 0):
         """
             Create a new Element object. 
-            :param id_: The id of the element 
-            :type id_: int           
-            :return: None 
-            :rtype: NoneType 
+            :param id_: The id of the element
         """
 
         self.id = id_
@@ -64,7 +63,8 @@ class ElementComponentType(enum.Enum):
 class ElementComponent(Element):
     """ 
         Wrapper class for sourcetrail element_component table:
-            
+
+        ```sql
         CREATE TABLE element_component(
             id INTEGER, 	
             element_id INTEGER, 	
@@ -73,26 +73,21 @@ class ElementComponent(Element):
             PRIMARY KEY(id), 	
             FOREIGN KEY(element_id) REFERENCES element(id) ON DELETE CASCADE
         )
-        
+        ```
+
         This table is not commonly used, it only contains indication about the
         ambiguity of another element such as an edge or a node.
     """
 
     def __init__(self, id_: int = 0, elem_id: int = 0,
                  type_: ElementComponentType = ElementComponentType.NONE,
-                 data: str = '') -> None:
+                 data: str = ''):
         """
             Create a new ElementComponent object. 
             :param id_: The id of the element 
-            :type id_: int           
             :param elem_id: The id of the referenced element
-            :type elem_id: int
             :param type_: The type of the ElementComponent 
-            :type type_: ElementComponentType 
             :param data: Additional data (optional)
-            :type data: str
-            :return: None 
-            :rtype: NoneType 
         """
 
         super().__init__(id_)
@@ -126,7 +121,8 @@ class EdgeType(enum.Enum):
 class Edge(Element):
     """ 
         Wrapper class for sourcetrail edge table:
-   
+
+        ```sql
         CREATE TABLE edge(
             id INTEGER NOT NULL, 
             type INTEGER NOT NULL, 
@@ -137,26 +133,21 @@ class Edge(Element):
             FOREIGN KEY(source_node_id) REFERENCES node(id) ON DELETE CASCADE, 
             FOREIGN KEY(target_node_id) REFERENCES node(id) ON DELETE CASCADE
         ) 
-    
+        ```
+
         The 'edge' table is used to define relation between element of the 'node'
         table. For example, it can be used to indicate that a field is a member
         of a class or a function foo is calling another function bar.
     """
 
     def __init__(self, id_: int = 0, type_: EdgeType = EdgeType.UNDEFINED,
-                 src: int = 0, dst: int = 0) -> None:
+                 src: int = 0, dst: int = 0):
         """
             Create a new Edge object. 
             :param id_: The id of the element 
-            :type id_: int           
             :param type_: The type of the Edge 
-            :type type_: EdgeType 
             :param src: The id of the source element 
-            :type src: int   
-            :param dst: The id of the destination element 
-            :type dst: int   
-            :return: None 
-            :rtype: NoneType 
+            :param dst: The id of the destination element
         """
  
         super().__init__(id_)
@@ -198,13 +189,15 @@ class Node(Element):
     """
         Wrapper class for sourcetrail node table:
 
+        ```sql
         CREATE TABLE node(
             id INTEGER NOT NULL, 
             type INTEGER NOT NULL, 
             serialized_name TEXT, 
             PRIMARY KEY(id), 
             FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
-        ) 
+        )
+        ```
 
         The 'node' table is the main table of the sourcetrail database. It allows
         to store elements such as function, class, package, etc. However, this
@@ -223,17 +216,12 @@ class Node(Element):
     """
 
     def __init__(self, id_: int = 0, type_: NodeType = NodeType.NODE_TYPE,
-                 name: str = '') -> None:
+                 name: str = ''):
         """
             Create a new Node object. 
             :param id_: The id of the element 
-            :type id_: int           
             :param type_: The type of the Node 
-            :type type_: NodeType 
             :param name: The serialized name of the Node
-            :type name: str   
-            :return: None 
-            :rtype: NoneType 
         """
  
         super().__init__(id_)
@@ -255,26 +243,24 @@ class Symbol(Element):
     """
         Wrapper class for sourcetrail symbol table:
 
+        ```sql
         CREATE TABLE symbol(
             id INTEGER NOT NULL, 
             definition_kind INTEGER NOT NULL, 
             PRIMARY KEY(id), 
             FOREIGN KEY(id) REFERENCES node(id) ON DELETE CASCADE
         ) 
+        ```
 
         The 'symbol' table is used to add additional information on elements 
         such as node.  
     """
 
-    def __init__(self, id_: int = 0, definition: SymbolType = SymbolType.NONE) -> None:
+    def __init__(self, id_: int = 0, definition: SymbolType = SymbolType.NONE):
         """
             Create a new Symbol object. 
             :param id_: The id of the element 
-            :type id_: int           
             :param definition: The type of the Symbol
-            :type definition: SymbolType 
-            :return: None 
-            :rtype: NoneType 
         """
   
         super().__init__(id_)
@@ -285,6 +271,7 @@ class File(Element):
     """
         Wrapper class for sourcetrail file table:
 
+        ```sql
         CREATE TABLE file(
             id INTEGER NOT NULL, 
             path TEXT, 
@@ -296,6 +283,7 @@ class File(Element):
             PRIMARY KEY(id), 
             FOREIGN KEY(id) REFERENCES node(id) ON DELETE CASCADE
         )
+        ```
 
         The 'file' table hold the information about the different source file
         that have been parsed by sourcetrail. Each one of them contains an id that 
@@ -304,25 +292,17 @@ class File(Element):
 
     def __init__(self, id_: int = 0, path: str = '', language: str = '',
                  modification_time: str = '', indexed: int = 0, complete: int = 0,
-                 line_count: int = 0) -> None:
+                 line_count: int = 0):
         """
-            Create a new File object. 
+            Create a new File object.
+
             :param id_: The id of the element 
-            :type id_: int           
             :param path: The path to the source file 
-            :type path: str
             :param language: The language of the source file.
-            :type language: str
             :param modification_time: The time of the last modification of the source file
-            :type modification_time: str
             :param indexed: A indication to tell if the file was indexed or not (0 or 1)
-            :type indexed: int
             :param complete: A indicate to tell if the indexing is complete or not (0 or 1)
-            :type complete: int
             :param line_count: The number of line in the source file
-            :type line_count: int
-            :return: None 
-            :rtype: NoneType 
         """
  
         super().__init__(id_)
@@ -337,28 +317,27 @@ class File(Element):
 class FileContent(Element):
     """
         Wrapper class for sourcetrail filecontent table:
-    
+
+        ```sql
         CREATE TABLE filecontent(
             id INTEGER, 
             content TEXT, 
             PRIMARY KEY(id), 
             FOREIGN KEY(id) REFERENCES file(id)ON DELETE CASCADE ON UPDATE CASCADE
         )
+        ```
 
         The 'filecontent' table holds the content of the different source file. 
         Because the id field of the filecontent is a primary key (unique element)
         a filecontent should contain the entire content of a file.
     """
 
-    def __init__(self, id_: int = 0, content: str = '') -> None:
+    def __init__(self, id_: int = 0, content: str = ''):
         """
-            Create a new FileContent object. 
+            Create a new FileContent object.
+
             :param id_: The id of the element 
-            :type id_: int           
             :param content: The content of the source file.
-            :type content: str
-            :return: None 
-            :rtype: NoneType 
         """
  
         super().__init__(id_)
@@ -369,39 +348,40 @@ class LocalSymbol(Element):
     """
         Wrapper class for sourcetrail local_symbol table:
 
+        ```sql
         CREATE TABLE local_symbol(
             id INTEGER NOT NULL, 
             name TEXT, 
             PRIMARY KEY(id), 
             FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
-        )        
+        )
+        ```
         
         The 'local_symbol' table holds reference to nodes that represent
         elements such as variables only used locally. For example, the
         following code snippet:
 
-            int foo(int a)
-            {
-                my_global_func();
-                int b = 2 * a;
-                return b;
-            }
-        
+        ```c
+        int foo(int a)
+        {
+            my_global_func();
+            int b = 2 * a;
+            return b;
+        }
+        ```
+
         While result in 3 different nodes, two of them (a and b) with have
         an entry in the 'local_symbol' table. The content of this table is
         not essential to the application but can provide a better level of
         detail to the user when browsing code in Sourcetrail UI.
     """
 
-    def __init__(self, id_: int = 0, name: str = '') -> None:
+    def __init__(self, id_: int = 0, name: str = ''):
         """
-            Create a new LocalSymbol object. 
+            Create a new LocalSymbol object.
+
             :param id_: The id of the element 
-            :type id_: int           
-            :param name: The name of local symbol.
-            :type name: str
-            :return: None 
-            :rtype: NoneType 
+            :param name: The name of local symbol
         """
  
         super().__init__(id_)
@@ -430,6 +410,7 @@ class SourceLocation(Element):
     """
         Wrapper class for sourcetrail source_location table:
 
+        ```sql
         CREATE TABLE source_location(
             id INTEGER NOT NULL, 
             file_node_id INTEGER, 
@@ -441,6 +422,7 @@ class SourceLocation(Element):
             PRIMARY KEY(id), 
             FOREIGN KEY(file_node_id) REFERENCES node(id) ON DELETE CASCADE
         )
+        ```
 
         The table 'source_location' contain some entries indicating where the
         corresponding node element (the ones that are referenced by the id) are
@@ -449,25 +431,17 @@ class SourceLocation(Element):
 
     def __init__(self, id_: int = 0, file_node_id: int = 0, start_line: int = 0,
                  start_column: int = 0, end_line: int = 0, end_column: int = 0,
-                 type_: SourceLocationType = SourceLocationType.UNSOLVED) -> None:
+                 type_: SourceLocationType = SourceLocationType.UNSOLVED):
         """
-            Create a new SourceLocation object. 
+            Create a new SourceLocation object.
+
             :param id_: The id of the element 
-            :type id_: int           
             :param file_node_id: The id of the file element corresponding to this content. 
-            :type file_node_id: int
             :param start_line: The line at which the element starts.
-            :type start_line: int
             :param start_column: The column at which the element starts.
-            :type start_column: int
             :param end_line: The line at which the element ends.
-            :type end_line: int
             :param end_column: The line at which the element ends.
-            :type end_column: int
             :param type_: The type of the source location.
-            :type type_: SourceLocationType 
-            :return: None 
-            :rtype: NoneType 
         """
  
         super().__init__(id_)
@@ -483,6 +457,7 @@ class Occurrence(object):
     """
         Wrapper class for sourcetrail occurrence table:
 
+        ```sql
         CREATE TABLE occurrence(
             element_id INTEGER NOT NULL, 
             source_location_id INTEGER NOT NULL, 
@@ -491,20 +466,18 @@ class Occurrence(object):
             FOREIGN KEY(source_location_id) REFERENCES source_location(id) 
                 ON DELETE CASCADE
         )
+        ```
 
         The table 'occurrence' allow to link the elements define in the 'source_location'
         table and the ones define in the 'node' table. 
     """
 
-    def __init__(self, elem_id: int = 0, source_location_id: int = 0) -> None:
+    def __init__(self, elem_id: int = 0, source_location_id: int = 0):
         """
-            Create a new Occurrence object. 
+            Create a new Occurrence object.
+
             :param elem_id: The id of the element referenced by this occurrence
-            :type elem_id: int           
             :param source_location_id: The id of the source location referenced by this occurrence
-            :type source_location_id: int           
-            :return: None 
-            :rtype: NoneType 
         """
  
         self.element_id = elem_id
@@ -531,29 +504,28 @@ class ComponentAccessType(enum.Enum):
 class ComponentAccess(object):
     """
         Wrapper class for sourcetrail component_access table:
-        
+
+        ```sql
         CREATE TABLE component_access(
             node_id INTEGER NOT NULL, 
             type INTEGER NOT NULL, 
             PRIMARY KEY(node_id), 
             FOREIGN KEY(node_id) REFERENCES node(id) ON DELETE CASCADE
         )
-        
+        ```
+
         The table 'component_access' allow to add information on the type
         of visibility of element in the 'node' table. For example, a java
         class that is set to public will have an entry in this table.
     """
 
     def __init__(self, node_id: int = 0,
-                 type_: ComponentAccessType = ComponentAccessType.NONE) -> None:
+                 type_: ComponentAccessType = ComponentAccessType.NONE):
         """
-            Create a new ComponentAccess object. 
+            Create a new ComponentAccess object.
+
             :param node_id: The id of the element 
-            :type node_id: int           
             :param type_: The type of the ComponentAccess
-            :type type_: ComponentAccessType
-            :return: None 
-            :rtype: NoneType 
         """
  
         self.node_id = node_id
@@ -563,7 +535,8 @@ class ComponentAccess(object):
 class Error(Element):
     """
         Wrapper class for sourcetrail error table:
-        
+
+        ```sql
         CREATE TABLE error(
             id INTEGER NOT NULL, 
             message TEXT, 
@@ -573,27 +546,22 @@ class Error(Element):
             PRIMARY KEY(id), 
             FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
         )
+        ```
 
         The table 'error' holds the different error message produced during
         the parsing of the source files and are displayed in the UI. 
     """
 
     def __init__(self, id_: int = 0, message: str = '', fatal: int = 0,
-                 indexed: int = 0, translation_unit: str = '') -> None:
+                 indexed: int = 0, translation_unit: str = ''):
         """
-            Create a new Error object. 
+            Create a new Error object.
+
             :param id_: The id of the element 
-            :type id_: int           
             :param message: The description of the error 
-            :type message: str
             :param fatal: Indicate if this error is fatal or not (0 or 1)
-            :type fatal: int
             :param indexed: Indicate if this error occurs while indexing (0 or 1)
-            :type indexed: int
             :param translation_unit: Indicate in which translation unit the error occurs
-            :type translation_unit: str
-            :return: None 
-            :rtype: NoneType 
         """
  
         super().__init__(id_)
@@ -611,18 +579,13 @@ class NameElement(object):
     """
 
     def __init__(self, prefix: str = None, name: str = None,
-                 postfix: str = None) -> None:
+                 postfix: str = None):
         """
-            Create a new NameElement object. 
+            Create a new NameElement object.
+
             :param prefix: The prefix of the element 
-            :type prefix: str
-            :param name: The name of the element 
-            :type name: str
-            :return: None 
-            :param postfix: The postfix of the element 
-            :type postfix: str
-            :return: None 
-            :rtype: NoneType 
+            :param name: The name of the element
+            :param postfix: The postfix of the element
         """
  
         self._prefix = prefix
@@ -632,8 +595,8 @@ class NameElement(object):
     def __str__(self) -> str:
         """
             Return a textual description of this NameElement
+
             :return: A description of this object 
-            :rtype: str
         """
 
         return '<NameElement prefix:%s, name: %s, postfix: %s>' % (
@@ -643,8 +606,8 @@ class NameElement(object):
     def get_prefix(self) -> str:
         """
             Return the prefix of this element
+
             :return: The prefix of the element
-            :rtype: str
         """
 
         return self._prefix
@@ -652,8 +615,8 @@ class NameElement(object):
     def get_name(self) -> str:
         """
             Return the name of this element
+
             :return: The name of the element
-            :rtype: str
         """
 
         return self._name
@@ -661,41 +624,38 @@ class NameElement(object):
     def get_postfix(self) -> str:
         """
             Return the postfix of this element
+
             :return: The postfix of the element
-            :rtype: str
         """
 
         return self._postfix
 
     def set_prefix(self, prefix: str) -> None:
         """
-            Set the prefix of this element 
+            Set the prefix of this element
+
             :param prefix: The new prefix of the element 
-            :type prefix: str
             :return: None 
-            :rtype: NoneType 
         """
  
         self._prefix = prefix
 
     def set_name(self, name: str) -> None:
         """
-            Set the name of this element 
+            Set the name of this element
+
             :param name: The new name of the element 
-            :type name: str
             :return: None 
-            :rtype: NoneType 
         """
 
         self._name = name
 
     def set_postfix(self, postfix: str) -> None:
         """
-            Set the postfix of this element 
+            Set the postfix of this element
+
             :param postfix: The new postfix of the element 
-            :type postfix: str
             :return: None 
-            :rtype: NoneType 
         """
 
         self._postfix = postfix
@@ -731,12 +691,10 @@ class NameHierarchy(object):
     def __init__(self, delimiter: str, elements: list[NameElement]):
         """
             Create a new NameHierarchy object
+
             :param delimiter: The delimiter of for this NameHierarchy, must be one of the NAME_DELIMITERS
-            :type delimiter: str
             :param elements: A list of NameElement representing the hierarchy of this element
-            :type elements: list[NameElement]
             :return: None
-            :rtype: NoneType
         """
 
         self._delimiter = delimiter
@@ -756,11 +714,8 @@ class NameHierarchy(object):
                   are separated with a META_DELIMITER
 
             :param start: the starting position of the elements  
-            :type start: int
             :param end: the ending position of the elements  
-            :type end: int
             :return: The serialized name 
-            :rtype: str
         """
         result = self._delimiter + self.META_DELIMITER
         if not self._elements:
@@ -781,37 +736,34 @@ class NameHierarchy(object):
     def extend(self, element: NameElement) -> None:
         """
             Utility method that adds a new element to a hierarchy
+
             :param element: The new element to add
-            :type element: NameElement
-            :rtype: NoneType
         """
         self._elements.append(element)
 
     def serialize_range(self, start: int, end: int) -> str:
         """
             Utility method that return a part of the serialized name
-            :param start: the starting position of the elements  
-            :type start: int
+
+            :param start: the starting position of the elements
             :param end: the ending position of the elements  
-            :type end: int
             :return: The serialized name 
-            :rtype: str
         """
         return self.__serialize(start, end)
 
     def serialize_name(self) -> str:
         """
             Utility method that return the full serialized name
-            :return: The serialized name 
-            :rtype: str
+
+            :return: The serialized name
         """
         return self.__serialize(0, self.size())
 
     def size(self) -> int:
         """
             Return the size of the NameHierarchy object.
+
             :return: The size of the NameHierarchy
-            :rtype: int
         """
         return len(self._elements) if self._elements else 0
 
@@ -820,7 +772,8 @@ class NameHierarchy(object):
         """
             Utility method that return prefix, name and suffix 
             from a serialized name
-            :param serialized_name: A string that should start by one 
+
+            :param serialized_name: A string that should start by one
             of the following:
                 - NAME_DELIMITER_FILE
                 - NAME_DELIMITER_CXX
@@ -828,9 +781,7 @@ class NameHierarchy(object):
                 - NAME_DELIMITER_UNKNOWN
             And then be followed by at least 3 elements separated by
             the delimiter "DELIMITER".
-            :type serialized_name: str
             :return: The NameHierarchy corresponding to the deserialize_name 
-            :rtype: NameHierarchy
         """
         idx = serialized_name.find(NameHierarchy.META_DELIMITER)
         if idx == -1:

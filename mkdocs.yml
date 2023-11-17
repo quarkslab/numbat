@@ -1,0 +1,92 @@
+site_name: Numbat Documentation
+site_description: "Library to manipulate and create Sourcetrail databases."
+repo_url: "https://github.com/quarkslab/numbat"
+repo_name: "quarkslab/numbat"
+watch: [ mkdocs.yml, README.md, src/numbat ]
+copyright: Copyright &copy; 2023 Quarkslab
+
+theme:
+  name: "material"
+  logo: numbat.png
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: red
+      accent: red
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: red
+      accent: red
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - footer
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - Public API Reference: public_api.md
+  - Numbat Internal Dev: intern_dev/numbat/
+  - License: license.md
+
+
+plugins:
+  - autorefs
+  - glightbox
+  - gen-files:
+      scripts:
+        - docs/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [ src ]
+          options:
+            docstring_style: "sphinx"
+            filters:
+              - "!^__"
+            line_length: 100
+            members_order: source
+            merge_init_into_class: true
+            separate_signature: true
+            show_bases: false
+            show_docstring_classes: true
+            show_root_heading: true
+            show_signature_annotations: false
+            show_source: false
+            signature_crossrefs: true
+  - search
+  - section-index
+
+
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/quarkslab
+    - icon: fontawesome/brands/x-twitter
+      link: https://twitter.com/quarkslab

@@ -311,7 +311,6 @@ class SourcetrailDB():
 
         :param id_: The identifier of the element
         :param kind: The new type for the symbol
->>>>>>> a5a40bd ([fix] api: typo in _record_symbol_definition_kind)
         :return: None
         """
 

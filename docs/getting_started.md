@@ -62,7 +62,7 @@ db.close()
 ## Add Symbols
 
 We could add a lot of different symbols as described in
-the [full API reference API](public_api.md#numbat.SourcetrailDB.record_symbol_node) but in anycase, they all have the
+the [full API reference](public_api.md#numbat.SourcetrailDB.record_symbol_node) but in anycase, they all have the
 same signature:
 
 ```python
@@ -79,9 +79,9 @@ record_XX(
 - `name`: symbol name.
 - `prefix`: what to put before the name like `void *`.
 - `postfix`: what to put after the name like `()`.
-- `delimiter`: the delimiter between a parent and its child, by default is `::`, you can also use `/`, `::`, `.` or `@`.
+- `delimiter`: the delimiter between a parent and its child, by default it is `::`. The authorized delimiters are: `/`, `::`, `.` or `@`.
 - `parent_id`: if your symbol is a child of another symbol.
-- `is_indexed`: if your symbol exist in your input data or if it should exist but wasn't there (it will show as a grey
+- `is_indexed`: if your symbol exists in your input data or if it should exist but was not there (it will show as a grey
   shadow).
 
 If we complete our script, we will need to add the class `My Type`, the field `my_member` and the method `my_method`.
@@ -112,7 +112,7 @@ When we open the current database with Sourcetrail after running this script, we
 </figure>
 
 ## Link Symbols and Source Code
-As you have inserted the source code and the symbols, you should create a links between them to indicate to Sourcetrail where each symbol is located in the code, and if it is the case, its scope. For that, you could respectively use the [`record_symbol_location`](public_api.md#numbat.SourcetrailDB.record_symbol_location) and [`record_symbol_scope_location`](public_api.md#numbat.SourcetrailDB.record_symbol_scope_location) methods.
+As you have inserted the source code and the symbols, you should create links between them to indicate to Sourcetrail where each symbol is located in the code, and if it is the case, its scope. For that, you could respectively use the [`record_symbol_location`](public_api.md#numbat.SourcetrailDB.record_symbol_location) and [`record_symbol_scope_location`](public_api.md#numbat.SourcetrailDB.record_symbol_scope_location) methods.
 
 ```python linenums="1" hl_lines="12 13 15 17 18""
 from numbat import SourcetrailDB
@@ -146,9 +146,9 @@ db.close()
 ## Relationships
 
 It is possible to add links between the different symbols after they have been created with the
-commands `record_ref_XX`. This relationships could be
-of [several types](public_api.md#numbat.SourcetrailDB.record_ref_member). Here, in `file.py`, we can that `my_method` is
-using the field `my_member`, so we could add an `USAGE` relation .
+commands `record_ref_XX`. These relationships could be
+of [several types](public_api.md#numbat.SourcetrailDB.record_ref_member). Here, in `file.py`, we can see that `my_method` is
+using the field `my_member`, so we could add an `USAGE` relation.
 
 ```python linenums="1" hl_lines="19-20"
 from numbat import SourcetrailDB

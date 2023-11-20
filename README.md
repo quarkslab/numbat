@@ -5,7 +5,7 @@
 Numbat is an API to create and manipulate Sourcetrail databases. [Sourcetrail](https://github.com/CoatiSoftware/Sourcetrail) is a code source
 explorer which allows users to navigate through the different components (functions, classes, types, etc.) easily. 
 
-Numbat main goal is to offer a full-python SDK given the fact that that the current one, SourcetrailDB cannot be used anymore efficiently. It is not user-friendly at the first sight, need to be compiled to provide Python bindings and, moreover, it is no longer maintained. Finally, we have added some little new features as finding an element in the database. 
+Numbat main goal is to offer a full-python SDK given the fact that the current one, SourcetrailDB cannot be used anymore efficiently. It is not user-friendly at first sight, need to be compiled to provide Python bindings and, moreover, it is no longer maintained. Finally, we have added some little new features as finding an element in the database. 
 
 With Numbat, you will be able to visualize your data quickly with the nice graphical Sourcetrail interface. For example, [Pyrrha](https://gitlab.qb/firmware-re/cartography/pyrrha) uses Numbat to map firmware structure.
 
@@ -27,10 +27,17 @@ pip install .
 ```
 
 ### Documentation
-If you want to build the documentation by first installing Numbat with the required doc dependencies and then serve the documentation on a local server.
+If you want to build the documentation by first installing Numbat with the required `[doc]` dependencies and then serve the documentation on a local server.
 
 ```bash
+# if you already have a local clone of the project
+cd NUMBAT_DIR
+pip install .[doc]
+
+# otherwise
 pip install 'numbat @ git+https://github.com/quarkslab/numbat[doc]'
+
+# serve doc locally
 mkdocs serve
 ```
 
@@ -38,7 +45,7 @@ mkdocs serve
 
 A complete usage with examples is available in the [documentation](getting_started.md) but here is a quick usage to begin with Numbat.
 
-To use numbat, you must first create a `SourcetrailDB` object and either create a new database or open an existing one:
+To use Numbat, you must first create a `SourcetrailDB` object and either create a new database or open an existing one:
 ```python
 from pathlib import Path
 from numbat import SourcetrailDB
@@ -53,7 +60,7 @@ except FileExistsError:
     srctrl.clear()
 ```
 
-You could also use this oneline to open the database quicker:
+You could also use this one-liner to open the database quicker:
 ```python hl_lines="5"
 from pathlib import Path
 from numbat import SourcetrailDB
@@ -61,13 +68,13 @@ from numbat import SourcetrailDB
 srctrl = SourcetrailDB.open(Path('my_database'), clear=True)
 ```
 
-Once the database is open, you can add one or more source file in the database using the following snippet:
+Once the database is open, you can add one or more source files in the database using the following snippet:
 ```python
 file_id = srctrl.record_file(Path('my_file.c'))
 srctrl.record_file_language(file_id, 'C')
 ``` 
 
-To populate the database, it's possible to record different symbol such as class or function like this:
+To populate the database, it is possible to record different symbols such as class or function like this:
 ```python
 symbol_id = srctrl.record_class(name="MyClass", is_indexed=True)
 # if you have a source code, you can add the location of your symbol definition

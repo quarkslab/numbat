@@ -132,6 +132,9 @@ class SourcetrailDB():
             # Create Sourcetrail Project file
             project_file = obj.path.with_suffix(cls.SOURCETRAIL_PROJECT_EXT)
             project_file.write_text(cls.SOURCETRAIL_XML)
+            # Commit change to the database so we don't ended up with a half setup DB if an 
+            # exceptions is raised before the next commit 
+            obj.commit()
         except Exception as e:
             # They already exists, fail
             obj.close()

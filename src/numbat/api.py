@@ -64,6 +64,22 @@ class SourcetrailDB():
     # Database file management functions                                       #
     # ------------------------------------------------------------------------ #
 
+
+    @classmethod
+    def __uniformize_path(cls, path: Path | str) -> Path:
+        """
+        Ensure that the provided path is of type pathlib.Path and has the
+        correct suffix, if not add it or cast it.
+
+        :param path: The path to the existing or future database
+        :return: a path object
+        """
+        if type(path) == str:
+            path = Path(path)
+        if path.suffix != cls.SOURCETRAIL_DB_EXT:
+            path = path.with_suffix(cls.SOURCETRAIL_DB_EXT)
+        return path.absolute()
+
     @classmethod
     def open(cls, path: Path | str, clear: bool = False) -> 'SourcetrailDB':
         """
@@ -73,16 +89,7 @@ class SourcetrailDB():
         :param clear: If set to True the database is cleared (Optional)
         :return: the SourcetrailDB object corresponding to the given DB
         """
-        # Convert str input
-        if type(path) == str:
-            path = Path(path)
-
-        # Check that the file has the correct extension
-        if path.suffix != cls.SOURCETRAIL_DB_EXT:
-            path = path.with_suffix(cls.SOURCETRAIL_DB_EXT)
-
-        # Check that the file exists
-        path = path.absolute()
+        path = cls.__uniformize_path(path)
         if not path.exists():
             if path.is_file() or not clear:
                 raise FileNotFoundError('%s not found' % str(path))
@@ -109,12 +116,7 @@ class SourcetrailDB():
         :param path: The path to the new database
         :return: the SourcetrailDB object corresponding to the given DB path
         """
-        # Path checks
-        if type(path) == str:
-            path = Path(path)
-        if path.suffix != cls.SOURCETRAIL_DB_EXT:
-            path = path.with_suffix(cls.SOURCETRAIL_DB_EXT)
-        path = path.absolute()
+        path = cls.__uniformize_path(path)
         if path.exists():
             raise FileExistsError('%s already exists' % str(path))
 

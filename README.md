@@ -13,11 +13,17 @@ With Numbat, you will be able to visualize your data quickly with the nice graph
 
 ## Installation 
 
-For the moment, Numbat is not available on `pypi` (should arrive soon). You can install it with `pip`directly from the git repository:    
+Numbat is available on `pypi`.
+```bash
+pip install numbat
+```
+
+### From sources
+You can also install it from the `git` repository. Either using the following oneliner:
 ```bash
 pip install 'numbat @ git+https://github.com/quarkslab/numbat'
 ```
-If you prefer doing it in few steps:
+or doing it in few steps:
 ```bash
 # Download the repo
 git clone https://gitlab.qb/firmware-re/cartography/numbat
@@ -26,7 +32,7 @@ cd numbat
 pip install .
 ```
 
-### Documentation
+### Build Documentation
 If you want to build the documentation by first installing Numbat with the required `[doc]` dependencies and then serve the documentation on a local server.
 
 ```bash
@@ -35,7 +41,7 @@ cd NUMBAT_DIR
 pip install .[doc]
 
 # otherwise
-pip install 'numbat @ git+https://github.com/quarkslab/numbat[doc]'
+pip install 'numbat[doc]'
 
 # serve doc locally
 mkdocs serve
@@ -90,6 +96,7 @@ srctrl.close()
 ```
 
 ## Authors
-
 - Sami Babigeon (@sbabigeon), Quarkslab
 - Eloïse Brocas (@ebrocas), Quarkslab
+
+The logo is a creation of Benoît Forgette and Sami Babigeon.

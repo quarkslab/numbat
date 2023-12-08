@@ -12,16 +12,16 @@ theme:
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: red
-      accent: red
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-sunny
         name: Switch to dark mode
     # Palette toggle for dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: red
-      accent: red
+      primary: custom
+      accent: custom
       toggle:
         icon: material/weather-night
         name: Switch to light mode
@@ -30,6 +30,9 @@ theme:
     - content.code.annotate
     - content.code.copy
     - footer
+
+extra_css:
+  - stylesheets/extra.css
 
 nav:
   - Home: index.md
@@ -86,6 +89,8 @@ markdown_extensions:
 
 extra:
   social:
+    - icon: fontawesome/solid/globe
+      link: https:www.quarkslab.com
     - icon: fontawesome/brands/github
       link: https://github.com/quarkslab
     - icon: fontawesome/brands/x-twitter

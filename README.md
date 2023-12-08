@@ -1,6 +1,6 @@
 # Numbat
 
-<img align="right" src="numbat.png" width="250" heigh="250">
+<img align="right" src="numbat.png" width="250">
 
 Numbat is an API to create and manipulate Sourcetrail databases. [Sourcetrail](https://github.com/CoatiSoftware/Sourcetrail) is a code source
 explorer which allows users to navigate through the different components (functions, classes, types, etc.) easily. 

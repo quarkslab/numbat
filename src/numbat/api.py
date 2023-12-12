@@ -22,12 +22,12 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from .base import Element, ElementComponent, ElementComponentType, Edge, \
+from .types import Element, ElementComponent, ElementComponentType, Edge, \
     EdgeType, Node, NodeType, Symbol, SymbolType, File, FileContent, \
     LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error, \
     NameElement, NameHierarchy
 
-from .dao import ComponentAccessDAO, EdgeDAO, ElementComponentDAO, FileDAO, \
+from .db import ComponentAccessDAO, EdgeDAO, ElementComponentDAO, FileDAO, \
     ElementDAO, ErrorDAO, FileContentDAO, LocalSymbolDAO, MetaDAO, \
     NodeDAO, OccurrenceDAO, SourceLocationDAO, SqliteHelper, SymbolDAO
 

@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.1">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.2">
     
     
       
@@ -26,7 +26,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.45e1311d.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.50c56a3b.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
@@ -360,6 +360,15 @@
   
     <nav class="md-nav" aria-label="SourcetrailDB">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#numbat.SourcetrailDB.exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      exists()
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#numbat.SourcetrailDB.open" class="md-nav__link">
@@ -906,11 +915,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../intern_dev/numbat/base/" class="md-nav__link">
+      <a href="../intern_dev/numbat/db/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Base
+    Db
   </span>
   
 
@@ -927,11 +936,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../intern_dev/numbat/dao/" class="md-nav__link">
+      <a href="../intern_dev/numbat/types/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Dao
+    Types
   </span>
   
 
@@ -1003,6 +1012,15 @@
   
     <nav class="md-nav" aria-label="SourcetrailDB">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#numbat.SourcetrailDB.exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      exists()
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#numbat.SourcetrailDB.open" class="md-nav__link">
@@ -1535,6 +1553,88 @@ database used by Sourcetrail.</p>
 
 
 
+<h3 id="numbat.SourcetrailDB.exists" class="doc doc-heading">
+          <span class="doc doc-object-name doc-function-name">exists</span>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h3>
+<div class="doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</span></code></pre></div>
+
+  <div class="doc doc-contents ">
+  
+      <p>This method check if there is a Sourcetrail db with the given path.
+If the provided path does not end with the sourcetrail db correct
+suffix. It will be added.</p>
+
+
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>path</code></td>
+          <td>
+                <code><span title="pathlib.Path">Path</span> | str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The path to test</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a bool</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+
 <h3 id="numbat.SourcetrailDB.open" class="doc doc-heading">
           <span class="doc doc-object-name doc-function-name">open</span>
 
@@ -1936,7 +2036,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -2089,7 +2189,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -2242,7 +2342,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -2395,7 +2495,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -2548,7 +2648,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -2701,7 +2801,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -2854,7 +2954,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -3007,7 +3107,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -3160,7 +3260,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -3313,7 +3413,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -3466,7 +3566,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -3619,7 +3719,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -3772,7 +3872,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -3925,7 +4025,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -4078,7 +4178,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -4231,7 +4331,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -4384,7 +4484,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -4537,7 +4637,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -4690,7 +4790,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -4843,7 +4943,7 @@ memory and resources allocated for it.</p>
             </div>
           </td>
           <td>
-                <code><span title="numbat.base.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
+                <code><span title="numbat.types.NameHierarchy.NAME_DELIMITER_CXX">NAME_DELIMITER_CXX</span></code>
           </td>
         </tr>
         <tr>
@@ -6131,7 +6231,7 @@ memory and resources allocated for it.</p>
         <tr>
           <td><code>reference_type</code></td>
           <td>
-                <code><a class="autorefs autorefs-internal" title="numbat.base.EdgeType" href="../intern_dev/numbat/base/#numbat.base.EdgeType">EdgeType</a></code>
+                <code><a class="autorefs autorefs-internal" title="numbat.types.EdgeType" href="../intern_dev/numbat/types/#numbat.types.EdgeType">EdgeType</a></code>
           </td>
           <td>
             <div class="doc-md-description">

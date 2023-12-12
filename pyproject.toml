@@ -22,10 +22,10 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'numbat'
-version='0.1.0'
+version='0.2.0'
 authors = [
+    {name = 'Eloïse Brocas', email = 'ebrocas@quarkslab.com'},
     {name = 'Sami Babigeon', email = 'sbabigeon@quarkslab.com'},
-    { name = 'Eloïse Brocas', email = 'ebrocas@quarkslab.com' },
 ]
 readme = "README.md"
 description = 'Library to manipulate and create Sourcetrail databases'
@@ -60,4 +60,3 @@ doc = [
     'mkdocstrings-python',
     'mkdocs-section-index'
 ]
-

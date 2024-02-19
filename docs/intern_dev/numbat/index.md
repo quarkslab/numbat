@@ -9,8 +9,8 @@ The following picture provides an overview of Sourcetrail database. The main com
 
 Numbat is structured in three main submodules:
 
-- [`numbat.base`](base.md) which defines all the objects manipulated by Numbat. These objects mainly match the different database tables.
-- [`numbat.dao`](dao.md) which interacts with the SQlite Database.
+- [`numbat.types`](types.md) which defines all the objects manipulated by Numbat. These objects mainly match the different database tables.
+- [`numbat.db`](db.md) which interacts with the SQlite Database.
 - [`numbat.api`](api.md) which is the implementation of the user API. It is exposed to the user directly through the main module `numbat`. It contains a lot of wrappers as the idea is to hide all the complex types used by Numbat to the final user.
 
 

@@ -3,15 +3,15 @@
 <img align="right" src="numbat.png" width="250">
 
 Numbat is an API to create and manipulate Sourcetrail databases. [Sourcetrail](https://github.com/CoatiSoftware/Sourcetrail) is a code source
-explorer which allows users to navigate through the different components (functions, classes, types, etc.) easily. 
+explorer which allows users to navigate through the different components (functions, classes, types, etc.) easily.
 
-Numbat main goal is to offer a full-python SDK given the fact that the current one, SourcetrailDB cannot be used anymore efficiently. It is not user-friendly at first sight, need to be compiled to provide Python bindings and, moreover, it is no longer maintained. Finally, we have added some little new features as finding an element in the database. 
+Numbat main goal is to offer a full-python SDK given the fact that the current one, SourcetrailDB cannot be used anymore efficiently. It is not user-friendly at first sight, need to be compiled to provide Python bindings and, moreover, it is no longer maintained. Finally, we have added some little new features as finding an element in the database.
 
 With Numbat, you will be able to visualize your data quickly with the nice graphical Sourcetrail interface. For example, [Pyrrha](https://github.com/quarkslab/pyrrha) uses Numbat to map firmware structure.
 
 
 
-## Installation 
+## Installation
 
 Numbat is available on `pypi`.
 ```bash
@@ -52,47 +52,28 @@ mkdocs serve
 A complete usage with examples is available in the [documentation](getting_started.md) but here is a quick usage to begin with Numbat.
 
 To use Numbat, you must first create a `SourcetrailDB` object and either create a new database or open an existing one:
+
 ```python
 from pathlib import Path
 from numbat import SourcetrailDB
 
-db_path = Path('my_database')
-try:
-    # Create a new database
-    srctrl = SourcetrailDB.create(db_path)
-except FileExistsError:
-    # Database already exists, open it and remove the entire content with clear
-    srctrl = SourcetrailDB.open(db_path)
-    srctrl.clear()
-```
+# Create DB
+db = SourcetrailDB.open(Path('my_db'), clear=True)
 
-You could also use this one-liner to open the database quicker:
-```python hl_lines="5"
-from pathlib import Path
-from numbat import SourcetrailDB
+# Create a first class containing the method 'main'
+my_main = db.record_class(name="MyMainClass")
+meth_id = db.record_method(name="main", parent_id=my_main)
 
-srctrl = SourcetrailDB.open(Path('my_database'), clear=True)
-```
+# Create a second class with a public field 'first_name'
+class_id = db.record_class(name="PersonalInfo")
+field_id = db.record_field(name="first_name", parent_id=class_id)
 
-Once the database is open, you can add one or more source files in the database using the following snippet:
-```python
-file_id = srctrl.record_file(Path('my_file.c'))
-srctrl.record_file_language(file_id, 'C')
-``` 
+# The method 'main' is using the 'first_name' field
+db.record_ref_usage(meth_id, field_id)
 
-To populate the database, it is possible to record different symbols such as class or function like this:
-```python
-symbol_id = srctrl.record_class(name="MyClass", is_indexed=True)
-# if you have a source code, you can add the location of your symbol definition
-srctrl.record_symbol_location(symbol_id, file_id, 2, 7, 2, 12)
-# and your symbol scope
-srctrl.record_symbol_scope_location(symbol_id, file_id, 2, 1, 7, 1)
-``` 
-
-Once the database is filled with information, it must be saved and close like this:
-```python 
-srctrl.commit()
-srctrl.close()
+# Save modifications and close the DB
+db.commit()
+db.close()
 ```
 
 ## Authors

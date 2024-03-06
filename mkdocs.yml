@@ -36,7 +36,7 @@ extra_css:
 
 nav:
   - Home: index.md
-  - Getting Started: getting_started.md
+  - Tutorial: tutorial.md
   - Public API Reference: public_api.md
   - Numbat Internal Dev: intern_dev/numbat/
   - License: license.md

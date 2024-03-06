@@ -1,4 +1,4 @@
-# Getting Started
+# Tutorial
 
 To understand the power of Numbat, we will register the different symbols contained in `file.py`.
 

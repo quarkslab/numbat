@@ -2,7 +2,7 @@ site_name: Numbat Documentation
 site_description: "Library to manipulate and create Sourcetrail databases."
 repo_url: "https://github.com/quarkslab/numbat"
 repo_name: "quarkslab/numbat"
-watch: [ mkdocs.yml, README.md, src/numbat ]
+watch: [ mkdocs.yml, README.md, CHANGELOG.md, src/numbat ]
 copyright: Copyright &copy; 2023 Quarkslab
 
 theme:
@@ -39,6 +39,7 @@ nav:
   - Tutorial: tutorial.md
   - Public API Reference: public_api.md
   - Numbat Internal Dev: intern_dev/numbat/
+  - Changelog: changelog.md
   - License: license.md
 
 

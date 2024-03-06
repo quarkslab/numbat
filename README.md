@@ -49,7 +49,7 @@ mkdocs serve
 
 ## Basic Usage
 
-A complete usage with examples is available in the [documentation](getting_started.md) but here is a quick usage to begin with Numbat.
+A complete usage with examples is available in the [documentation](tutorial.md) but here is a quick usage to begin with Numbat.
 
 To use Numbat, you must first create a `SourcetrailDB` object and either create a new database or open an existing one:
 

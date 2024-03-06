@@ -18,11 +18,11 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.12">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.13">
     
     
       
-        <title>Getting Started - Numbat Documentation</title>
+        <title>Tutorial - Numbat Documentation</title>
       
     
     
@@ -87,7 +87,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#getting-started" class="md-skip">
+        <a href="#tutorial" class="md-skip">
           Skip to content
         </a>
       
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Getting Started
+              Tutorial
             
           </span>
         </div>
@@ -297,7 +297,7 @@
           
   
   <span class="md-ellipsis">
-    Getting Started
+    Tutorial
   </span>
   
 
@@ -308,7 +308,7 @@
         
   
   <span class="md-ellipsis">
-    Getting Started
+    Tutorial
   </span>
   
 
@@ -339,15 +339,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#record-associated-files" class="md-nav__link">
-    <span class="md-ellipsis">
-      Record Associated Files
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#add-symbols" class="md-nav__link">
     <span class="md-ellipsis">
       Add Symbols
@@ -357,18 +348,27 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#link-symbols-and-source-code" class="md-nav__link">
+  <a href="#relationships" class="md-nav__link">
     <span class="md-ellipsis">
-      Link Symbols and Source Code
+      Relationships
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#relationships" class="md-nav__link">
+  <a href="#record-associated-files" class="md-nav__link">
     <span class="md-ellipsis">
-      Relationships
+      Record Associated Files
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#link-symbols-and-source-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      Link Symbols and Source Code
     </span>
   </a>
   
@@ -571,15 +571,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#record-associated-files" class="md-nav__link">
-    <span class="md-ellipsis">
-      Record Associated Files
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#add-symbols" class="md-nav__link">
     <span class="md-ellipsis">
       Add Symbols
@@ -589,18 +580,27 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#link-symbols-and-source-code" class="md-nav__link">
+  <a href="#relationships" class="md-nav__link">
     <span class="md-ellipsis">
-      Link Symbols and Source Code
+      Relationships
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#relationships" class="md-nav__link">
+  <a href="#record-associated-files" class="md-nav__link">
     <span class="md-ellipsis">
-      Relationships
+      Record Associated Files
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#link-symbols-and-source-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      Link Symbols and Source Code
     </span>
   </a>
   
@@ -624,7 +624,7 @@
   
 
 
-<h1 id="getting-started">Getting Started</h1>
+<h1 id="tutorial">Tutorial</h1>
 <p>To understand the power of Numbat, we will register the different symbols contained in <code>file.py</code>.</p>
 <details class="abstract" open="open">
 <summary>file.py</summary>
@@ -674,41 +674,18 @@ then  <a href="../public_api/#numbat.SourcetrailDB.close"><code>close</code></a>
 </span></span></code></pre></div></td></tr></table></div>
 <p>It will create two files: a Sourcetrail DB file (<code>.srctrldb</code>) and project file (<code>.srctrlprj</code>). You can open the second
 one with your local Sourcetrail to explore your data.</p>
-<h2 id="record-associated-files">Record Associated Files</h2>
-<div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-3-1"> 1</a></span>
-<span class="normal"><a href="#__codelineno-3-2"> 2</a></span>
-<span class="normal"><a href="#__codelineno-3-3"> 3</a></span>
-<span class="normal"><a href="#__codelineno-3-4"> 4</a></span>
-<span class="normal"><a href="#__codelineno-3-5"> 5</a></span>
-<span class="normal"><a href="#__codelineno-3-6"> 6</a></span>
-<span class="normal"><a href="#__codelineno-3-7"> 7</a></span>
-<span class="normal"><a href="#__codelineno-3-8"> 8</a></span>
-<span class="normal"><a href="#__codelineno-3-9"> 9</a></span>
-<span class="normal"><a href="#__codelineno-3-10">10</a></span>
-<span class="normal"><a href="#__codelineno-3-11">11</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1"></a><span class="kn">from</span> <span class="nn">numbat</span> <span class="kn">import</span> <span class="n">SourcetrailDB</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2"></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3"></a>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4"></a><span class="n">db</span> <span class="o">=</span> <span class="n">SourcetrailDB</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;my_database&#39;</span><span class="p">),</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5"></a>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6"></a><span class="hll"><span class="c1"># Record file</span>
-</span></span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7"></a><span class="hll"><span class="n">file_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_file</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;file.py&#39;</span><span class="p">))</span>
-</span></span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_file_language</span><span class="p">(</span><span class="n">file_id</span><span class="p">,</span> <span class="s1">&#39;python&#39;</span><span class="p">)</span>
-</span></span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9"></a>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10"></a><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11"></a><span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-</span></code></pre></div></td></tr></table></div>
 <h2 id="add-symbols">Add Symbols</h2>
 <p>We could add a lot of different symbols as described in
 the <a href="../public_api/#numbat.SourcetrailDB.record_symbol_node">full API reference</a> but in anycase, they all have the
 same signature:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">record_XX</span><span class="p">(</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">postfix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">delimiter</span><span class="o">=</span><span class="n">NameHierarchy</span><span class="o">.</span><span class="n">NAME_DELIMITER_CXX</span><span class="p">,</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">parent_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="n">is_indexed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">record_XX</span><span class="p">(</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">postfix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">delimiter</span><span class="o">=</span><span class="n">NameHierarchy</span><span class="o">.</span><span class="n">NAME_DELIMITER_CXX</span><span class="p">,</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="n">parent_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="n">is_indexed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="p">)</span>
 </span></code></pre></div>
 <ul>
 <li><code>name</code>: symbol name.</li>
@@ -720,6 +697,43 @@ same signature:</p>
   shadow).</li>
 </ul>
 <p>If we complete our script, we will need to add the class <code>My Type</code>, the field <code>my_member</code> and the method <code>my_method</code>.</p>
+<div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-4-1"> 1</a></span>
+<span class="normal"><a href="#__codelineno-4-2"> 2</a></span>
+<span class="normal"><a href="#__codelineno-4-3"> 3</a></span>
+<span class="normal"><a href="#__codelineno-4-4"> 4</a></span>
+<span class="normal"><a href="#__codelineno-4-5"> 5</a></span>
+<span class="normal"><a href="#__codelineno-4-6"> 6</a></span>
+<span class="normal"><a href="#__codelineno-4-7"> 7</a></span>
+<span class="normal"><a href="#__codelineno-4-8"> 8</a></span>
+<span class="normal"><a href="#__codelineno-4-9"> 9</a></span>
+<span class="normal"><a href="#__codelineno-4-10">10</a></span>
+<span class="normal"><a href="#__codelineno-4-11">11</a></span>
+<span class="normal"><a href="#__codelineno-4-12">12</a></span>
+<span class="normal"><a href="#__codelineno-4-13">13</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">numbat</span> <span class="kn">import</span> <span class="n">SourcetrailDB</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2"></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4"></a><span class="n">db</span> <span class="o">=</span> <span class="n">SourcetrailDB</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;my_database&#39;</span><span class="p">),</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5"></a>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6"></a><span class="hll"><span class="c1"># Add symbols</span>
+</span></span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7"></a><span class="hll"><span class="n">class_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_class</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;class&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;MyType&quot;</span><span class="p">,</span>
+</span></span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8"></a><span class="hll">                           <span class="n">postfix</span><span class="o">=</span><span class="s2">&quot;():&quot;</span><span class="p">)</span>
+</span></span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9"></a><span class="hll"><span class="n">field_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_member&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
+</span></span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10"></a><span class="hll"><span class="n">meth_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_method</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_method&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
+</span></span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11"></a>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12"></a><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13"></a><span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span></code></pre></div></td></tr></table></div>
+<p>When we open the current database with Sourcetrail after running this script, we obtain the following view:</p>
+<figure>
+<p><a class="glightbox" href="../img/symbols.png" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Sourcetrail view after symbol additions" src="../img/symbols.png" /></a>
+  </p>
+<figcaption>Sourcetrail view after adding symbols.</figcaption>
+</figure>
+<h2 id="relationships">Relationships</h2>
+<p>It is possible to add links between the different symbols after they have been created with the
+commands <code>record_ref_XX</code>. These relationships could be
+of <a href="../public_api/#numbat.SourcetrailDB.record_ref_member">several types</a>. Here, in <code>file.py</code>, we can see that <code>my_method</code> is
+using the field <code>my_member</code>, so we could add an <code>USAGE</code> relation.</p>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-5-1"> 1</a></span>
 <span class="normal"><a href="#__codelineno-5-2"> 2</a></span>
 <span class="normal"><a href="#__codelineno-5-3"> 3</a></span>
@@ -734,32 +748,29 @@ same signature:</p>
 <span class="normal"><a href="#__codelineno-5-12">12</a></span>
 <span class="normal"><a href="#__codelineno-5-13">13</a></span>
 <span class="normal"><a href="#__codelineno-5-14">14</a></span>
-<span class="normal"><a href="#__codelineno-5-15">15</a></span>
-<span class="normal"><a href="#__codelineno-5-16">16</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="kn">from</span> <span class="nn">numbat</span> <span class="kn">import</span> <span class="n">SourcetrailDB</span>
+<span class="normal"><a href="#__codelineno-5-15">15</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1"></a><span class="kn">from</span> <span class="nn">numbat</span> <span class="kn">import</span> <span class="n">SourcetrailDB</span>
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2"></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3"></a>
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4"></a><span class="n">db</span> <span class="o">=</span> <span class="n">SourcetrailDB</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;my_database&#39;</span><span class="p">),</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5"></a>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6"></a><span class="c1"># Record file</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7"></a><span class="n">file_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_file</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;file.py&#39;</span><span class="p">))</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8"></a><span class="n">db</span><span class="o">.</span><span class="n">record_file_language</span><span class="p">(</span><span class="n">file_id</span><span class="p">,</span> <span class="s1">&#39;python&#39;</span><span class="p">)</span>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9"></a><span class="hll"><span class="c1"># Add symbols</span>
-</span></span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10"></a><span class="hll"><span class="n">class_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_class</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;class&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;MyType&quot;</span><span class="p">,</span>
-</span></span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11"></a><span class="hll">                           <span class="n">postfix</span><span class="o">=</span><span class="s2">&quot;():&quot;</span><span class="p">)</span>
-</span></span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12"></a><span class="hll"><span class="n">field_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_member&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
-</span></span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13"></a><span class="hll"><span class="n">meth_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_method</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_method&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
-</span></span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14"></a>
-</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15"></a><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16"></a><span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6"></a><span class="c1"># Add symbols</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7"></a><span class="n">class_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_class</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;class&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;MyType&quot;</span><span class="p">,</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8"></a>                           <span class="n">postfix</span><span class="o">=</span><span class="s2">&quot;():&quot;</span><span class="p">)</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9"></a><span class="n">field_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_member&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10"></a><span class="n">meth_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_method</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_method&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11"></a><span class="hll"><span class="c1"># Add relationships</span>
+</span></span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_ref_usage</span><span class="p">(</span><span class="n">meth_id</span><span class="p">,</span> <span class="n">field_id</span><span class="p">)</span>
+</span></span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13"></a>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14"></a><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15"></a><span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
-<p>When we open the current database with Sourcetrail after running this script, we obtain the following view:</p>
 <figure>
-<p><a class="glightbox" href="../img/symbols.png" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Sourcetrail view after symbol additions" src="../img/symbols.png" /></a>
+<p><a class="glightbox" href="../img/relations.png" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Sourcetrail view after relationship additions" src="../img/relations.png" /></a>
   </p>
-<figcaption>Sourcetrail view after adding symbols.</figcaption>
+<figcaption>Usage link between a method and field member of the same class.</figcaption>
 </figure>
-<h2 id="link-symbols-and-source-code">Link Symbols and Source Code</h2>
-<p>As you have inserted the source code and the symbols, you should create links between them to indicate to Sourcetrail where each symbol is located in the code, and if it is the case, its scope. For that, you could respectively use the <a href="../public_api/#numbat.SourcetrailDB.record_symbol_location"><code>record_symbol_location</code></a> and <a href="../public_api/#numbat.SourcetrailDB.record_symbol_scope_location"><code>record_symbol_scope_location</code></a> methods.</p>
+<h2 id="record-associated-files">Record Associated Files</h2>
+<p>Optionally, you can record inside Sourcetrail database a file corresponding to your graph data.</p>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-6-1"> 1</a></span>
 <span class="normal"><a href="#__codelineno-6-2"> 2</a></span>
 <span class="normal"><a href="#__codelineno-6-3"> 3</a></span>
@@ -778,40 +789,28 @@ same signature:</p>
 <span class="normal"><a href="#__codelineno-6-16">16</a></span>
 <span class="normal"><a href="#__codelineno-6-17">17</a></span>
 <span class="normal"><a href="#__codelineno-6-18">18</a></span>
-<span class="normal"><a href="#__codelineno-6-19">19</a></span>
-<span class="normal"><a href="#__codelineno-6-20">20</a></span>
-<span class="normal"><a href="#__codelineno-6-21">21</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="kn">from</span> <span class="nn">numbat</span> <span class="kn">import</span> <span class="n">SourcetrailDB</span>
+<span class="normal"><a href="#__codelineno-6-19">19</a></span></pre></div></td><td class="code"><div><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1"></a><span class="kn">from</span> <span class="nn">numbat</span> <span class="kn">import</span> <span class="n">SourcetrailDB</span>
 </span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2"></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 </span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3"></a>
 </span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4"></a><span class="n">db</span> <span class="o">=</span> <span class="n">SourcetrailDB</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;my_database&#39;</span><span class="p">),</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5"></a>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6"></a><span class="c1"># Record file</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7"></a><span class="n">file_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_file</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;file.py&#39;</span><span class="p">))</span>
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8"></a><span class="n">db</span><span class="o">.</span><span class="n">record_file_language</span><span class="p">(</span><span class="n">file_id</span><span class="p">,</span> <span class="s1">&#39;python&#39;</span><span class="p">)</span>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9"></a><span class="c1"># Add symbols</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6"></a><span class="hll"><span class="c1"># Record file</span>
+</span></span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7"></a><span class="hll"><span class="n">file_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_file</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;file.py&#39;</span><span class="p">))</span>
+</span></span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_file_language</span><span class="p">(</span><span class="n">file_id</span><span class="p">,</span> <span class="s1">&#39;python&#39;</span><span class="p">)</span>
+</span></span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9"></a><span class="c1"># Add symbols</span>
 </span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10"></a><span class="n">class_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_class</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;class&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;MyType&quot;</span><span class="p">,</span>
 </span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11"></a>                           <span class="n">postfix</span><span class="o">=</span><span class="s2">&quot;():&quot;</span><span class="p">)</span>
-</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_location</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
-</span></span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_scope_location</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span></span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14"></a><span class="n">field_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_member&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
-</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_location</span><span class="p">(</span><span class="n">field_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
-</span></span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16"></a><span class="n">meth_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_method</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_method&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
-</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_location</span><span class="p">(</span><span class="n">meth_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
-</span></span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_scope_location</span><span class="p">(</span><span class="n">meth_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span></span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19"></a>
-</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20"></a><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21"></a><span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12"></a><span class="n">field_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_member&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13"></a><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_location</span><span class="p">(</span><span class="n">field_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14"></a><span class="n">meth_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_method</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_method&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15"></a><span class="c1"># Add relationships</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16"></a><span class="n">db</span><span class="o">.</span><span class="n">record_ref_usage</span><span class="p">(</span><span class="n">meth_id</span><span class="p">,</span> <span class="n">field_id</span><span class="p">)</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17"></a>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18"></a><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19"></a><span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
-<figure>
-<p><a class="glightbox" href="../img/symbols_location.png" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Sourcetrail view after symbol location additions" src="../img/symbols_location.png" /></a>
-  </p>
-<figcaption> Symbols are located into the source code.</figcaption>
-</figure>
-<h2 id="relationships">Relationships</h2>
-<p>It is possible to add links between the different symbols after they have been created with the
-commands <code>record_ref_XX</code>. These relationships could be
-of <a href="../public_api/#numbat.SourcetrailDB.record_ref_member">several types</a>. Here, in <code>file.py</code>, we can see that <code>my_method</code> is
-using the field <code>my_member</code>, so we could add an <code>USAGE</code> relation.</p>
+<h2 id="link-symbols-and-source-code">Link Symbols and Source Code</h2>
+<p>As you have inserted the source code and the symbols, you should create links between them to indicate to Sourcetrail where each symbol is located in the code, and if it is the case, its scope. For that, you could respectively use the <a href="../public_api/#numbat.SourcetrailDB.record_symbol_location"><code>record_symbol_location</code></a> and <a href="../public_api/#numbat.SourcetrailDB.record_symbol_scope_location"><code>record_symbol_scope_location</code></a> methods.</p>
 <div class="language-python highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-7-1"> 1</a></span>
 <span class="normal"><a href="#__codelineno-7-2"> 2</a></span>
 <span class="normal"><a href="#__codelineno-7-3"> 3</a></span>
@@ -845,23 +844,23 @@ using the field <code>my_member</code>, so we could add an <code>USAGE</code> re
 </span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9"></a><span class="c1"># Add symbols</span>
 </span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10"></a><span class="n">class_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_class</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;class&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;MyType&quot;</span><span class="p">,</span>
 </span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11"></a>                           <span class="n">postfix</span><span class="o">=</span><span class="s2">&quot;():&quot;</span><span class="p">)</span>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12"></a><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_location</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13"></a><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_scope_location</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14"></a><span class="n">field_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_member&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
-</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15"></a><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_location</span><span class="p">(</span><span class="n">field_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
-</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16"></a><span class="n">meth_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_method</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_method&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
-</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17"></a><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_location</span><span class="p">(</span><span class="n">meth_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
-</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18"></a><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_scope_location</span><span class="p">(</span><span class="n">meth_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19"></a><span class="hll"><span class="c1"># Add relationships</span>
-</span></span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_ref_usage</span><span class="p">(</span><span class="n">meth_id</span><span class="p">,</span> <span class="n">field_id</span><span class="p">)</span>
-</span></span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21"></a>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_location</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+</span></span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_scope_location</span><span class="p">(</span><span class="n">class_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span></span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14"></a><span class="n">field_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_member&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_location</span><span class="p">(</span><span class="n">field_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+</span></span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16"></a><span class="n">meth_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_method</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_method&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_location</span><span class="p">(</span><span class="n">meth_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+</span></span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18"></a><span class="hll"><span class="n">db</span><span class="o">.</span><span class="n">record_symbol_scope_location</span><span class="p">(</span><span class="n">meth_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span></span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19"></a><span class="c1"># Add relationships</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20"></a><span class="n">db</span><span class="o">.</span><span class="n">record_ref_usage</span><span class="p">(</span><span class="n">meth_id</span><span class="p">,</span> <span class="n">field_id</span><span class="p">)</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21"></a>
 </span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22"></a><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 </span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23"></a><span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </span></code></pre></div></td></tr></table></div>
 <figure>
-<p><a class="glightbox" href="../img/relations.png" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Sourcetrail view after relationship additions" src="../img/relations.png" /></a>
+<p><a class="glightbox" href="../img/symbols_location.png" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img alt="Sourcetrail view after symbol location additions" src="../img/symbols_location.png" /></a>
   </p>
-<figcaption>Usage link between a method and field member of the same class.</figcaption>
+<figcaption> Symbols are located into the source code.</figcaption>
 </figure>
 
 

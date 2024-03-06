@@ -12,11 +12,11 @@
       
       
       
-        <link rel="next" href="getting_started/">
+        <link rel="next" href="tutorial/">
       
       
       <link rel="icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.12">
+      <meta name="generator" content="mkdocs-1.5.3, mkdocs-material-9.5.13">
     
     
       
@@ -373,11 +373,11 @@
   
   
     <li class="md-nav__item">
-      <a href="getting_started/" class="md-nav__link">
+      <a href="tutorial/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Getting Started
+    Tutorial
   </span>
   
 
@@ -637,8 +637,8 @@
 <h1 id="numbat">Numbat</h1>
 <p><a class="glightbox" href="numbat.png" data-type="image" data-width="auto" data-height="auto" data-desc-position="bottom"><img align="right" src="numbat.png" width="250"></a></p>
 <p>Numbat is an API to create and manipulate Sourcetrail databases. <a href="https://github.com/CoatiSoftware/Sourcetrail">Sourcetrail</a> is a code source
-explorer which allows users to navigate through the different components (functions, classes, types, etc.) easily. </p>
-<p>Numbat main goal is to offer a full-python SDK given the fact that the current one, SourcetrailDB cannot be used anymore efficiently. It is not user-friendly at first sight, need to be compiled to provide Python bindings and, moreover, it is no longer maintained. Finally, we have added some little new features as finding an element in the database. </p>
+explorer which allows users to navigate through the different components (functions, classes, types, etc.) easily.</p>
+<p>Numbat main goal is to offer a full-python SDK given the fact that the current one, SourcetrailDB cannot be used anymore efficiently. It is not user-friendly at first sight, need to be compiled to provide Python bindings and, moreover, it is no longer maintained. Finally, we have added some little new features as finding an element in the database.</p>
 <p>With Numbat, you will be able to visualize your data quickly with the nice graphical Sourcetrail interface. For example, <a href="https://github.com/quarkslab/pyrrha">Pyrrha</a> uses Numbat to map firmware structure.</p>
 <h2 id="installation">Installation</h2>
 <p>Numbat is available on <code>pypi</code>.
@@ -668,41 +668,29 @@ or doing it in few steps:
 </span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>mkdocs<span class="w"> </span>serve
 </span></code></pre></div>
 <h2 id="basic-usage">Basic Usage</h2>
-<p>A complete usage with examples is available in the <a href="getting_started/">documentation</a> but here is a quick usage to begin with Numbat.</p>
-<p>To use Numbat, you must first create a <code>SourcetrailDB</code> object and either create a new database or open an existing one:
+<p>A complete usage with examples is available in the <a href="getting_started.md">documentation</a> but here is a quick usage to begin with Numbat.</p>
+<p>To use Numbat, you must first create a <code>SourcetrailDB</code> object and either create a new database or open an existing one:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span> <span class="nn">numbat</span> <span class="kn">import</span> <span class="n">SourcetrailDB</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">db_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s1">&#39;my_database&#39;</span><span class="p">)</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">try</span><span class="p">:</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="c1"># Create a new database</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="n">srctrl</span> <span class="o">=</span> <span class="n">SourcetrailDB</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">db_path</span><span class="p">)</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">except</span> <span class="ne">FileExistsError</span><span class="p">:</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="c1"># Database already exists, open it and remove the entire content with clear</span>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="n">srctrl</span> <span class="o">=</span> <span class="n">SourcetrailDB</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">db_path</span><span class="p">)</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="n">srctrl</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-</span></code></pre></div></p>
-<p>You could also use this one-liner to open the database quicker:
-<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span> <span class="nn">numbat</span> <span class="kn">import</span> <span class="n">SourcetrailDB</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">srctrl</span> <span class="o">=</span> <span class="n">SourcetrailDB</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;my_database&#39;</span><span class="p">),</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span></code></pre></div></p>
-<p>Once the database is open, you can add one or more source files in the database using the following snippet:
-<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">file_id</span> <span class="o">=</span> <span class="n">srctrl</span><span class="o">.</span><span class="n">record_file</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;my_file.c&#39;</span><span class="p">))</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">srctrl</span><span class="o">.</span><span class="n">record_file_language</span><span class="p">(</span><span class="n">file_id</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">)</span>
-</span></code></pre></div></p>
-<p>To populate the database, it is possible to record different symbols such as class or function like this:
-<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">symbol_id</span> <span class="o">=</span> <span class="n">srctrl</span><span class="o">.</span><span class="n">record_class</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;MyClass&quot;</span><span class="p">,</span> <span class="n">is_indexed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="c1"># if you have a source code, you can add the location of your symbol definition</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">srctrl</span><span class="o">.</span><span class="n">record_symbol_location</span><span class="p">(</span><span class="n">symbol_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># and your symbol scope</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="n">srctrl</span><span class="o">.</span><span class="n">record_symbol_scope_location</span><span class="p">(</span><span class="n">symbol_id</span><span class="p">,</span> <span class="n">file_id</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span></code></pre></div></p>
-<p>Once the database is filled with information, it must be saved and close like this:
-<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">srctrl</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">srctrl</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-</span></code></pre></div></p>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Create DB</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">db</span> <span class="o">=</span> <span class="n">SourcetrailDB</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;my_db&#39;</span><span class="p">),</span> <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># Create a first class containing the method &#39;main&#39;</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">my_main</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_class</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;MyMainClass&quot;</span><span class="p">)</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">meth_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_method</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;main&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">my_main</span><span class="p">)</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="c1"># Create a second class with a public field &#39;first_name&#39;</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="n">class_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_class</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;PersonalInfo&quot;</span><span class="p">)</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="n">field_id</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">record_field</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;first_name&quot;</span><span class="p">,</span> <span class="n">parent_id</span><span class="o">=</span><span class="n">class_id</span><span class="p">)</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="c1"># The method &#39;main&#39; is using the &#39;first_name&#39; field</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="n">db</span><span class="o">.</span><span class="n">record_ref_usage</span><span class="p">(</span><span class="n">meth_id</span><span class="p">,</span> <span class="n">field_id</span><span class="p">)</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="c1"># Save modifications and close the DB</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</span></code></pre></div>
 <h2 id="authors">Authors</h2>
 <ul>
 <li>Sami Babigeon (@sbabigeon), Quarkslab</li>

@@ -26,7 +26,7 @@ pip install 'numbat @ git+https://github.com/quarkslab/numbat'
 or doing it in few steps:
 ```bash
 # Download the repo
-git clone https://gitlab.qb/firmware-re/cartography/numbat
+git clone git@github.com:quarkslab/numbat.git
 cd numbat
 # Install numbat locally
 pip install .

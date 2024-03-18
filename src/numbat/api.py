@@ -22,7 +22,8 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from .types import Element, ElementComponent, ElementComponentType, Edge, \
+from .types import ComponentAccess, ComponentAccessType, Element, \
+    ElementComponent, ElementComponentType, Edge, \
     EdgeType, Node, NodeType, Symbol, SymbolType, File, FileContent, \
     LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error, \
     NameElement, NameHierarchy
@@ -64,7 +65,6 @@ class SourcetrailDB():
     # ------------------------------------------------------------------------ #
     # Database file management functions                                       #
     # ------------------------------------------------------------------------ #
-
 
     @classmethod
     def __uniformize_path(cls, path: Path | str) -> Path:
@@ -848,6 +848,71 @@ class SourcetrailDB():
         return self.__full_record_node(name, prefix, postfix, delimiter,
                                        parent_id, is_indexed, NodeType.NODE_UNION)
 
+    def _record_access_specifier(self, symbol_id: int, access: ComponentAccessType) -> None:
+        """
+        Records an access specifier for a symbol (for example, if the symbol is a public one in the class)
+
+        :param symbol_id: The identifier of the symbol to update
+        :param access: The access specifier to set (cf. ComponentAccessType)
+        :return: None
+        """
+
+        ComponentAccessDAO.new(self.database, ComponentAccess(symbol_id, ComponentAccessType(access)))
+
+    def record_public_access(self, symbol_id: int) -> None:
+        """
+        Record the `public` access specifier for a symbol
+        :param symbol_id: The identifier of the symbol to update
+        :return: None
+        """
+
+        self._record_access_specifier(symbol_id, ComponentAccessType.PUBLIC)
+
+    def record_private_access(self, symbol_id: int) -> None:
+        """
+        Record the `private` access specifier for a symbol
+        :param symbol_id: The identifier of the symbol to update
+        :return: None
+        """
+
+        self._record_access_specifier(symbol_id, ComponentAccessType.PRIVATE)
+
+    def record_protected_access(self, symbol_id: int) -> None:
+        """
+        Record the `protected` access specifier for a symbol
+        :param symbol_id: The identifier of the symbol to update
+        :return: None
+        """
+
+        self._record_access_specifier(symbol_id, ComponentAccessType.PROTECTED)
+
+    def record_default_access(self, symbol_id: int) -> None:
+        """
+        Record the `default` access specifier for a symbol
+        :param symbol_id: The identifier of the symbol to update
+        :return: None
+        """
+
+        self._record_access_specifier(symbol_id, ComponentAccessType.DEFAULT)
+
+    def record_template_parameter_access(self, symbol_id: int) -> None:
+        """
+        Record the `template parameter` access specifier for a symbol
+        :param symbol_id: The identifier of the symbol to update
+        :return: None
+        """
+
+        self._record_access_specifier(symbol_id, ComponentAccessType.TEMPLATE_PARAMETER)
+
+    def record_type_parameter_access(self, symbol_id: int) -> None:
+        """
+        Record the `type parameter` access specifier for a symbol
+        :param symbol_id: The identifier of the symbol to update
+        :return: None
+        """
+
+        self._record_access_specifier(symbol_id, ComponentAccessType.TYPE_PARAMETER)
+
     ####################################################################################
     #                               REFERENCES                                         #
     ####################################################################################
@@ -1185,7 +1250,6 @@ class SourcetrailDB():
 
     def record_symbol_location(self, symbol_id: int, file_id: int, start_line: int,
                                start_column: int, end_line: int, end_column: int) -> None:
-
         """
         Record a new source location of type TOKEN
 

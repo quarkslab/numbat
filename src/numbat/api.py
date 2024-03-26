@@ -24,13 +24,13 @@ from pathlib import Path
 
 from .types import ComponentAccess, ComponentAccessType, Element, \
     ElementComponent, ElementComponentType, Edge, \
-    EdgeType, Node, NodeType, Symbol, SymbolType, File, FileContent, \
+    EdgeType, Node, NodeType, NodeDisplay, Symbol, SymbolType, File, FileContent, \
     LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error, \
     NameElement, NameHierarchy
 
 from .db import ComponentAccessDAO, EdgeDAO, ElementComponentDAO, FileDAO, \
     ElementDAO, ErrorDAO, FileContentDAO, LocalSymbolDAO, MetaDAO, \
-    NodeDAO, OccurrenceDAO, SourceLocationDAO, SqliteHelper, SymbolDAO
+    NodeDAO, NodeTypeDAO, OccurrenceDAO, SourceLocationDAO, SqliteHelper, SymbolDAO
 
 from .exceptions import NoDatabaseOpen, NumbatException
 
@@ -168,6 +168,7 @@ class SourcetrailDB():
         ElementComponentDAO.create_table(self.database)
         EdgeDAO.create_table(self.database)
         NodeDAO.create_table(self.database)
+        NodeTypeDAO.create_table(self.database)
         SymbolDAO.create_table(self.database)
         FileDAO.create_table(self.database)
         FileContentDAO.create_table(self.database)
@@ -203,6 +204,7 @@ class SourcetrailDB():
         ElementComponentDAO.clear(self.database)
         EdgeDAO.clear(self.database)
         NodeDAO.clear(self.database)
+        NodeTypeDAO.clear(self.database)
         SymbolDAO.clear(self.database)
         FileDAO.clear(self.database)
         FileContentDAO.clear(self.database)
@@ -912,6 +914,77 @@ class SourcetrailDB():
         """
 
         self._record_access_specifier(symbol_id, ComponentAccessType.TYPE_PARAMETER)
+
+    @staticmethod
+    def __str_to_node_type(s: str) -> NodeType:
+        """
+        Convert a string to its corresponding element in the NodeType enum.
+        :param s: The string to convert
+        :return: The corresponding enum value
+        """
+        match s:
+            case "symbol":
+                return NodeType.NODE_SYMBOL
+            case "type":
+                return NodeType.NODE_TYPE
+            case "built-in type":
+                return NodeType.NODE_BUILTIN_TYPE
+            case "module":
+                return NodeType.NODE_MODULE
+            case "namespace":
+                return NodeType.NODE_NAMESPACE
+            case "package":
+                return NodeType.NODE_PACKAGE
+            case "struct":
+                return NodeType.NODE_STRUCT
+            case "class":
+                return NodeType.NODE_CLASS
+            case "interface":
+                return NodeType.NODE_INTERFACE
+            case "annotation":
+                return NodeType.NODE_ANNOTATION
+            case "global variable":
+                return NodeType.NODE_GLOBAL_VARIABLE
+            case "field":
+                return NodeType.NODE_FIELD
+            case "function":
+                return NodeType.NODE_FUNCTION
+            case "method":
+                return NodeType.NODE_METHOD
+            case "enum":
+                return NodeType.NODE_ENUM
+            case "enum constant":
+                return NodeType.NODE_ENUM_CONSTANT
+            case "typedef":
+                return NodeType.NODE_TYPEDEF
+            case "type parameter":
+                return NodeType.NODE_TYPE_PARAMETER
+            case "file":
+                return NodeType.NODE_FILE
+            case "macro":
+                return NodeType.NODE_MACRO
+            case "union":
+                return NodeType.NODE_UNION
+        return ""
+
+    def set_node_type(self, type_to_change: str, graph_display: str = "", hover_display: str = "") -> None:
+        """
+        Change the display text of a node type.
+
+        :param type_to_change: The node type to update
+            allowed values: `annotation` `built-in type` `class` `enum` `enum constant` `field` `file` `function` `global variable`
+            `interface` `macro` `method` `module` `namespace` `package` `struct` `symbol` `type` `type parameter` `typedef` `union`
+        :param graph_display: The display text in the Sourcetrail graph
+        :param hover_display: The display text when hovering over a node
+        """
+
+        node_type = self.__str_to_node_type(type_to_change)
+        if node_type != "":
+            if graph_display == "":
+                graph_display = NodeTypeDAO.get_by_id(self.database, node_type).graph_display
+            if hover_display == "":
+                hover_display = NodeTypeDAO.get_by_id(self.database, node_type).hover_display
+            NodeTypeDAO.update(self.database, NodeDisplay(node_type, graph_display, hover_display))
 
     ####################################################################################
     #                               REFERENCES                                         #

@@ -229,6 +229,34 @@ class Node(Element):
         self.name = name
 
 
+class NodeDisplay():
+    """
+        Represent how Sourcetrail's internal node types are displayed.
+
+        ```sql
+        CREATE TABLE IF NOT EXISTS node_type(
+            id INTEGER NOT NULL, 
+            type TEXT, 
+            kind TEXT, 
+            PRIMARY KEY(id)
+        ) 
+        ```
+
+        The 'node_type' table is used to store how each type of node is displayed.
+    """
+
+    def __init__(self, id: NodeType, graph_display: str, hover_display: str):
+        """
+            Create a new NodeDisplay object.
+            :param id: The internal id according to the NodeType enum
+            :param graph_display: The display text in the Sourcetrail graph
+            :param hover_display: The display text when hovering over a node
+        """
+        self.id = id
+        self.graph_display = graph_display
+        self.hover_display = hover_display
+
+
 class SymbolType(enum.Enum):
     """
         Internal class that represent a Symbol type inside the 

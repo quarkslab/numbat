@@ -17,7 +17,7 @@
 import sqlite3
 
 from .types import Element, ElementComponent, ElementComponentType, Edge, \
-    EdgeType, Node, NodeType, Symbol, SymbolType, File, FileContent, \
+    EdgeType, Node, NodeType, NodeDisplay, Symbol, SymbolType, File, FileContent, \
     LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error, \
     ComponentAccess, ComponentAccessType
 
@@ -606,6 +606,116 @@ class NodeDAO(object):
             result.append(Node(id_, NodeType(type_), serialized_name))
 
         return result
+
+
+class NodeTypeDAO(object):
+    """
+        Handle Sourcetrail's internal node types.
+    """
+
+    @staticmethod
+    def create_table(database: sqlite3.Connection) -> None:
+        """
+            Create the node type table if it doesn't exist.
+            :param database: A database handle
+            :return: None
+        """
+        SqliteHelper.exec(database, '''
+            CREATE TABLE IF NOT EXISTS node_type(
+                id INTEGER NOT NULL, 
+                graph_display TEXT, 
+                hover_display TEXT, 
+                PRIMARY KEY(id)
+            );'''
+        )
+        NodeTypeDAO.init(database)
+
+
+    @staticmethod
+    def delete_table(database: sqlite3.Connection) -> None:
+        """
+            Delete the table.
+            :param database: A database handle
+            :return: None
+        """
+        SqliteHelper.exec(database, '''
+            DROP TABLE IF EXISTS main.node_type;'''
+        )
+
+    @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        """
+            Delete all entries from the node_type table, and resets them to their default values.
+            :param database: A database handle
+            :return: None
+        """
+        SqliteHelper.exec(database, '''
+            DELETE FROM node_type;'''
+        )
+        NodeTypeDAO.init(database)
+
+    @staticmethod
+    def init(database: sqlite3.Connection) -> None:
+        """
+            Load the default values for each node type.
+            :param database: A database handle
+            :return: None
+        """
+        SqliteHelper.exec(database, '''
+        INSERT OR IGNORE INTO node_type(id,graph_display,hover_display) VALUES
+            (1, 'Symbols', 'symbol'),
+            (2, 'Types', 'type'),
+            (4, '', 'built-in type'),
+            (8, 'Modules', 'module'),
+            (16, 'Namespaces', 'namespace'),
+            (32, 'Packages', 'package'),
+            (64, 'Structs', 'struct'),
+            (128, 'Classes', 'class'),
+            (256, 'Interfaces', 'interface'),
+            (512, 'Annotations', 'annotation'),
+            (1024, 'Global variables', 'global variable'),
+            (2048, '', 'field'),
+            (4096, 'Functions', 'function'),
+            (8192, '', 'method'),
+            (16384, 'Enums', 'enum'),
+            (32768, '', 'enum constant'),
+            (65536, 'Typedefs', 'typedef'),
+            (131072, 'Type parameters', 'type parameter'),
+            (262144, 'Files', 'file'),
+            (524288, 'Macros', 'macro'),
+            (1048576, 'Unions', 'union');'''
+        )
+
+    @staticmethod
+    def get_by_id(database: sqlite3.Connection, id: NodeType)->NodeDisplay:
+        """
+            Get an element from the database with the specified id.
+            :param database: A database handle
+            :param id: the id of the object to return
+            :return: The object with the specified id.
+        """
+        out=SqliteHelper.fetch(database,'''
+                           SELECT * FROM node_type WHERE id=? LIMIT 1;''',(id.value,)
+                           )
+        if len(out)==1:
+            id,graph_display,hover_display=out[0]
+            return NodeDisplay(id,graph_display,hover_display)
+
+    @staticmethod
+    def update(database: sqlite3.Connection, obj: NodeDisplay) -> None:
+        """
+            Change the display text of an internal node type.
+            :param database: A database handle
+            :param obj: the type to change
+            :return: None
+        """
+        SqliteHelper.exec(database, '''
+            UPDATE node_type SET
+                graph_display=?,
+                hover_display=? 
+            WHERE
+                id=?;''', (obj.graph_display, obj.hover_display, obj.id.value)
+        )
 
 
 class SymbolDAO(object):

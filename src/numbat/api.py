@@ -986,6 +986,31 @@ class SourcetrailDB():
                 hover_display = NodeTypeDAO.get_by_id(self.database, node_type).hover_display
             NodeTypeDAO.update(self.database, NodeDisplay(node_type, graph_display, hover_display))
 
+    def change_node_color(self, node_id: int, fill_color: str = "default", border_color: str = "default", text_color: str = "default", icon_color: str = "default", hatching_color: str = "default") -> None:
+        """
+        Change the color of a node
+            supported values for colors: RGB hex code (e.g. #AABBCC), SVG color name (see https://www.w3.org/TR/SVG11/types.html#ColorKeywords)   
+        :param node_id: Id of the node to change
+        :param fill_color: Color of the node body
+        :param border_color: Color of the border
+        :param text_color: Color of the node text
+        :param icon_color: Color of the node icon (if applicable)
+        :param hatching_color: Color of the node hatching (if applicable)
+        :return: None
+        """
+
+        NodeDAO.set_color(self.database, node_id, ' '.join([fill_color, border_color, text_color, icon_color, hatching_color]))
+
+    def change_edge_color(self, edge_id: int, color: str) -> None:
+        """
+        Change the color of an edge
+            supported color names: see https://www.w3.org/TR/SVG11/types.html#ColorKeywords
+        :param edge_id: Id of the edge to change
+        :param color: RGB hex code or name of the edge's new color
+        :return: None
+        """
+
+        EdgeDAO.set_color(self.database, edge_id, color)
     ####################################################################################
     #                               REFERENCES                                         #
     ####################################################################################

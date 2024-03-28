@@ -355,6 +355,7 @@ class EdgeDAO(object):
                 type INTEGER NOT NULL, 
                 source_node_id INTEGER NOT NULL, 
                 target_node_id INTEGER NOT NULL, 
+                color TEXT, 
                 PRIMARY KEY(id), 
                 FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE, 
                 FOREIGN KEY(source_node_id) REFERENCES node(id) ON DELETE CASCADE, 
@@ -425,7 +426,7 @@ class EdgeDAO(object):
         )
 
         if len(out) == 1:
-            id_, type_, src, dst = out[0]
+            id_, type_, src, dst, _ = out[0]
             return Edge(id_, EdgeType(type_), src, dst)
 
     @staticmethod
@@ -464,6 +465,21 @@ class EdgeDAO(object):
             ))
 
         return result
+    
+    @staticmethod
+    def set_color(database: sqlite3.Connection, id: int, new_color: str) -> None:
+        """
+            Set the color of an edge
+            :param database: A database handle
+            :param id: Id of the edge to change
+            :param new_color: RGB hex code or name of the edge's new color
+            :return: None
+        """
+        SqliteHelper.exec(database, '''
+            UPDATE edge SET
+                color=?
+            WHERE
+                id=?;''', (new_color, id))
 
 
 class NodeDAO(object):
@@ -485,6 +501,7 @@ class NodeDAO(object):
                 id INTEGER NOT NULL, 
                 type INTEGER NOT NULL, 
                 serialized_name TEXT, 
+                color TEXT, 
                 PRIMARY KEY(id), 
                 FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
             );'''
@@ -553,7 +570,7 @@ class NodeDAO(object):
         )
 
         if len(out) == 1:
-            id_, type_, serialized_name = out[0]
+            id_, type_, serialized_name, _ = out[0]
             return Node(id_, NodeType(type_), serialized_name)
 
     @staticmethod
@@ -606,6 +623,21 @@ class NodeDAO(object):
             result.append(Node(id_, NodeType(type_), serialized_name))
 
         return result
+
+    @staticmethod
+    def set_color(database: sqlite3.Connection, id: int, new_color: str) -> None:
+        """
+            Set the color of a node
+            :param database: A database handle
+            :param id: Id of the node to modify
+            :param new_color: RGB hex code or name of the node's new color
+            :return: None
+        """
+        SqliteHelper.exec(database, '''
+            UPDATE node SET
+                color=?
+            WHERE
+                id=?;''', (new_color, id))
 
 
 class NodeTypeDAO(object):

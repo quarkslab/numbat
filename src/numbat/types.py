@@ -128,6 +128,8 @@ class Edge(Element):
             type INTEGER NOT NULL, 
             source_node_id INTEGER NOT NULL, 
             target_node_id INTEGER NOT NULL, 
+            color TEXT, 
+            hover_display TEXT, 
             PRIMARY KEY(id), 
             FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE, 
             FOREIGN KEY(source_node_id) REFERENCES node(id) ON DELETE CASCADE, 
@@ -141,19 +143,21 @@ class Edge(Element):
     """
 
     def __init__(self, id_: int = 0, type_: EdgeType = EdgeType.UNDEFINED,
-                 src: int = 0, dst: int = 0):
+                 src: int = 0, dst: int = 0, hover_display: str = ''):
         """
             Create a new Edge object. 
             :param id_: The id of the element 
             :param type_: The type of the Edge 
             :param src: The id of the source element 
             :param dst: The id of the destination element
+            :param hover_display: The display text when hovering over the Edge
         """
  
         super().__init__(id_)
         self.type = type_
         self.src = src
         self.dst = dst
+        self.hover_display = hover_display
 
 
 class NodeType(enum.Enum):
@@ -194,6 +198,8 @@ class Node(Element):
             id INTEGER NOT NULL, 
             type INTEGER NOT NULL, 
             serialized_name TEXT, 
+            color TEXT, 
+            hover_display TEXT, 
             PRIMARY KEY(id), 
             FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
         )
@@ -216,17 +222,19 @@ class Node(Element):
     """
 
     def __init__(self, id_: int = 0, type_: NodeType = NodeType.NODE_TYPE,
-                 name: str = ''):
+                 name: str = '', hover_display: str = ''):
         """
             Create a new Node object. 
             :param id_: The id of the element 
             :param type_: The type of the Node 
             :param name: The serialized name of the Node
+            :param hover_display: The display text when hovering over the Node
         """
  
         super().__init__(id_)
         self.type = type_
         self.name = name
+        self.hover_display = hover_display
 
 
 class NodeDisplay():

@@ -356,6 +356,7 @@ class EdgeDAO(object):
                 source_node_id INTEGER NOT NULL, 
                 target_node_id INTEGER NOT NULL, 
                 color TEXT, 
+                hover_display TEXT, 
                 PRIMARY KEY(id), 
                 FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE, 
                 FOREIGN KEY(source_node_id) REFERENCES node(id) ON DELETE CASCADE, 
@@ -385,8 +386,8 @@ class EdgeDAO(object):
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO edge(
-                id, type, source_node_id, target_node_id
-            ) VALUES(?, ?, ?, ?);''', (obj.id, obj.type.value, obj.src, obj.dst)
+                id, type, source_node_id, target_node_id, hover_display
+            ) VALUES(?, ?, ?, ?, ?);''', (obj.id, obj.type.value, obj.src, obj.dst, obj.hover_display)
         )
 
     @staticmethod
@@ -422,12 +423,12 @@ class EdgeDAO(object):
             the database 
         """
         out = SqliteHelper.fetch(database, '''
-            SELECT * FROM edge WHERE id = ?;''', (elem_id,)
+            SELECT id, type, source_node_id, target_node_id, hover_display FROM edge WHERE id = ?;''', (elem_id,)
         )
 
         if len(out) == 1:
-            id_, type_, src, dst, _ = out[0]
-            return Edge(id_, EdgeType(type_), src, dst)
+            id_, type_, src, dst, hover_display = out[0]
+            return Edge(id_, EdgeType(type_), src, dst, hover_display)
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: Edge) -> None:
@@ -502,6 +503,7 @@ class NodeDAO(object):
                 type INTEGER NOT NULL, 
                 serialized_name TEXT, 
                 color TEXT, 
+                hover_display TEXT, 
                 PRIMARY KEY(id), 
                 FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
             );'''
@@ -529,8 +531,8 @@ class NodeDAO(object):
         """
         return SqliteHelper.exec(database, '''
             INSERT INTO node(
-                id, type, serialized_name 
-            ) VALUES(?, ?, ?);''', (obj.id, obj.type.value, obj.name)
+                id, type, serialized_name, hover_display 
+            ) VALUES(?, ?, ?, ?);''', (obj.id, obj.type.value, obj.name, obj.hover_display)
         )
 
     @staticmethod
@@ -566,12 +568,12 @@ class NodeDAO(object):
             the database 
         """
         out = SqliteHelper.fetch(database, '''
-            SELECT * FROM node WHERE id = ?;''', (elem_id,)
+            SELECT id, type, serialized_name, hover_display FROM node WHERE id = ?;''', (elem_id,)
         )
 
         if len(out) == 1:
-            id_, type_, serialized_name, _ = out[0]
-            return Node(id_, NodeType(type_), serialized_name)
+            id_, type_, serialized_name, hover_display = out[0]
+            return Node(id_, NodeType(type_), serialized_name, hover_display)
 
     @staticmethod
     def get_by_name(database: sqlite3.Connection, name: str) -> Node:

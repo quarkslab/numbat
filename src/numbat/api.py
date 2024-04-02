@@ -232,7 +232,7 @@ class SourcetrailDB():
     #                        GENERAL SYMBOLS OPERATIONS                                #
     ####################################################################################
 
-    def __add_if_not_existing(self, name: str, type_: NodeType) -> int:
+    def __add_if_not_existing(self, name: str, type_: NodeType, hover_display: str) -> int:
         """
         Create a new node if it does not already exist
 
@@ -241,6 +241,7 @@ class SourcetrailDB():
 
         :param name: The serialized_name of the node
         :param type_: The type of the node to insert
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new node or the identifier of
                  the existing one
         """
@@ -252,7 +253,8 @@ class SourcetrailDB():
             NodeDAO.new(self.database, Node(
                 elem.id,
                 type_,
-                name
+                name,
+                hover_display
             ))
 
             self.name_cache[name] = elem.id
@@ -260,11 +262,12 @@ class SourcetrailDB():
         else:
             return self.name_cache[name]
 
-    def _record_symbol(self, hierarchy: NameHierarchy) -> int:
+    def _record_symbol(self, hierarchy: NameHierarchy, hover_display: str) -> int:
         """
         Record a new Symbol in the database
 
         :param hierarchy: The hierarchy of the symbol to insert
+        :param hover_display: the display text when hovering over the node
         :return: An unique integer that identify the inserted element
         """
 
@@ -274,7 +277,8 @@ class SourcetrailDB():
         for i in range(0, hierarchy.size()):
             ids.append(self.__add_if_not_existing(
                 hierarchy.serialize_range(0, i + 1),
-                NodeType.NODE_SYMBOL
+                NodeType.NODE_SYMBOL,
+                hover_display
             ))
 
         # Add all the edges between nodes
@@ -352,7 +356,8 @@ class SourcetrailDB():
                            delimiter: str,
                            parent_id: int | None,
                            is_indexed: bool,
-                           type_: NodeType) -> int | None:
+                           type_: NodeType,
+                           hover_display: str) -> int | None:
         """
         Internal function which will be wrapped by all the record_XX methods
         where XX is a node type (class, method, field, etc.). It creates the
@@ -370,6 +375,7 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :param type_: type of the node to add
         :return: The identifier of the new class or None if it could not be inserted
         """
@@ -380,9 +386,9 @@ class SourcetrailDB():
                 return
             hierarchy = NameHierarchy.deserialize_name(node.name)
             hierarchy.extend(name_element)
-            obj_id = self._record_symbol(hierarchy)
+            obj_id = self._record_symbol(hierarchy,hover_display)
         else:
-            obj_id = self._record_symbol(NameHierarchy(delimiter, [name_element]))
+            obj_id = self._record_symbol(NameHierarchy(delimiter, [name_element]),hover_display)
 
         if obj_id:
             self._record_symbol_kind(obj_id, type_)
@@ -396,7 +402,8 @@ class SourcetrailDB():
                            postfix: str = '',
                            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                            parent_id: int = None,
-                           is_indexed: bool = True) -> int | None:
+                           is_indexed: bool = True,
+                           hover_display: str = '') -> int | None:
         """
         Record a "SYMBOL" symbol into the DB
 
@@ -407,11 +414,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_SYMBOL)
+                                       parent_id, is_indexed, NodeType.NODE_SYMBOL, hover_display)
 
     def record_type_node(self,
                          name: str = '',
@@ -419,7 +427,8 @@ class SourcetrailDB():
                          postfix: str = '',
                          delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                          parent_id: int = None,
-                         is_indexed: bool = True) -> int | None:
+                         is_indexed: bool = True,
+                         hover_display: str = '') -> int | None:
         """
         Record a TYPE symbol into the DB
 
@@ -430,11 +439,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_TYPE)
+                                       parent_id, is_indexed, NodeType.NODE_TYPE, hover_display)
 
     def record_buitin_type_node(self,
                                 name: str = '',
@@ -442,7 +452,8 @@ class SourcetrailDB():
                                 postfix: str = '',
                                 delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                                 parent_id: int = None,
-                                is_indexed: bool = True) -> int | None:
+                                is_indexed: bool = True,
+                                hover_display: str = '') -> int | None:
         """
         Record a BUILTIN_TYPE symbol into the DB
 
@@ -453,11 +464,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_BUILTIN_TYPE)
+                                       parent_id, is_indexed, NodeType.NODE_BUILTIN_TYPE, hover_display)
 
     def record_module(self,
                       name: str = '',
@@ -465,7 +477,8 @@ class SourcetrailDB():
                       postfix: str = '',
                       delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                       parent_id: int = None,
-                      is_indexed: bool = True) -> int | None:
+                      is_indexed: bool = True,
+                      hover_display: str = '') -> int | None:
         """
         Record a MODULE symbol into the DB
 
@@ -476,11 +489,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_MODULE)
+                                       parent_id, is_indexed, NodeType.NODE_MODULE, hover_display)
 
     def record_namespace(self,
                          name: str = '',
@@ -488,7 +502,8 @@ class SourcetrailDB():
                          postfix: str = '',
                          delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                          parent_id: int = None,
-                         is_indexed: bool = True) -> int | None:
+                         is_indexed: bool = True,
+                         hover_display: str = '') -> int | None:
         """
         Record a NAMESPACE symbol into the DB
 
@@ -499,11 +514,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_NAMESPACE)
+                                       parent_id, is_indexed, NodeType.NODE_NAMESPACE, hover_display)
 
     def record_package(self,
                        name: str = '',
@@ -511,7 +527,8 @@ class SourcetrailDB():
                        postfix: str = '',
                        delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                        parent_id: int = None,
-                       is_indexed: bool = True) -> int | None:
+                       is_indexed: bool = True,
+                       hover_display: str = '') -> int | None:
         """
         Record a PACKAGE symbol into the DB
 
@@ -522,11 +539,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_PACKAGE)
+                                       parent_id, is_indexed, NodeType.NODE_PACKAGE, hover_display)
 
     def record_struct(self,
                       name: str = '',
@@ -534,7 +552,8 @@ class SourcetrailDB():
                       postfix: str = '',
                       delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                       parent_id: int = None,
-                      is_indexed: bool = True) -> int | None:
+                      is_indexed: bool = True,
+                      hover_display: str = '') -> int | None:
         """
         Record a STRUCT symbol into the DB
 
@@ -545,11 +564,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_STRUCT)
+                                       parent_id, is_indexed, NodeType.NODE_STRUCT, hover_display)
 
     def record_class(self,
                      name: str = '',
@@ -557,7 +577,8 @@ class SourcetrailDB():
                      postfix: str = '',
                      delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                      parent_id: int = None,
-                     is_indexed: bool = True) -> int | None:
+                     is_indexed: bool = True,
+                     hover_display: str = '') -> int | None:
         """
         Record a CLASS symbol into the DB
 
@@ -568,11 +589,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_CLASS)
+                                       parent_id, is_indexed, NodeType.NODE_CLASS, hover_display)
 
     def record_interface(self,
                          name: str = '',
@@ -580,7 +602,8 @@ class SourcetrailDB():
                          postfix: str = '',
                          delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                          parent_id: int = None,
-                         is_indexed: bool = True) -> int | None:
+                         is_indexed: bool = True,
+                         hover_display: str = '') -> int | None:
         """
         Record a INTERFACE symbol into the DB
 
@@ -591,11 +614,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_INTERFACE)
+                                       parent_id, is_indexed, NodeType.NODE_INTERFACE, hover_display)
 
     def record_annotation(self,
                           name: str = '',
@@ -603,7 +627,8 @@ class SourcetrailDB():
                           postfix: str = '',
                           delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                           parent_id: int = None,
-                          is_indexed: bool = True) -> int | None:
+                          is_indexed: bool = True,
+                          hover_display: str = '') -> int | None:
         """
         Record a ANNOTATION symbol into the DB
 
@@ -614,11 +639,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_ANNOTATION)
+                                       parent_id, is_indexed, NodeType.NODE_ANNOTATION, hover_display)
 
     def record_global_variable(self,
                                name: str = '',
@@ -626,7 +652,8 @@ class SourcetrailDB():
                                postfix: str = '',
                                delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                                parent_id: int = None,
-                               is_indexed: bool = True) -> int | None:
+                               is_indexed: bool = True,
+                               hover_display: str = '') -> int | None:
         """
         Record a GLOBAL_VARIABLE symbol into the DB
 
@@ -637,11 +664,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_GLOBAL_VARIABLE)
+                                       parent_id, is_indexed, NodeType.NODE_GLOBAL_VARIABLE, hover_display)
 
     def record_field(self,
                      name: str = '',
@@ -649,7 +677,8 @@ class SourcetrailDB():
                      postfix: str = '',
                      delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                      parent_id: int = None,
-                     is_indexed: bool = True) -> int | None:
+                     is_indexed: bool = True,
+                     hover_display: str = '') -> int | None:
         """
         Record a FIELD symbol into the DB
 
@@ -660,11 +689,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_FIELD)
+                                       parent_id, is_indexed, NodeType.NODE_FIELD, hover_display)
 
     def record_function(self,
                         name: str = '',
@@ -672,7 +702,8 @@ class SourcetrailDB():
                         postfix: str = '',
                         delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                         parent_id: int = None,
-                        is_indexed: bool = True) -> int | None:
+                        is_indexed: bool = True,
+                        hover_display: str = '') -> int | None:
         """
         Record a FUNCTION symbol into the DB
 
@@ -683,11 +714,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_FUNCTION)
+                                       parent_id, is_indexed, NodeType.NODE_FUNCTION, hover_display)
 
     def record_method(self,
                       name: str = '',
@@ -695,7 +727,8 @@ class SourcetrailDB():
                       postfix: str = '',
                       delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                       parent_id: int = None,
-                      is_indexed: bool = True) -> int | None:
+                      is_indexed: bool = True,
+                      hover_display: str = '') -> int | None:
         """
         Record a METHOD symbol into the DB
 
@@ -706,11 +739,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_METHOD)
+                                       parent_id, is_indexed, NodeType.NODE_METHOD, hover_display)
 
     def record_enum(self,
                     name: str = '',
@@ -718,7 +752,8 @@ class SourcetrailDB():
                     postfix: str = '',
                     delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                     parent_id: int = None,
-                    is_indexed: bool = True) -> int | None:
+                    is_indexed: bool = True,
+                    hover_display: str = '') -> int | None:
         """
         Record a ENUM symbol into the DB
 
@@ -729,11 +764,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_ENUM)
+                                       parent_id, is_indexed, NodeType.NODE_ENUM, hover_display)
 
     def record_enum_constant(self,
                              name: str = '',
@@ -741,7 +777,8 @@ class SourcetrailDB():
                              postfix: str = '',
                              delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                              parent_id: int = None,
-                             is_indexed: bool = True) -> int | None:
+                             is_indexed: bool = True,
+                             hover_display: str = '') -> int | None:
         """
         Record a ENUM_CONSTANT symbol into the DB
 
@@ -752,11 +789,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_ENUM_CONSTANT)
+                                       parent_id, is_indexed, NodeType.NODE_ENUM_CONSTANT, hover_display)
 
     def record_typedef_node(self,
                             name: str = '',
@@ -764,7 +802,8 @@ class SourcetrailDB():
                             postfix: str = '',
                             delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                             parent_id: int = None,
-                            is_indexed: bool = True) -> int | None:
+                            is_indexed: bool = True,
+                            hover_display: str = '') -> int | None:
         """
         Record a TYPEDEF symbol into the DB
 
@@ -775,11 +814,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_TYPEDEF)
+                                       parent_id, is_indexed, NodeType.NODE_TYPEDEF, hover_display)
 
     def record_type_parameter_node(self,
                                    name: str = '',
@@ -787,7 +827,8 @@ class SourcetrailDB():
                                    postfix: str = '',
                                    delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                                    parent_id: int = None,
-                                   is_indexed: bool = True) -> int | None:
+                                   is_indexed: bool = True,
+                                   hover_display: str = '') -> int | None:
         """
         Record a TYPE_PARAMETER symbol into the DB
 
@@ -798,11 +839,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_TYPE_PARAMETER)
+                                       parent_id, is_indexed, NodeType.NODE_TYPE_PARAMETER, hover_display)
 
     def record_macro(self,
                      name: str = '',
@@ -810,7 +852,8 @@ class SourcetrailDB():
                      postfix: str = '',
                      delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                      parent_id: int = None,
-                     is_indexed: bool = True) -> int | None:
+                     is_indexed: bool = True,
+                     hover_display: str = '') -> int | None:
         """
         Record a MACRO symbol into the DB
 
@@ -821,11 +864,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_MACRO)
+                                       parent_id, is_indexed, NodeType.NODE_MACRO, hover_display)
 
     def record_union(self,
                      name: str = '',
@@ -833,7 +877,8 @@ class SourcetrailDB():
                      postfix: str = '',
                      delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
                      parent_id: int = None,
-                     is_indexed: bool = True) -> int | None:
+                     is_indexed: bool = True,
+                     hover_display: str = '') -> int | None:
         """
         Record a UNION symbol into the DB
 
@@ -844,11 +889,12 @@ class SourcetrailDB():
         it will not be taken into account as the parent delimiter will be used
         :param parent_id: The identifier of the class in which the method is defined.
         :param is_indexed: if the element is explicit or non-indexed
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the new class or None if it could not be inserted
         """
 
         return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_UNION)
+                                       parent_id, is_indexed, NodeType.NODE_UNION, hover_display)
 
     def _record_access_specifier(self, symbol_id: int, access: ComponentAccessType) -> None:
         """
@@ -1017,7 +1063,7 @@ class SourcetrailDB():
 
     # Add new references
 
-    def _record_reference(self, source_id: int, dest_id: int, type_: EdgeType) -> int:
+    def _record_reference(self, source_id: int, dest_id: int, type_: EdgeType, hover_display: str) -> int:
         """
         Add a new reference (an edge) between two elements
 
@@ -1030,139 +1076,152 @@ class SourcetrailDB():
         elem = Element()
         elem.id = ElementDAO.new(self.database, elem)
 
-        EdgeDAO.new(self.database, Edge(elem.id, type_, source_id, dest_id))
+        EdgeDAO.new(self.database, Edge(elem.id, type_, source_id, dest_id, hover_display))
 
         return elem.id
 
-    def record_ref_member(self, source_id: int, dest_id: int) -> int:
+    def record_ref_member(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
         """
         Add a member reference (aka an edge) between two elements
 
         :param source_id: The source identifier
         :param dest_id: The destination identifier
+        :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(source_id, dest_id, type_=EdgeType.MEMBER)
+        return self._record_reference(source_id, dest_id, EdgeType.MEMBER, hover_display)
 
-    def record_ref_type_usage(self, source_id: int, dest_id: int) -> int:
+    def record_ref_type_usage(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
         """
         Add a TYPE_USAGE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
         :param dest_id: The destination identifier
+        :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(source_id, dest_id, type_=EdgeType.TYPE_USAGE)
+        return self._record_reference(source_id, dest_id, EdgeType.TYPE_USAGE, hover_display)
 
-    def record_ref_usage(self, source_id: int, dest_id: int) -> int:
+    def record_ref_usage(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
         """
         Add a USAGE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
         :param dest_id: The destination identifier
+        :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(source_id, dest_id, type_=EdgeType.USAGE)
+        return self._record_reference(source_id, dest_id, EdgeType.USAGE, hover_display)
 
-    def record_ref_call(self, source_id: int, dest_id: int) -> int:
+    def record_ref_call(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
         """
         Add a CALL reference (aka an edge) between two elements
 
         :param source_id: The source identifier
         :param dest_id: The destination identifier
+        :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(source_id, dest_id, type_=EdgeType.CALL)
+        return self._record_reference(source_id, dest_id, EdgeType.CALL, hover_display)
 
-    def record_ref_inheritance(self, source_id: int, dest_id: int) -> int:
+    def record_ref_inheritance(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
         """
         Add an INHERITANCE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
         :param dest_id: The destination identifier
+        :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(source_id, dest_id, type_=EdgeType.INHERITANCE)
+        return self._record_reference(source_id, dest_id, EdgeType.INHERITANCE, hover_display)
 
-    def record_ref_override(self, source_id: int, dest_id: int) -> int:
+    def record_ref_override(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
         """
         Add an OVERRIDE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
         :param dest_id: The destination identifier
+        :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(source_id, dest_id, type_=EdgeType.OVERRIDE)
+        return self._record_reference(source_id, dest_id, EdgeType.OVERRIDE, hover_display)
 
-    def record_ref_type_argument(self, source_id: int, dest_id: int) -> int:
+    def record_ref_type_argument(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
         """
         Add a TYPE_ARGUMENT reference (aka an edge) between two elements
 
         :param source_id: The source identifier
         :param dest_id: The destination identifier
+        :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(source_id, dest_id, type_=EdgeType.TYPE_ARGUMENT)
+        return self._record_reference(source_id, dest_id, EdgeType.TYPE_ARGUMENT, hover_display)
 
-    def record_ref_template_specialization(self, source_id: int, dest_id: int) -> int:
+    def record_ref_template_specialization(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
         """
         Add a TEMPLATE_SPECIALIZATION reference (aka an edge) between two elements
 
         :param source_id: The source identifier
         :param dest_id: The destination identifier
+        :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(source_id, dest_id, type_=EdgeType.TEMPLATE_SPECIALIZATION)
+        return self._record_reference(source_id, dest_id, EdgeType.TEMPLATE_SPECIALIZATION, hover_display)
 
-    def record_ref_include(self, source_id: int, dest_id: int) -> int:
+    def record_ref_include(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
         """
         Add an INCLUDE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
         :param dest_id: The destination identifier
+        :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(source_id, dest_id, type_=EdgeType.INCLUDE)
+        return self._record_reference(source_id, dest_id, EdgeType.INCLUDE, hover_display)
 
-    def record_ref_import(self, source_id: int, dest_id: int) -> int:
+    def record_ref_import(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
         """
         Add an import reference (aka an edge) between two elements
 
         :param source_id: The source identifier (who imports)
         :param dest_id: The destination identifier (who is imported)
+        :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(source_id, dest_id, type_=EdgeType.IMPORT)
+        return self._record_reference(source_id, dest_id, EdgeType.IMPORT, hover_display)
 
-    def record_ref_bundled_edges(self, source_id: int, dest_id: int) -> int:
+    def record_ref_bundled_edges(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
         """
         Add a BUNDLED_EDGES reference (aka an edge) between two elements
 
         :param source_id: The source identifier
         :param dest_id: The destination identifier
+        :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(source_id, dest_id, type_=EdgeType.BUNDLED_EDGES)
+        return self._record_reference(source_id, dest_id, EdgeType.BUNDLED_EDGES, hover_display)
 
-    def record_ref_macro_usage(self, source_id: int, dest_id: int) -> int:
+    def record_ref_macro_usage(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
         """
         Add a MACRO_USAGE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
         :param dest_id: The destination identifier
+        :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(source_id, dest_id, type_=EdgeType.MACRO_USAGE)
+        return self._record_reference(source_id, dest_id, EdgeType.MACRO_USAGE, hover_display)
 
-    def record_ref_annotation_usage(self, source_id: int, dest_id: int) -> int:
+    def record_ref_annotation_usage(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
         """
         Add an ANNOTATION_USAGE reference (aka an edge) between two elements
 
         :param source_id: The source identifier
         :param dest_id: The destination identifier
+        :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(source_id, dest_id, type_=EdgeType.ANNOTATION_USAGE)
+        return self._record_reference(source_id, dest_id, EdgeType.ANNOTATION_USAGE, hover_display)
 
     def record_reference_to_unsolved_symbol(self, symbol_id: int, reference_type: EdgeType,
                                             file_id: int, start_line: int, start_column: int, end_line: int,

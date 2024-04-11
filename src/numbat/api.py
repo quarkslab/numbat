@@ -1057,6 +1057,19 @@ class SourcetrailDB():
         """
 
         EdgeDAO.set_color(self.database, edge_id, color)
+
+    def set_custom_command(self, node_id: int, command: list, description: str) -> None:
+        """
+        Add a custom command to a node's context menu
+        :param node_id: Id of the node to add the custom command to
+        :param command: List containing the command to execute and its arguments
+        :param description: Description of the command
+        :return: None
+        """
+        if type(command) != list:
+            raise TypeError("Custom command must be a list containing its argument vector")
+        NodeDAO.set_custom_command(self.database, node_id, ('\t'.join(command), description))
+        
     ####################################################################################
     #                               REFERENCES                                         #
     ####################################################################################

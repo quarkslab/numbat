@@ -504,6 +504,8 @@ class NodeDAO(object):
                 serialized_name TEXT, 
                 color TEXT, 
                 hover_display TEXT, 
+                custom_command TEXT, 
+                custom_command_desc TEXT, 
                 PRIMARY KEY(id), 
                 FOREIGN KEY(id) REFERENCES element(id) ON DELETE CASCADE
             );'''
@@ -640,6 +642,22 @@ class NodeDAO(object):
                 color=?
             WHERE
                 id=?;''', (new_color, id))
+        
+    @staticmethod
+    def set_custom_command(database: sqlite3.Connection, id: int, custom_command: tuple) -> None:
+        """
+            Set a custom command for a node in its context menu
+            :param database: A database handle
+            :param id: Id of the node to modify
+            :param custom_command: The command to execute (including arguments) and its description
+            :return: None
+        """
+        SqliteHelper.exec(database, '''
+            UPDATE node SET
+                custom_command=?,
+                custom_command_desc=?
+            WHERE
+                id=?;''', (custom_command[0], custom_command[1], id))
 
 
 class NodeTypeDAO(object):

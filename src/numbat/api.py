@@ -1238,7 +1238,7 @@ class SourcetrailDB():
 
     def record_reference_to_unsolved_symbol(self, symbol_id: int, reference_type: EdgeType,
                                             file_id: int, start_line: int, start_column: int, end_line: int,
-                                            end_column: int) -> int:
+                                            end_column: int, hover_display: str = '') -> int:
         """
         Record a reference to an unsolved symbol.
 
@@ -1249,6 +1249,7 @@ class SourcetrailDB():
         :param start_column: The column at which the element starts.
         :param end_line: The line at which the element ends.
         :param end_column: The line at which the element ends.
+        :param hover_display: the display text when hovering over the edge
         :return: The identifier of the new reference
         """
 
@@ -1263,7 +1264,7 @@ class SourcetrailDB():
         )
 
         # Insert the new node
-        unsolved_symbol_id = self._record_symbol(hierarchy)
+        unsolved_symbol_id = self._record_symbol(hierarchy,'')
 
         # Add a new edge
         elem = Element()
@@ -1273,7 +1274,8 @@ class SourcetrailDB():
             elem.id,
             reference_type,
             symbol_id,
-            unsolved_symbol_id
+            unsolved_symbol_id,
+            hover_display
         ))
 
         # Add the new source location
@@ -1310,13 +1312,14 @@ class SourcetrailDB():
     #                           SOURCE CODE MANIPULATION                               #
     ####################################################################################
 
-    def record_file(self, path: Path, indexed: bool = True) -> int:
+    def record_file(self, path: Path, indexed: bool = True, hover_display: str = '') -> int:
         """
         Record a source file in the database
 
         :param path: The path to the existing source file
         :param indexed: A boolean that indicates if the source file
                         was indexed by the parser
+        :param hover_display: the display text when hovering over the node
         :return: The identifier of the inserted file
         """
 
@@ -1346,7 +1349,8 @@ class SourcetrailDB():
         # Insert a new node
         elem_id = self.__add_if_not_existing(
             hierarchy.serialize_name(),
-            NodeType.NODE_FILE
+            NodeType.NODE_FILE,
+            hover_display
         )
 
         # Insert a new file

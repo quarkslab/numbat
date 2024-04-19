@@ -1017,9 +1017,9 @@ class SourcetrailDB():
         """
         Change the display text of a node type.
 
+        Allowed values for node types: `annotation` `built-in type` `class` `enum` `enum constant` `field` `file` `function` `global variable`
+        `interface` `macro` `method` `module` `namespace` `package` `struct` `symbol` `type` `type parameter` `typedef` `union`
         :param type_to_change: The node type to update
-            allowed values: `annotation` `built-in type` `class` `enum` `enum constant` `field` `file` `function` `global variable`
-            `interface` `macro` `method` `module` `namespace` `package` `struct` `symbol` `type` `type parameter` `typedef` `union`
         :param graph_display: The display text in the Sourcetrail graph
         :param hover_display: The display text when hovering over a node
         """
@@ -1035,7 +1035,8 @@ class SourcetrailDB():
     def change_node_color(self, node_id: int, fill_color: str = "default", border_color: str = "default", text_color: str = "default", icon_color: str = "default", hatching_color: str = "default") -> None:
         """
         Change the color of a node
-            supported values for colors: RGB hex code (e.g. #AABBCC), SVG color name (see https://www.w3.org/TR/SVG11/types.html#ColorKeywords)   
+
+        Supported values for colors: RGB hex code (e.g. #AABBCC), [SVG color keyword](https://www.w3.org/TR/SVG11/types.html#ColorKeywords)
         :param node_id: Id of the node to change
         :param fill_color: Color of the node body
         :param border_color: Color of the border
@@ -1050,7 +1051,8 @@ class SourcetrailDB():
     def change_edge_color(self, edge_id: int, color: str) -> None:
         """
         Change the color of an edge
-            supported color names: see https://www.w3.org/TR/SVG11/types.html#ColorKeywords
+
+        Supported values for colors: RGB hex code (e.g. #AABBCC), [SVG color keyword](https://www.w3.org/TR/SVG11/types.html#ColorKeywords)
         :param edge_id: Id of the edge to change
         :param color: RGB hex code or name of the edge's new color
         :return: None

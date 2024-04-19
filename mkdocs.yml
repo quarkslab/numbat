@@ -37,6 +37,7 @@ extra_css:
 nav:
   - Home: index.md
   - Tutorial: tutorial.md
+  - Customization: customization.md
   - Public API Reference: public_api.md
   - Numbat Internal Dev: intern_dev/numbat/
   - Changelog: changelog.md

@@ -7,10 +7,10 @@ To understand the power of Numbat, we will register the different symbols contai
     "Example of Python file we would like to index"
     class MyType:
 
-            my_member = True
+        my_member = True
 
-            def my_method(self):
-                return self.my_member
+        def my_method(self):
+            return self.my_member
     ```
 
 ## Database Manipulation
@@ -138,7 +138,6 @@ db.record_file_language(file_id, 'python')
 class_id = db.record_class(prefix="class", name="MyType",
                            postfix="():")
 field_id = db.record_field(name="my_member", parent_id=class_id)
-db.record_symbol_location(field_id, file_id, 4, 4, 4, 12)
 meth_id = db.record_method(name="my_method", parent_id=class_id)
 # Add relationships
 db.record_ref_usage(meth_id, field_id)
@@ -165,9 +164,9 @@ class_id = db.record_class(prefix="class", name="MyType",
 db.record_symbol_location(class_id, file_id, 2, 7, 2, 12)
 db.record_symbol_scope_location(class_id, file_id, 2, 1, 7, 1)
 field_id = db.record_field(name="my_member", parent_id=class_id)
-db.record_symbol_location(field_id, file_id, 4, 4, 4, 12)
+db.record_symbol_location(field_id, file_id, 4, 5, 4, 13)
 meth_id = db.record_method(name="my_method", parent_id=class_id)
-db.record_symbol_location(meth_id, file_id, 6, 8, 6, 16)
+db.record_symbol_location(meth_id, file_id, 6, 9, 6, 17)
 db.record_symbol_scope_location(meth_id, file_id, 6, 1, 7, 1)
 # Add relationships
 db.record_ref_usage(meth_id, field_id)
@@ -179,4 +178,41 @@ db.close()
 <figure markdown>
   ![Sourcetrail view after symbol location additions](img/symbols_location.png)
   <figcaption> Symbols are located into the source code.</figcaption>
+</figure>
+
+## Access specifiers
+To record an access specifier (public, private, etc...) for a class attribute, the [`record_[public|private|etc...]_access`](public_api.md#numbat.SourcetrailDB.record_public_access) can be used.
+
+```python linenums="1" hl_lines="21-23"
+from numbat import SourcetrailDB
+from pathlib import Path
+
+db = SourcetrailDB.open(Path('my_database'), clear=True) 
+
+# Record file
+file_id = db.record_file(Path('file.py'))
+db.record_file_language(file_id, 'python')
+# Add symbols
+class_id = db.record_class(prefix="class", name="MyType",
+                           postfix="():")
+db.record_symbol_location(class_id, file_id, 2, 7, 2, 12)
+db.record_symbol_scope_location(class_id, file_id, 2, 1, 7, 1)
+field_id = db.record_field(name="my_member", parent_id=class_id)
+db.record_symbol_location(field_id, file_id, 4, 5, 4, 13)
+meth_id = db.record_method(name="my_method", parent_id=class_id)
+db.record_symbol_location(meth_id, file_id, 6, 9, 6, 17)
+db.record_symbol_scope_location(meth_id, file_id, 6, 1, 7, 1)
+# Add relationships
+db.record_ref_usage(meth_id, field_id)
+# Add access specifiers
+db.record_public_access(meth_id)
+db.record_private_access(field_id)
+
+db.commit()
+db.close()
+```
+
+<figure markdown>
+  ![Access specifiers in Sourcetrail](img/access_specifiers.png)
+  <figcaption> Public and private access specifiers</figcaption>
 </figure>

@@ -19,17 +19,19 @@
 import logging
 import os
 import sqlite3
+import shutil
+import hashlib
 from datetime import datetime
 from pathlib import Path
 
 from .types import ComponentAccess, ComponentAccessType, Element, \
     ElementComponent, ElementComponentType, Edge, \
     EdgeType, Node, NodeType, NodeDisplay, Symbol, SymbolType, File, FileContent, \
-    LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error, \
+    NodeFile, LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error, \
     NameElement, NameHierarchy
 
 from .db import ComponentAccessDAO, EdgeDAO, ElementComponentDAO, FileDAO, \
-    ElementDAO, ErrorDAO, FileContentDAO, LocalSymbolDAO, MetaDAO, \
+    ElementDAO, ErrorDAO, FileContentDAO, NodeFileDAO, LocalSymbolDAO, MetaDAO, \
     NodeDAO, NodeTypeDAO, OccurrenceDAO, SourceLocationDAO, SqliteHelper, SymbolDAO
 
 from .exceptions import NoDatabaseOpen, NumbatException
@@ -45,6 +47,8 @@ class SourcetrailDB():
     # Sourcetrail files extension
     SOURCETRAIL_PROJECT_EXT = '.srctrlprj'
     SOURCETRAIL_DB_EXT = '.srctrldb'
+    # Project directory for sideloaded files
+    SOURCETRAIL_PROJECT_DIR = '_files/'
 
     SOURCETRAIL_XML = '\n'.join([
         '<?xml version="1.0" encoding="utf-8" ?>',
@@ -56,6 +60,7 @@ class SourcetrailDB():
     def __init__(self, database: sqlite3.Connection, path: Path, logger: logging.Logger = None) -> None:
         self.database = database
         self.path = path
+        self.project_directory = str(path.stem) + self.SOURCETRAIL_PROJECT_DIR
         if logger is None:
             self.logger = logging.getLogger()
         else:
@@ -148,6 +153,9 @@ class SourcetrailDB():
             # Create Sourcetrail Project file
             project_file = obj.path.with_suffix(cls.SOURCETRAIL_PROJECT_EXT)
             project_file.write_text(cls.SOURCETRAIL_XML)
+            # Create project directory
+            obj.project_directory = str(obj.path.stem) + cls.SOURCETRAIL_PROJECT_DIR
+            os.mkdir(obj.project_directory, mode=0o755)
             # Commit change to the database so we don't ended up with a half setup DB if an
             # exceptions is raised before the next commit
             obj.commit()
@@ -172,6 +180,7 @@ class SourcetrailDB():
         SymbolDAO.create_table(self.database)
         FileDAO.create_table(self.database)
         FileContentDAO.create_table(self.database)
+        NodeFileDAO.create_table(self.database)
         LocalSymbolDAO.create_table(self.database)
         SourceLocationDAO.create_table(self.database)
         OccurrenceDAO.create_table(self.database)
@@ -208,6 +217,7 @@ class SourcetrailDB():
         SymbolDAO.clear(self.database)
         FileDAO.clear(self.database)
         FileContentDAO.clear(self.database)
+        NodeFileDAO.clear(self.database)
         LocalSymbolDAO.clear(self.database)
         SourceLocationDAO.clear(self.database)
         OccurrenceDAO.clear(self.database)
@@ -1071,6 +1081,34 @@ class SourcetrailDB():
         if type(command) != list:
             raise TypeError("Custom command must be a list containing its argument vector")
         NodeDAO.set_custom_command(self.database, node_id, ('\t'.join(command), description))
+
+    def associate_file_to_node(self, node_id: int, file: Path, display_content: bool) -> None:
+        """
+        Copy a file to the project directory and link it to a node
+
+        :param node_id: Id of the node to link
+        :param file: Path to the file to link
+        :param display_content: Whether the file content should be displayed or not
+        :return: None
+        """
+
+        # use file hash as destination file name
+        sha256 = hashlib.sha256()
+
+        with open(file, "rb") as f:
+            while True:
+                data = f.read(8192)
+                if not data:
+                    break
+                sha256.update(data)
+        hash = sha256.hexdigest()
+        dest = str(self.project_directory) + hash
+
+        # copy file if not exists
+        if not Path(dest).exists():
+            shutil.copy2(file, dest)
+        # associate node and file
+        NodeFileDAO.new(self.database, NodeFile(node_id, dest, display_content))
         
     ####################################################################################
     #                               REFERENCES                                         #
@@ -1321,13 +1359,13 @@ class SourcetrailDB():
         :param path: The path to the existing source file
         :param indexed: A boolean that indicates if the source file
                         was indexed by the parser
-        :param hover_display: the display text when hovering over the node
+        :param hover_display: The display text when hovering over the node
         :return: The identifier of the inserted file
         """
 
         if not path.exists() or not path.is_file():
             raise FileNotFoundError()
-
+        
         # Create a new name hierarchy
         hierarchy = NameHierarchy(
             NameHierarchy.NAME_DELIMITER_FILE,

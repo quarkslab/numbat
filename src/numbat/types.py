@@ -380,6 +380,37 @@ class FileContent(Element):
         self.content = content
 
 
+class NodeFile(Element):
+    """
+        Wrapper class for node_file table
+
+        ```sql
+        CREATE TABLE node_file(
+            file_id INTEGER,
+            file_name TEXT,
+            display_content INTEGER, 
+            PRIMARY KEY(id),
+            FOREIGN KEY(id) REFERENCES node(id) ON DELETE CASCADE
+        )
+        ```
+
+        The 'node_file' table contains the paths to all files that have been copied to the project folder,
+        and the node they are associated to.
+    """
+
+    def __init__(self, file_id: int, file_name: str, display_content: bool):
+        """
+            Create a new NodeFile object.
+
+            :param file_id: id of the copied file
+            :param file_name: path to the copy 
+            :param display_content: whether the file content should be displayed or not
+        """
+        super().__init__(file_id)
+        self.file_name = file_name
+        self.display_content = display_content
+
+
 class LocalSymbol(Element):
     """
         Wrapper class for sourcetrail local_symbol table:

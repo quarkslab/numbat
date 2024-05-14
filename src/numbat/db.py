@@ -18,7 +18,7 @@ import sqlite3
 
 from .types import Element, ElementComponent, ElementComponentType, Edge, \
     EdgeType, Node, NodeType, NodeDisplay, Symbol, SymbolType, File, FileContent, \
-    LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error, \
+    NodeFile, LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error, \
     ComponentAccess, ComponentAccessType
 
 
@@ -1149,6 +1149,79 @@ class FileContentDAO(object):
             result.append(FileContent(*row))
 
         return result
+
+
+class NodeFileDAO(object):
+    """
+        This class is a static class that can manipulate NodeFile objects,
+        inserting and removing them from a sqlite database.
+    """
+    @staticmethod
+    def create_table(database: sqlite3.Connection) -> None:
+        """
+            Create the node_file table of the Sourcetrail database if it doesn't exist.
+
+            :param database: A database handle
+            :return: None
+        """
+        SqliteHelper.exec(database, '''
+            CREATE TABLE node_file(
+                file_id INTEGER NOT NULL,
+                file_name TEXT UNIQUE,
+                display_content INTEGER, 
+                PRIMARY KEY(file_id),
+                FOREIGN KEY(file_id) REFERENCES node(id) ON DELETE CASCADE
+            );'''
+        )
+
+    @staticmethod
+    def delete_table(database: sqlite3.Connection) -> None:
+        """
+            Delete the node_file table of the Sourcetrail database if it exists.
+
+            :param database: A database handle
+            :return: None
+        """
+        SqliteHelper.exec(database, '''
+            DROP TABLE IF EXISTS node_file;'''
+        )
+
+    @staticmethod
+    def new(database: sqlite3.Connection, obj: NodeFile) -> int:
+        """
+            Insert a new NodeFile inside the node_file table.
+            :param database: A database handle
+            :param obj: The object to insert
+            :return: The id of the inserted node_file
+        """
+        return SqliteHelper.exec(database, '''
+            INSERT INTO node_file(
+                file_id, file_name, display_content
+            ) VALUES(?, ?, ?);''', (obj.id, obj.file_name, int(obj.display_content))
+        )
+
+    @staticmethod
+    def delete(database: sqlite3.Connection, obj: NodeFile) -> None:
+        """
+            Delete an NodeFile from the node_file table.
+            :param database: A database handle
+            :param obj: The object to delete
+            :return: None 
+        """
+        SqliteHelper.exec(database, '''
+            DELETE FROM node_file WHERE file_id = ?;''', (obj.id,)
+        )
+
+    @staticmethod
+    def clear(database: sqlite3.Connection) -> None:
+        """
+            Delete all NodeFiles from the node_file table.
+            :param database: A database handle
+            :return: None 
+        """
+        SqliteHelper.exec(database, '''
+            DELETE FROM node_file;'''
+        )
 
 
 class LocalSymbolDAO(object):

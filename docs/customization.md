@@ -25,6 +25,7 @@ db.close()
 ```
 
 <figure markdown>
+
   ![The modified node types](img/custom_node_types.png)
 
   ![Hover menu display](img/node_display.png)
@@ -65,6 +66,7 @@ db.commit()
 db.close()
 ```
 <figure markdown>
+
   ![Node color](img/node_color.png)
   <figcaption>Recolored node</figcaption>
 
@@ -94,12 +96,13 @@ db.close()
 ```
 
 <figure markdown>
+
   ![Custom hover text](img/custom_hover_text.png)
   <figcaption>Additional data for a node</figcaption>
 </figure>
 
 ## Custom commands
-Finally, we can use the [`set_custom_command`](public_api.md#numbat.SourcetrailDB.set_custom_command) method to set a user-defined command for each node that can be executed in the node's context menu.
+We can also use the [`set_custom_command`](public_api.md#numbat.SourcetrailDB.set_custom_command) method to set a user-defined command for each node that can be executed in the node's context menu.
 
 A list is used for the command and its arguments, and a brief description can be provided separately. 
 
@@ -127,6 +130,36 @@ db.close()
 
 ```
 <figure markdown>
+
   ![Custom command](img/custom_command.png)
   <figcaption>Custom command at the bottom of the context menu</figcaption>
+</figure>
+
+## File sideloading
+Finally, we can link a file to any node using the [`associate_file_to_node`](public_api.md/#numbat.SourcetrailDB.associate_file_to_node) method. This makes it so that the full content of the file can be displayed when selecting the node, without storing the content directly in the database nor creating an additional node for the file.\
+The sideloaded file is stored in the `[project_name]_files/` directory next to the database.
+
+```python linenums="1" hl_lines="12-13"
+from numbat import SourcetrailDB
+from pathlib import Path
+
+db = SourcetrailDB.open(Path('my_database'), clear=True)
+
+# Add nodes
+class_id = db.record_class(prefix="class", name="MyType",
+                           postfix="():")
+field_id = db.record_field(name="my_member", parent_id=class_id)
+meth_id = db.record_method(name="my_method", parent_id=class_id)
+
+# Sideload file
+db.associate_file_to_node(class_id, Path("file.py"), True)
+
+db.commit()
+db.close()
+
+```
+<figure markdown>
+
+  ![File sideloading](img/file_sideloading.png)
+  <figcaption>Sideloaded file on MyType</figcaption>
 </figure>

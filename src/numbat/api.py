@@ -277,8 +277,8 @@ class SourcetrailDB():
 
         # Add all the edges between nodes
         if len(ids) > 1:
-            parent, children = ids[0], ids[1:]
-            for child in children:
+            for i in range(1, len(ids)):
+                parent, child = ids[i-1], ids[i]
                 elem = Element()
                 elem.id = ElementDAO.new(self.database, elem)
 

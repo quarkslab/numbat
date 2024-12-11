@@ -60,7 +60,8 @@ class SourcetrailDB():
     def __init__(self, database: sqlite3.Connection, path: Path, logger: logging.Logger = None) -> None:
         self.database = database
         self.path = path
-        self.project_directory = str(path.stem) + self.SOURCETRAIL_PROJECT_DIR
+        self.project_dir = self.path.parent
+        self.files_directory = Path(str(path.stem) + self.SOURCETRAIL_PROJECT_DIR)
         if logger is None:
             self.logger = logging.getLogger()
         else:
@@ -111,7 +112,11 @@ class SourcetrailDB():
         path = cls.__uniformize_path(path)
         if not path.exists():
             if path.is_file() or not clear:
-                raise FileNotFoundError('%s not found' % str(path))
+                raise FileNotFoundError("%s not found" % str(path))
+            return cls.create(path)
+
+        if clear:
+            path.unlink(missing_ok=True)
             return cls.create(path)
 
         try:
@@ -154,8 +159,9 @@ class SourcetrailDB():
             project_file = obj.path.with_suffix(cls.SOURCETRAIL_PROJECT_EXT)
             project_file.write_text(cls.SOURCETRAIL_XML)
             # Create project directory
-            obj.project_directory = str(obj.path.stem) + cls.SOURCETRAIL_PROJECT_DIR
-            os.mkdir(obj.project_directory, mode=0o755)
+            obj.project_dir = obj.path.parent
+            obj.files_directory = Path(str(obj.path.stem) + cls.SOURCETRAIL_PROJECT_DIR)
+            Path(obj.project_dir, obj.files_directory).mkdir(mode=0o755, exist_ok=True)
             # Commit change to the database so we don't ended up with a half setup DB if an
             # exceptions is raised before the next commit
             obj.commit()

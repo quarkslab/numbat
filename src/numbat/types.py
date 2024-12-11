@@ -152,7 +152,7 @@ class Edge(Element):
             :param dst: The id of the destination element
             :param hover_display: The display text when hovering over the Edge
         """
- 
+
         super().__init__(id_)
         self.type = type_
         self.src = src
@@ -230,7 +230,7 @@ class Node(Element):
             :param name: The serialized name of the Node
             :param hover_display: The display text when hovering over the Node
         """
- 
+
         super().__init__(id_)
         self.type = type_
         self.name = name
@@ -298,7 +298,7 @@ class Symbol(Element):
             :param id_: The id of the element 
             :param definition: The type of the Symbol
         """
-  
+
         super().__init__(id_)
         self.definition_kind = definition
 
@@ -340,7 +340,7 @@ class File(Element):
             :param complete: A indicate to tell if the indexing is complete or not (0 or 1)
             :param line_count: The number of line in the source file
         """
- 
+
         super().__init__(id_)
         self.path = path
         self.language = language
@@ -375,7 +375,7 @@ class FileContent(Element):
             :param id_: The id of the element 
             :param content: The content of the source file.
         """
- 
+
         super().__init__(id_)
         self.content = content
 
@@ -450,7 +450,7 @@ class LocalSymbol(Element):
             :param id_: The id of the element 
             :param name: The name of local symbol
         """
- 
+
         super().__init__(id_)
         self.name = name
 
@@ -510,7 +510,7 @@ class SourceLocation(Element):
             :param end_column: The line at which the element ends.
             :param type_: The type of the source location.
         """
- 
+
         super().__init__(id_)
         self.file_node_id = file_node_id
         self.start_line = start_line
@@ -546,7 +546,7 @@ class Occurrence(object):
             :param elem_id: The id of the element referenced by this occurrence
             :param source_location_id: The id of the source location referenced by this occurrence
         """
- 
+
         self.element_id = elem_id
         self.source_location_id = source_location_id
 
@@ -594,7 +594,7 @@ class ComponentAccess(object):
             :param node_id: The id of the element 
             :param type_: The type of the ComponentAccess
         """
- 
+
         self.node_id = node_id
         self.type = type_
 
@@ -630,7 +630,7 @@ class Error(Element):
             :param indexed: Indicate if this error occurs while indexing (0 or 1)
             :param translation_unit: Indicate in which translation unit the error occurs
         """
- 
+
         super().__init__(id_)
         self.message = message
         self.fatal = fatal
@@ -654,7 +654,7 @@ class NameElement(object):
             :param name: The name of the element
             :param postfix: The postfix of the element
         """
- 
+
         self._prefix = prefix
         self._name = name
         self._postfix = postfix
@@ -704,7 +704,7 @@ class NameElement(object):
             :param prefix: The new prefix of the element 
             :return: None 
         """
- 
+
         self._prefix = prefix
 
     def set_name(self, name: str) -> None:

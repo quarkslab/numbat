@@ -16,28 +16,60 @@
 
 """Public API of Numbat. Allow to create and manipulate Sourcetrail DB"""
 
+import hashlib
 import logging
 import os
-import sqlite3
 import shutil
-import hashlib
+import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from .types import ComponentAccess, ComponentAccessType, Element, \
-    ElementComponent, ElementComponentType, Edge, \
-    EdgeType, Node, NodeType, NodeDisplay, Symbol, SymbolType, File, FileContent, \
-    NodeFile, LocalSymbol, SourceLocation, SourceLocationType, Occurrence, Error, \
-    NameElement, NameHierarchy
-
-from .db import ComponentAccessDAO, EdgeDAO, ElementComponentDAO, FileDAO, \
-    ElementDAO, ErrorDAO, FileContentDAO, NodeFileDAO, LocalSymbolDAO, MetaDAO, \
-    NodeDAO, NodeTypeDAO, OccurrenceDAO, SourceLocationDAO, SqliteHelper, SymbolDAO
-
+from .db import (
+    ComponentAccessDAO,
+    EdgeDAO,
+    ElementComponentDAO,
+    FileDAO,
+    ElementDAO,
+    ErrorDAO,
+    FileContentDAO,
+    NodeFileDAO,
+    LocalSymbolDAO,
+    MetaDAO,
+    NodeDAO,
+    NodeTypeDAO,
+    OccurrenceDAO,
+    SourceLocationDAO,
+    SqliteHelper,
+    SymbolDAO,
+)
 from .exceptions import NoDatabaseOpen, NumbatException
+from .types import (
+    ComponentAccess,
+    ComponentAccessType,
+    Element,
+    ElementComponent,
+    ElementComponentType,
+    Edge,
+    EdgeType,
+    Node,
+    NodeType,
+    NodeDisplay,
+    Symbol,
+    SymbolType,
+    File,
+    FileContent,
+    NodeFile,
+    LocalSymbol,
+    SourceLocation,
+    SourceLocationType,
+    Occurrence,
+    Error,
+    NameElement,
+    NameHierarchy,
+)
 
 
-class SourcetrailDB():
+class SourcetrailDB:
     """
     This class implement a wrapper to Sourcetrail internal database,
     it is able to create, edit and delete the underlying sqlite3
@@ -45,17 +77,14 @@ class SourcetrailDB():
     """
 
     # Sourcetrail files extension
-    SOURCETRAIL_PROJECT_EXT = '.srctrlprj'
-    SOURCETRAIL_DB_EXT = '.srctrldb'
+    SOURCETRAIL_PROJECT_EXT = ".srctrlprj"
+    SOURCETRAIL_DB_EXT = ".srctrldb"
     # Project directory for sideloaded files
-    SOURCETRAIL_PROJECT_DIR = '_files/'
+    SOURCETRAIL_PROJECT_DIR = "_files/"
 
-    SOURCETRAIL_XML = '\n'.join([
-        '<?xml version="1.0" encoding="utf-8" ?>',
-        '<config>',
-        '   <version>0</version>',
-        '</config>'
-    ])
+    SOURCETRAIL_XML = "\n".join(
+        ['<?xml version="1.0" encoding="utf-8" ?>', "<config>", "   <version>0</version>", "</config>"]
+    )
 
     def __init__(self, database: sqlite3.Connection, path: Path, logger: logging.Logger = None) -> None:
         self.database = database
@@ -101,7 +130,7 @@ class SourcetrailDB():
         return path.exists()
 
     @classmethod
-    def open(cls, path: Path | str, clear: bool = False) -> 'SourcetrailDB':
+    def open(cls, path: Path | str, clear: bool = False) -> "SourcetrailDB":
         """
         This method allow to open an existing sourcetrail database
 
@@ -126,14 +155,10 @@ class SourcetrailDB():
 
         obj = SourcetrailDB(database, path)
 
-        if clear:
-            # Clear the database if the user ask to
-            obj.clear()
-
         return obj
 
     @classmethod
-    def create(cls, path: Path | str) -> 'SourcetrailDB':
+    def create(cls, path: Path | str) -> "SourcetrailDB":
         """
         This method allow to create a sourcetrail database
 
@@ -142,7 +167,7 @@ class SourcetrailDB():
         """
         path = cls.__uniformize_path(path)
         if path.exists():
-            raise FileExistsError('%s already exists' % str(path))
+            raise FileExistsError("%s already exists" % str(path))
 
         try:
             database = SqliteHelper.connect(str(path))
@@ -153,8 +178,8 @@ class SourcetrailDB():
         try:
             obj.__create_sql_tables()
             # add metadata in db
-            MetaDAO.new(obj.database, 'storage_version', '25')
-            MetaDAO.new(obj.database, 'project_settings', obj.SOURCETRAIL_XML)
+            MetaDAO.new(obj.database, "storage_version", "25")
+            MetaDAO.new(obj.database, "project_settings", obj.SOURCETRAIL_XML)
             # Create Sourcetrail Project file
             project_file = obj.path.with_suffix(cls.SOURCETRAIL_PROJECT_EXT)
             project_file.write_text(cls.SOURCETRAIL_XML)
@@ -266,12 +291,7 @@ class SourcetrailDB():
             elem = Element()
             elem.id = ElementDAO.new(self.database, elem)
 
-            NodeDAO.new(self.database, Node(
-                elem.id,
-                type_,
-                name,
-                hover_display
-            ))
+            NodeDAO.new(self.database, Node(elem.id, type_, name, hover_display))
 
             self.name_cache[name] = elem.id
             return elem.id
@@ -291,25 +311,18 @@ class SourcetrailDB():
 
         # Add all the nodes needed
         for i in range(0, hierarchy.size()):
-            ids.append(self.__add_if_not_existing(
-                hierarchy.serialize_range(0, i + 1),
-                NodeType.NODE_SYMBOL,
-                hover_display
-            ))
+            ids.append(
+                self.__add_if_not_existing(hierarchy.serialize_range(0, i + 1), NodeType.NODE_SYMBOL, hover_display)
+            )
 
         # Add all the edges between nodes
         if len(ids) > 1:
             for i in range(1, len(ids)):
-                parent, child = ids[i-1], ids[i]
+                parent, child = ids[i - 1], ids[i]
                 elem = Element()
                 elem.id = ElementDAO.new(self.database, elem)
 
-                EdgeDAO.new(self.database, Edge(
-                    elem.id,
-                    EdgeType.MEMBER,
-                    parent,
-                    child
-                ))
+                EdgeDAO.new(self.database, Edge(elem.id, EdgeType.MEMBER, parent, child))
 
                 # Return the id of the last inserted elements
         return ids[-1]
@@ -365,15 +378,17 @@ class SourcetrailDB():
     #                                 NODES                                            #
     ####################################################################################
 
-    def __full_record_node(self,
-                           name: str,
-                           prefix: str,
-                           postfix: str,
-                           delimiter: str,
-                           parent_id: int | None,
-                           is_indexed: bool,
-                           type_: NodeType,
-                           hover_display: str) -> int | None:
+    def __full_record_node(
+            self,
+            name: str,
+            prefix: str,
+            postfix: str,
+            delimiter: str,
+            parent_id: int | None,
+            is_indexed: bool,
+            type_: NodeType,
+            hover_display: str,
+    ) -> int | None:
         """
         Internal function which will be wrapped by all the record_XX methods
         where XX is a node type (class, method, field, etc.). It creates the
@@ -402,9 +417,9 @@ class SourcetrailDB():
                 return
             hierarchy = NameHierarchy.deserialize_name(node.name)
             hierarchy.extend(name_element)
-            obj_id = self._record_symbol(hierarchy,hover_display)
+            obj_id = self._record_symbol(hierarchy, hover_display)
         else:
-            obj_id = self._record_symbol(NameHierarchy(delimiter, [name_element]),hover_display)
+            obj_id = self._record_symbol(NameHierarchy(delimiter, [name_element]), hover_display)
 
         if obj_id:
             self._record_symbol_kind(obj_id, type_)
@@ -412,14 +427,16 @@ class SourcetrailDB():
                 self._record_symbol_definition_kind(obj_id, SymbolType.EXPLICIT)
             return obj_id
 
-    def record_symbol_node(self,
-                           name: str = '',
-                           prefix: str = '',
-                           postfix: str = '',
-                           delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                           parent_id: int = None,
-                           is_indexed: bool = True,
-                           hover_display: str = '') -> int | None:
+    def record_symbol_node(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a "SYMBOL" symbol into the DB
 
@@ -434,17 +451,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_SYMBOL, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_SYMBOL, hover_display
+        )
 
-    def record_type_node(self,
-                         name: str = '',
-                         prefix: str = '',
-                         postfix: str = '',
-                         delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                         parent_id: int = None,
-                         is_indexed: bool = True,
-                         hover_display: str = '') -> int | None:
+    def record_type_node(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a TYPE symbol into the DB
 
@@ -459,17 +479,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_TYPE, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_TYPE, hover_display
+        )
 
-    def record_buitin_type_node(self,
-                                name: str = '',
-                                prefix: str = '',
-                                postfix: str = '',
-                                delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                                parent_id: int = None,
-                                is_indexed: bool = True,
-                                hover_display: str = '') -> int | None:
+    def record_buitin_type_node(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a BUILTIN_TYPE symbol into the DB
 
@@ -484,17 +507,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_BUILTIN_TYPE, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_BUILTIN_TYPE, hover_display
+        )
 
-    def record_module(self,
-                      name: str = '',
-                      prefix: str = '',
-                      postfix: str = '',
-                      delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                      parent_id: int = None,
-                      is_indexed: bool = True,
-                      hover_display: str = '') -> int | None:
+    def record_module(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a MODULE symbol into the DB
 
@@ -509,17 +535,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_MODULE, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_MODULE, hover_display
+        )
 
-    def record_namespace(self,
-                         name: str = '',
-                         prefix: str = '',
-                         postfix: str = '',
-                         delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                         parent_id: int = None,
-                         is_indexed: bool = True,
-                         hover_display: str = '') -> int | None:
+    def record_namespace(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a NAMESPACE symbol into the DB
 
@@ -534,17 +563,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_NAMESPACE, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_NAMESPACE, hover_display
+        )
 
-    def record_package(self,
-                       name: str = '',
-                       prefix: str = '',
-                       postfix: str = '',
-                       delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                       parent_id: int = None,
-                       is_indexed: bool = True,
-                       hover_display: str = '') -> int | None:
+    def record_package(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a PACKAGE symbol into the DB
 
@@ -559,17 +591,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_PACKAGE, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_PACKAGE, hover_display
+        )
 
-    def record_struct(self,
-                      name: str = '',
-                      prefix: str = '',
-                      postfix: str = '',
-                      delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                      parent_id: int = None,
-                      is_indexed: bool = True,
-                      hover_display: str = '') -> int | None:
+    def record_struct(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a STRUCT symbol into the DB
 
@@ -584,17 +619,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_STRUCT, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_STRUCT, hover_display
+        )
 
-    def record_class(self,
-                     name: str = '',
-                     prefix: str = '',
-                     postfix: str = '',
-                     delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                     parent_id: int = None,
-                     is_indexed: bool = True,
-                     hover_display: str = '') -> int | None:
+    def record_class(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a CLASS symbol into the DB
 
@@ -609,17 +647,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_CLASS, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_CLASS, hover_display
+        )
 
-    def record_interface(self,
-                         name: str = '',
-                         prefix: str = '',
-                         postfix: str = '',
-                         delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                         parent_id: int = None,
-                         is_indexed: bool = True,
-                         hover_display: str = '') -> int | None:
+    def record_interface(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a INTERFACE symbol into the DB
 
@@ -634,17 +675,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_INTERFACE, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_INTERFACE, hover_display
+        )
 
-    def record_annotation(self,
-                          name: str = '',
-                          prefix: str = '',
-                          postfix: str = '',
-                          delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                          parent_id: int = None,
-                          is_indexed: bool = True,
-                          hover_display: str = '') -> int | None:
+    def record_annotation(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a ANNOTATION symbol into the DB
 
@@ -659,17 +703,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_ANNOTATION, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_ANNOTATION, hover_display
+        )
 
-    def record_global_variable(self,
-                               name: str = '',
-                               prefix: str = '',
-                               postfix: str = '',
-                               delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                               parent_id: int = None,
-                               is_indexed: bool = True,
-                               hover_display: str = '') -> int | None:
+    def record_global_variable(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a GLOBAL_VARIABLE symbol into the DB
 
@@ -684,17 +731,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_GLOBAL_VARIABLE, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_GLOBAL_VARIABLE, hover_display
+        )
 
-    def record_field(self,
-                     name: str = '',
-                     prefix: str = '',
-                     postfix: str = '',
-                     delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                     parent_id: int = None,
-                     is_indexed: bool = True,
-                     hover_display: str = '') -> int | None:
+    def record_field(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a FIELD symbol into the DB
 
@@ -709,17 +759,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_FIELD, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_FIELD, hover_display
+        )
 
-    def record_function(self,
-                        name: str = '',
-                        prefix: str = '',
-                        postfix: str = '',
-                        delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                        parent_id: int = None,
-                        is_indexed: bool = True,
-                        hover_display: str = '') -> int | None:
+    def record_function(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a FUNCTION symbol into the DB
 
@@ -734,17 +787,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_FUNCTION, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_FUNCTION, hover_display
+        )
 
-    def record_method(self,
-                      name: str = '',
-                      prefix: str = '',
-                      postfix: str = '',
-                      delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                      parent_id: int = None,
-                      is_indexed: bool = True,
-                      hover_display: str = '') -> int | None:
+    def record_method(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a METHOD symbol into the DB
 
@@ -759,17 +815,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_METHOD, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_METHOD, hover_display
+        )
 
-    def record_enum(self,
-                    name: str = '',
-                    prefix: str = '',
-                    postfix: str = '',
-                    delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                    parent_id: int = None,
-                    is_indexed: bool = True,
-                    hover_display: str = '') -> int | None:
+    def record_enum(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a ENUM symbol into the DB
 
@@ -784,17 +843,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_ENUM, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_ENUM, hover_display
+        )
 
-    def record_enum_constant(self,
-                             name: str = '',
-                             prefix: str = '',
-                             postfix: str = '',
-                             delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                             parent_id: int = None,
-                             is_indexed: bool = True,
-                             hover_display: str = '') -> int | None:
+    def record_enum_constant(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a ENUM_CONSTANT symbol into the DB
 
@@ -809,17 +871,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_ENUM_CONSTANT, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_ENUM_CONSTANT, hover_display
+        )
 
-    def record_typedef_node(self,
-                            name: str = '',
-                            prefix: str = '',
-                            postfix: str = '',
-                            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                            parent_id: int = None,
-                            is_indexed: bool = True,
-                            hover_display: str = '') -> int | None:
+    def record_typedef_node(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a TYPEDEF symbol into the DB
 
@@ -834,17 +899,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_TYPEDEF, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_TYPEDEF, hover_display
+        )
 
-    def record_type_parameter_node(self,
-                                   name: str = '',
-                                   prefix: str = '',
-                                   postfix: str = '',
-                                   delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                                   parent_id: int = None,
-                                   is_indexed: bool = True,
-                                   hover_display: str = '') -> int | None:
+    def record_type_parameter_node(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a TYPE_PARAMETER symbol into the DB
 
@@ -859,17 +927,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_TYPE_PARAMETER, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_TYPE_PARAMETER, hover_display
+        )
 
-    def record_macro(self,
-                     name: str = '',
-                     prefix: str = '',
-                     postfix: str = '',
-                     delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                     parent_id: int = None,
-                     is_indexed: bool = True,
-                     hover_display: str = '') -> int | None:
+    def record_macro(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a MACRO symbol into the DB
 
@@ -884,17 +955,20 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_MACRO, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_MACRO, hover_display
+        )
 
-    def record_union(self,
-                     name: str = '',
-                     prefix: str = '',
-                     postfix: str = '',
-                     delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
-                     parent_id: int = None,
-                     is_indexed: bool = True,
-                     hover_display: str = '') -> int | None:
+    def record_union(
+            self,
+            name: str = "",
+            prefix: str = "",
+            postfix: str = "",
+            delimiter: str = NameHierarchy.NAME_DELIMITER_CXX,
+            parent_id: int = None,
+            is_indexed: bool = True,
+            hover_display: str = "",
+    ) -> int | None:
         """
         Record a UNION symbol into the DB
 
@@ -909,8 +983,9 @@ class SourcetrailDB():
         :return: The identifier of the new class or None if it could not be inserted
         """
 
-        return self.__full_record_node(name, prefix, postfix, delimiter,
-                                       parent_id, is_indexed, NodeType.NODE_UNION, hover_display)
+        return self.__full_record_node(
+            name, prefix, postfix, delimiter, parent_id, is_indexed, NodeType.NODE_UNION, hover_display
+        )
 
     def _record_access_specifier(self, symbol_id: int, access: ComponentAccessType) -> None:
         """
@@ -1048,7 +1123,15 @@ class SourcetrailDB():
                 hover_display = NodeTypeDAO.get_by_id(self.database, node_type).hover_display
             NodeTypeDAO.update(self.database, NodeDisplay(node_type, graph_display, hover_display))
 
-    def change_node_color(self, node_id: int, fill_color: str = "default", border_color: str = "default", text_color: str = "default", icon_color: str = "default", hatching_color: str = "default") -> None:
+    def change_node_color(
+            self,
+            node_id: int,
+            fill_color: str = "default",
+            border_color: str = "default",
+            text_color: str = "default",
+            icon_color: str = "default",
+            hatching_color: str = "default",
+    ) -> None:
         """
         Change the color of a node
 
@@ -1062,7 +1145,9 @@ class SourcetrailDB():
         :return: None
         """
 
-        NodeDAO.set_color(self.database, node_id, ' '.join([fill_color, border_color, text_color, icon_color, hatching_color]))
+        NodeDAO.set_color(
+            self.database, node_id, " ".join([fill_color, border_color, text_color, icon_color, hatching_color])
+        )
 
     def change_edge_color(self, edge_id: int, color: str) -> None:
         """
@@ -1086,7 +1171,7 @@ class SourcetrailDB():
         """
         if type(command) != list:
             raise TypeError("Custom command must be a list containing its argument vector")
-        NodeDAO.set_custom_command(self.database, node_id, ('\t'.join(command), description))
+        NodeDAO.set_custom_command(self.database, node_id, ("\t".join(command), description))
 
     def associate_file_to_node(self, node_id: int, file: Path, display_content: bool) -> None:
         """
@@ -1108,14 +1193,15 @@ class SourcetrailDB():
                     break
                 sha256.update(data)
         hash = sha256.hexdigest()
-        dest = str(self.project_directory) + hash
+        file_path = f"{self.files_directory}/{hash}"
+        dest = f"{self.project_dir}/{file_path}"
 
         # copy file if not exists
         if not Path(dest).exists():
             shutil.copy2(file, dest)
         # associate node and file
-        NodeFileDAO.new(self.database, NodeFile(node_id, dest, display_content))
-        
+        NodeFileDAO.new(self.database, NodeFile(node_id, file_path, display_content))
+
     ####################################################################################
     #                               REFERENCES                                         #
     ####################################################################################
@@ -1139,7 +1225,7 @@ class SourcetrailDB():
 
         return elem.id
 
-    def record_ref_member(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
+    def record_ref_member(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """
         Add a member reference (aka an edge) between two elements
 
@@ -1150,7 +1236,7 @@ class SourcetrailDB():
         """
         return self._record_reference(source_id, dest_id, EdgeType.MEMBER, hover_display)
 
-    def record_ref_type_usage(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
+    def record_ref_type_usage(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """
         Add a TYPE_USAGE reference (aka an edge) between two elements
 
@@ -1161,7 +1247,7 @@ class SourcetrailDB():
         """
         return self._record_reference(source_id, dest_id, EdgeType.TYPE_USAGE, hover_display)
 
-    def record_ref_usage(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
+    def record_ref_usage(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """
         Add a USAGE reference (aka an edge) between two elements
 
@@ -1172,7 +1258,7 @@ class SourcetrailDB():
         """
         return self._record_reference(source_id, dest_id, EdgeType.USAGE, hover_display)
 
-    def record_ref_call(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
+    def record_ref_call(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """
         Add a CALL reference (aka an edge) between two elements
 
@@ -1183,7 +1269,7 @@ class SourcetrailDB():
         """
         return self._record_reference(source_id, dest_id, EdgeType.CALL, hover_display)
 
-    def record_ref_inheritance(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
+    def record_ref_inheritance(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """
         Add an INHERITANCE reference (aka an edge) between two elements
 
@@ -1194,7 +1280,7 @@ class SourcetrailDB():
         """
         return self._record_reference(source_id, dest_id, EdgeType.INHERITANCE, hover_display)
 
-    def record_ref_override(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
+    def record_ref_override(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """
         Add an OVERRIDE reference (aka an edge) between two elements
 
@@ -1205,7 +1291,7 @@ class SourcetrailDB():
         """
         return self._record_reference(source_id, dest_id, EdgeType.OVERRIDE, hover_display)
 
-    def record_ref_type_argument(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
+    def record_ref_type_argument(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """
         Add a TYPE_ARGUMENT reference (aka an edge) between two elements
 
@@ -1216,7 +1302,7 @@ class SourcetrailDB():
         """
         return self._record_reference(source_id, dest_id, EdgeType.TYPE_ARGUMENT, hover_display)
 
-    def record_ref_template_specialization(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
+    def record_ref_template_specialization(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """
         Add a TEMPLATE_SPECIALIZATION reference (aka an edge) between two elements
 
@@ -1227,7 +1313,7 @@ class SourcetrailDB():
         """
         return self._record_reference(source_id, dest_id, EdgeType.TEMPLATE_SPECIALIZATION, hover_display)
 
-    def record_ref_include(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
+    def record_ref_include(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """
         Add an INCLUDE reference (aka an edge) between two elements
 
@@ -1238,7 +1324,7 @@ class SourcetrailDB():
         """
         return self._record_reference(source_id, dest_id, EdgeType.INCLUDE, hover_display)
 
-    def record_ref_import(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
+    def record_ref_import(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """
         Add an import reference (aka an edge) between two elements
 
@@ -1249,7 +1335,7 @@ class SourcetrailDB():
         """
         return self._record_reference(source_id, dest_id, EdgeType.IMPORT, hover_display)
 
-    def record_ref_bundled_edges(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
+    def record_ref_bundled_edges(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """
         Add a BUNDLED_EDGES reference (aka an edge) between two elements
 
@@ -1260,7 +1346,7 @@ class SourcetrailDB():
         """
         return self._record_reference(source_id, dest_id, EdgeType.BUNDLED_EDGES, hover_display)
 
-    def record_ref_macro_usage(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
+    def record_ref_macro_usage(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """
         Add a MACRO_USAGE reference (aka an edge) between two elements
 
@@ -1271,7 +1357,7 @@ class SourcetrailDB():
         """
         return self._record_reference(source_id, dest_id, EdgeType.MACRO_USAGE, hover_display)
 
-    def record_ref_annotation_usage(self, source_id: int, dest_id: int, hover_display: str = '') -> int:
+    def record_ref_annotation_usage(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """
         Add an ANNOTATION_USAGE reference (aka an edge) between two elements
 
@@ -1282,9 +1368,17 @@ class SourcetrailDB():
         """
         return self._record_reference(source_id, dest_id, EdgeType.ANNOTATION_USAGE, hover_display)
 
-    def record_reference_to_unsolved_symbol(self, symbol_id: int, reference_type: EdgeType,
-                                            file_id: int, start_line: int, start_column: int, end_line: int,
-                                            end_column: int, hover_display: str = '') -> int:
+    def record_reference_to_unsolved_symbol(
+            self,
+            symbol_id: int,
+            reference_type: EdgeType,
+            file_id: int,
+            start_line: int,
+            start_column: int,
+            end_line: int,
+            end_column: int,
+            hover_display: str = "",
+    ) -> int:
         """
         Record a reference to an unsolved symbol.
 
@@ -1300,39 +1394,22 @@ class SourcetrailDB():
         """
 
         # Don't blame me, it's done like this in sourcetrail source code
-        hierarchy = NameHierarchy(
-            NameHierarchy.NAME_DELIMITER_UNKNOWN,
-            [NameElement(
-                '',
-                'unsolved symbol',
-                ''
-            )]
-        )
+        hierarchy = NameHierarchy(NameHierarchy.NAME_DELIMITER_UNKNOWN, [NameElement("", "unsolved symbol", "")])
 
         # Insert the new node
-        unsolved_symbol_id = self._record_symbol(hierarchy,'')
+        unsolved_symbol_id = self._record_symbol(hierarchy, "")
 
         # Add a new edge
         elem = Element()
         elem.id = ElementDAO.new(self.database, elem)
 
-        reference_id = EdgeDAO.new(self.database, Edge(
-            elem.id,
-            reference_type,
-            symbol_id,
-            unsolved_symbol_id,
-            hover_display
-        ))
+        reference_id = EdgeDAO.new(
+            self.database, Edge(elem.id, reference_type, symbol_id, unsolved_symbol_id, hover_display)
+        )
 
         # Add the new source location
         self.__record_source_location(
-            reference_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.UNSOLVED
+            reference_id, file_id, start_line, start_column, end_line, end_column, SourceLocationType.UNSOLVED
         )
 
         # Return edge id
@@ -1347,18 +1424,13 @@ class SourcetrailDB():
         :return: None
         """
 
-        ElementComponentDAO.new(self.database, ElementComponent(
-            0,
-            reference_id,
-            ElementComponentType.IS_AMBIGUOUS,
-            ''
-        ))
+        ElementComponentDAO.new(self.database, ElementComponent(0, reference_id, ElementComponentType.IS_AMBIGUOUS, ""))
 
     ####################################################################################
     #                           SOURCE CODE MANIPULATION                               #
     ####################################################################################
 
-    def record_file(self, path: Path, indexed: bool = True, hover_display: str = '') -> int:
+    def record_file(self, path: Path, indexed: bool = True, hover_display: str = "") -> int:
         """
         Record a source file in the database
 
@@ -1371,33 +1443,20 @@ class SourcetrailDB():
 
         if not path.exists() or not path.is_file():
             raise FileNotFoundError()
-        
+
         # Create a new name hierarchy
-        hierarchy = NameHierarchy(
-            NameHierarchy.NAME_DELIMITER_FILE,
-            [NameElement(
-                '',
-                str(path.absolute()),
-                ''
-            )]
-        )
+        hierarchy = NameHierarchy(NameHierarchy.NAME_DELIMITER_FILE, [NameElement("", str(path.absolute()), "")])
 
         # Retrieve the modification date in the correct format
-        modification_time = datetime.fromtimestamp(
-            os.path.getmtime(path)
-        ).strftime("%Y-%m-%d %H:%M:%S")
+        modification_time = datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d %H:%M:%S")
 
         # Read the file
         lines = []
         if indexed:
-            lines = open(path, 'r').readlines()
+            lines = open(path, "r").readlines()
 
         # Insert a new node
-        elem_id = self.__add_if_not_existing(
-            hierarchy.serialize_name(),
-            NodeType.NODE_FILE,
-            hover_display
-        )
+        elem_id = self.__add_if_not_existing(hierarchy.serialize_name(), NodeType.NODE_FILE, hover_display)
 
         # Insert a new file
         FileDAO.new(
@@ -1405,30 +1464,27 @@ class SourcetrailDB():
             File(
                 elem_id,
                 str(path.absolute()),
-                '',  # Empty language identifier for now
+                "",  # Empty language identifier for now
                 modification_time,
                 indexed,
                 True,
-                len(lines)
-            )
+                len(lines),
+            ),
         )
 
         if indexed:
             # Insert a new filecontent
-            FileContentDAO.new(
-                self.database,
-                FileContent(elem_id, ''.join(lines))
-            )
+            FileContentDAO.new(self.database, FileContent(elem_id, "".join(lines)))
 
         # Return the newly created element id
         return elem_id
 
     def record_file_language(self, id_: int, language: str) -> None:
         """
-            Set the language of an existing file inside the database
-            :param id_: The identifier of the file
-            :param language: A string that indicate the programming language of the file
-            :return: None
+        Set the language of an existing file inside the database
+        :param id_: The identifier of the file
+        :param language: A string that indicate the programming language of the file
+        :return: None
         """
 
         file = FileDAO.get(self.database, id_)
@@ -1436,9 +1492,16 @@ class SourcetrailDB():
             file.language = language
             FileDAO.update(self.database, file)
 
-    def __record_source_location(self, symbol_id: int, file_id: int,
-                                 start_line: int, start_column: int, end_line: int, end_column: int,
-                                 type_: SourceLocationType) -> None:
+    def __record_source_location(
+            self,
+            symbol_id: int,
+            file_id: int,
+            start_line: int,
+            start_column: int,
+            end_line: int,
+            end_column: int,
+            type_: SourceLocationType,
+    ) -> None:
         """
         Wrapper for all the record_*_location
 
@@ -1453,23 +1516,16 @@ class SourcetrailDB():
         """
 
         # First add a new source location entry
-        loc_id = SourceLocationDAO.new(self.database, SourceLocation(
-            0,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            type_
-        ))
+        loc_id = SourceLocationDAO.new(
+            self.database, SourceLocation(0, file_id, start_line, start_column, end_line, end_column, type_)
+        )
 
         # Now add an occurrence that refer to this location
-        OccurrenceDAO.new(self.database, Occurrence(
-            symbol_id, loc_id
-        ))
+        OccurrenceDAO.new(self.database, Occurrence(symbol_id, loc_id))
 
-    def record_symbol_location(self, symbol_id: int, file_id: int, start_line: int,
-                               start_column: int, end_line: int, end_column: int) -> None:
+    def record_symbol_location(
+            self, symbol_id: int, file_id: int, start_line: int, start_column: int, end_line: int, end_column: int
+    ) -> None:
         """
         Record a new source location of type TOKEN
 
@@ -1483,17 +1539,12 @@ class SourcetrailDB():
         """
 
         self.__record_source_location(
-            symbol_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.TOKEN
+            symbol_id, file_id, start_line, start_column, end_line, end_column, SourceLocationType.TOKEN
         )
 
-    def record_symbol_scope_location(self, symbol_id: int, file_id: int, start_line: int,
-                                     start_column: int, end_line: int, end_column: int) -> None:
+    def record_symbol_scope_location(
+            self, symbol_id: int, file_id: int, start_line: int, start_column: int, end_line: int, end_column: int
+    ) -> None:
         """
         Record a new source location of type SCOPE
 
@@ -1507,17 +1558,12 @@ class SourcetrailDB():
         """
 
         self.__record_source_location(
-            symbol_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.SCOPE
+            symbol_id, file_id, start_line, start_column, end_line, end_column, SourceLocationType.SCOPE
         )
 
-    def record_symbol_signature_location(self, symbol_id: int, file_id: int, start_line: int,
-                                         start_column: int, end_line: int, end_column: int) -> None:
+    def record_symbol_signature_location(
+            self, symbol_id: int, file_id: int, start_line: int, start_column: int, end_line: int, end_column: int
+    ) -> None:
         """
         Record a new source location of type SCOPE
 
@@ -1531,17 +1577,12 @@ class SourcetrailDB():
         """
 
         self.__record_source_location(
-            symbol_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.SIGNATURE
+            symbol_id, file_id, start_line, start_column, end_line, end_column, SourceLocationType.SIGNATURE
         )
 
-    def record_reference_location(self, reference_id: int, file_id: int, start_line: int,
-                                  start_column: int, end_line: int, end_column: int) -> None:
+    def record_reference_location(
+            self, reference_id: int, file_id: int, start_line: int, start_column: int, end_line: int, end_column: int
+    ) -> None:
         """
         Record a new reference location of type TOKEN
 
@@ -1555,17 +1596,12 @@ class SourcetrailDB():
         """
 
         self.__record_source_location(
-            reference_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.TOKEN
+            reference_id, file_id, start_line, start_column, end_line, end_column, SourceLocationType.TOKEN
         )
 
-    def record_qualifier_location(self, symbol_id: int, file_id: int, start_line: int,
-                                  start_column: int, end_line: int, end_column: int) -> None:
+    def record_qualifier_location(
+            self, symbol_id: int, file_id: int, start_line: int, start_column: int, end_line: int, end_column: int
+    ) -> None:
         """
         Record a new source location of type QUALIFIER
 
@@ -1579,13 +1615,7 @@ class SourcetrailDB():
         """
 
         self.__record_source_location(
-            symbol_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.QUALIFIER
+            symbol_id, file_id, start_line, start_column, end_line, end_column, SourceLocationType.QUALIFIER
         )
 
     def record_local_symbol(self, name: str) -> int:
@@ -1607,8 +1637,9 @@ class SourcetrailDB():
 
         return local.id
 
-    def record_local_symbol_location(self, symbol_id: int, file_id: int, start_line: int,
-                                     start_column: int, end_line: int, end_column: int) -> None:
+    def record_local_symbol_location(
+            self, symbol_id: int, file_id: int, start_line: int, start_column: int, end_line: int, end_column: int
+    ) -> None:
         """
         Record a new source location of type LOCAL_SYMBOL
 
@@ -1622,17 +1653,12 @@ class SourcetrailDB():
         """
 
         self.__record_source_location(
-            symbol_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.LOCAL_SYMBOL
+            symbol_id, file_id, start_line, start_column, end_line, end_column, SourceLocationType.LOCAL_SYMBOL
         )
 
-    def record_atomic_source_range(self, symbol_id: int, file_id: int, start_line: int,
-                                   start_column: int, end_line: int, end_column: int) -> None:
+    def record_atomic_source_range(
+            self, symbol_id: int, file_id: int, start_line: int, start_column: int, end_line: int, end_column: int
+    ) -> None:
         """
         Record a new source location of type ATOMIC_RANGE
 
@@ -1643,20 +1669,16 @@ class SourcetrailDB():
         :param end_line: The line at which the element ends.
         :param end_column: The line at which the element ends.
         :return: None
-    """
+        """
 
         self.__record_source_location(
-            symbol_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.ATOMIC_RANGE
+            symbol_id, file_id, start_line, start_column, end_line, end_column, SourceLocationType.ATOMIC_RANGE
         )
 
-    def record_error(self, msg: str, fatal: bool, file_id: int, start_line: int,
-                     start_column: int, end_line: int, end_column: int) -> None:
+    def record_error(
+            self, msg: str, fatal: bool, file_id: int, start_line: int, start_column: int, end_line: int,
+            end_column: int
+    ) -> None:
         """
         Record a new indexer error in the database
 
@@ -1674,19 +1696,7 @@ class SourcetrailDB():
         elem = Element()
         elem.id = ElementDAO.new(self.database, elem)
 
-        error_id = ErrorDAO.new(self.database, Error(
-            elem.id,
-            msg,
-            fatal,
-            True,
-            ''
-        ))
+        error_id = ErrorDAO.new(self.database, Error(elem.id, msg, fatal, True, ""))
         self.__record_source_location(
-            error_id,
-            file_id,
-            start_line,
-            start_column,
-            end_line,
-            end_column,
-            SourceLocationType.INDEXER_ERROR
+            error_id, file_id, start_line, start_column, end_line, end_column, SourceLocationType.INDEXER_ERROR
         )

@@ -14,18 +14,22 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+
 class NumbatException(Exception):
     pass
+
 
 class SerializeException(NumbatException):
     pass
 
+
 class DeserializeException(NumbatException):
     pass
+
 
 class AlreadyOpenDatabase(NumbatException):
     pass
 
+
 class NoDatabaseOpen(NumbatException):
     pass
-

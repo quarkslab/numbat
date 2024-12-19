@@ -23,7 +23,7 @@ jobs:
         run: python -m build
       - uses: actions/upload-artifact@v4
         with:
-          name: artifact
+          name: artifact_${{ matrix.python-version }}
           path: |
             dist/numbat*.whl
             dist/*.tar.gz
@@ -31,12 +31,15 @@ jobs:
   upload_pypi:
     needs: build_wheel_and_sdist
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.10", "3.11", "3.12", "3.13" ]
     steps:
       - uses: actions/download-artifact@v4
         with:
           # unpacks default artifact into dist/
           # if `name: artifact` is omitted, the action will create extra parent dir
-          name: artifact
+          name: artifact_${{ matrix.python-version }}
           path: dist
 
       - name: Publish a Python distribution to PyPI

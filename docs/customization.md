@@ -1,6 +1,9 @@
 # Customization
 Numbat also offers a few customization options, mostly to help with mapping data other than source code.
 
+!!! warning
+    These features can only be viewable with [NumbatUI](https://github.com/quarkslab/NumbatUI), Quarkslab fork of Sourcetrail, which is currently work in progress and really unstable. 
+
 ## Custom node types
 Non-source code data might not fit in any of the existing node types, so we can use the [`set_node_type`](public_api.md#numbat.SourcetrailDB.set_node_type) function to change them to types that are more adapted.
 

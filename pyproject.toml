@@ -22,7 +22,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'numbat'
-version='0.2.1'
+version='0.2.2'
 authors = [
     {name = 'Eloïse Brocas', email = 'ebrocas@quarkslab.com'},
     {name = 'Sami Babigeon', email = 'sbabigeon@quarkslab.com'},

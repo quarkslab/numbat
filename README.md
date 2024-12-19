@@ -7,7 +7,7 @@ explorer which allows users to navigate through the different components (functi
 
 Numbat main goal is to offer a full-python SDK given the fact that the current one, SourcetrailDB cannot be used anymore efficiently. It is not user-friendly at first sight, need to be compiled to provide Python bindings and, moreover, it is no longer maintained. Finally, we have added some little new features as finding an element in the database.
 
-With Numbat, you will be able to visualize your data quickly with the nice graphical Sourcetrail interface. For example, [Pyrrha](https://github.com/quarkslab/pyrrha) uses Numbat to map firmware structure.
+With Numbat, you will be able to visualize your data quickly with the nice graphical Sourcetrail interface. For example, [Pyrrha](https://quarkslab.github.io/pyrrha/) uses Numbat to map firmware structure.
 
 
 
@@ -76,8 +76,13 @@ db.commit()
 db.close()
 ```
 
-## Authors
+## Authors & Maintainers
+
+### Current
 - Sami Babigeon (@sbabigeon), Quarkslab
 - Eloïse Brocas (@ebrocas), Quarkslab
+
+### Past
+- Pascal Wu (@pwu42), during his internship at Quarkslab
 
 The logo is a creation of Benoît Forgette and Sami Babigeon.

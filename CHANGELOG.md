@@ -1,3 +1,14 @@
+## v0.2.2—Graph Customization Features
+### Features
+- Class member publicity (internal, private, public) could now be set with the `SourcetrailDB.record_{public, default, private}_access` methods.
+- Integrate customization features provided by NumbatUI (*cf* [dedicated doc page](https://quarkslab.github.io/numbat/customization/) for details).
+
+### Fixes
+- Update CI to replace EoL actions versions.
+- Parent directory iteration
+
+**Full Changelog**: [https://github.com/quarkslab/numbat/compare/v0.2.1...v0.2.2](https://github.com/quarkslab/numbat/compare/v0.2.1...v0.2.2)
+
 ## v0.2.1—Opensourcing
 ### Features
 - add small details in the documentation.

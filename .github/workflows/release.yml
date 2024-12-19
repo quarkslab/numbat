@@ -27,18 +27,16 @@ jobs:
           path: |
             dist/numbat*.whl
             dist/*.tar.gz
-      - uses: actions/download-artifact@v4
-        with:
-          # unpacks default artifact into dist/
-          # if `name: artifact` is omitted, the action will create extra parent dir
-          name: artifact_${{ matrix.python-version }}
-          merge-multiple: true
-          path: dist
 
   upload_pypi:
     needs: build_wheel_and_sdist
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: artifact_*
+          merge-multiple: true
+          path: dist
       - name: Publish a Python distribution to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:

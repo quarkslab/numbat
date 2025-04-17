@@ -22,7 +22,6 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'numbat'
-version='0.2.2'
 authors = [
     {name = 'Eloïse Brocas', email = 'ebrocas@quarkslab.com'},
     {name = 'Sami Babigeon', email = 'sbabigeon@quarkslab.com'},
@@ -38,6 +37,7 @@ classifiers = [
     'Operating System :: Microsoft :: Windows',
     "Topic :: Software Development :: Libraries",
 ]
+dynamic = ['version']
 
 [project.urls]
 Homepage = "https://github.com/quarkslab/numbat"
@@ -46,9 +46,6 @@ Tracker = "https://github.com/quarkslab/numbat/issues"
 
 
 [project.optional-dependencies]
-test = [
-  'pytest'
-]
 doc = [
     'black',
     'mkdocs',
@@ -60,3 +57,30 @@ doc = [
     'mkdocstrings-python',
     'mkdocs-section-index'
 ]
+
+linting = ['ruff']
+test = ['pytest']
+typechecking = ['mypy']
+
+[tool.setuptools.dynamic]
+version = {attr = "numbat.__version__"} 
+
+[tool.ruff]
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+select = ["D", "E", "F", "B", "Q", "I"]
+ignore = [
+  "D107", # missing docstring in __init__, we add docstrings to the class
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.format]
+line-ending = "auto"
+docstring-code-format = true
+
+

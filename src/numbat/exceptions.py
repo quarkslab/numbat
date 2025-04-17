@@ -14,22 +14,26 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+"""Custom exceptions."""
+
 
 class NumbatException(Exception):
+    """General Numbat Exception."""
+
     pass
 
 
-class SerializeException(NumbatException):
+class SerializeException(NumbatException):  # noqa: D101
     pass
 
 
-class DeserializeException(NumbatException):
+class DeserializeException(NumbatException):  # noqa: D101
     pass
 
 
-class AlreadyOpenDatabase(NumbatException):
+class AlreadyOpenDatabase(NumbatException):  # noqa: D101
     pass
 
 
-class NoDatabaseOpen(NumbatException):
+class NoDatabaseOpen(NumbatException):  # noqa: D101
     pass

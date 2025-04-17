@@ -14,31 +14,35 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+
+"""Manipulation of Sqlite DB used by Numbat."""
+
 import sqlite3
 
+from numbat.exceptions import NumbatException
+
 from .types import (
+    ComponentAccess,
+    ComponentAccessType,
+    Edge,
+    EdgeType,
     Element,
     ElementComponent,
     ElementComponentType,
-    Edge,
-    EdgeType,
-    Node,
-    NodeType,
-    NodeDisplay,
-    Symbol,
-    SymbolType,
+    Error,
     File,
     FileContent,
-    NodeFile,
     LocalSymbol,
+    Node,
+    NodeDisplay,
+    NodeFile,
+    NodeType,
+    Occurrence,
     SourceLocation,
     SourceLocationType,
-    Occurrence,
-    Error,
-    ComponentAccess,
-    ComponentAccessType,
+    Symbol,
+    SymbolType,
 )
-
 
 # ------------------------------------------------------------------------ #
 # Data Access Object (DAO) for Sourcetrail database                        #
@@ -46,15 +50,12 @@ from .types import (
 
 
 class SqliteHelper(object):
-    """
-    Helper class for sqlite operation
-    """
+    """Helper class for sqlite operation."""
 
     @staticmethod
     def connect(path: str) -> sqlite3.Connection:
-        """
-        Wrapper for sqlite3 connect method so the api doesn't rely
-        directly on sqlite and his more general
+        """Connect method to avoid relying directly on sqlite module method.
+
         :param path: The path to the database, if the path doesn't point
         to an existing file, a new database file will be created
         :return: A connection handle that can be used for future
@@ -63,16 +64,17 @@ class SqliteHelper(object):
         return sqlite3.connect(path)
 
     @staticmethod
-    def exec(database: sqlite3.Connection, request: str, parameters: tuple = ()) -> int:
-        """
-        Execute the sqlite request without returning the result
+    def exec(
+        database: sqlite3.Connection, request: str, parameters: tuple = ()
+    ) -> int | None:
+        """Execute the sqlite request without returning the result.
+
         :param database: A database handle
         :param request: The SQL request to execute
         :param parameters: A tuple containing values for the bind
         parameters of the SQL request (if any)
         :return: The id of the last modified row (useful in case insertion)
         """
-
         if not database:
             raise Exception("Invalid database handle")
 
@@ -82,16 +84,17 @@ class SqliteHelper(object):
         return cur.lastrowid
 
     @staticmethod
-    def fetch(database: sqlite3.Connection, request: str, parameters: tuple = ()) -> list:
-        """
-        Return the result of the sqlite request as list
+    def fetch(
+        database: sqlite3.Connection, request: str, parameters: tuple = ()
+    ) -> list:
+        """Return the result of the sqlite request as list.
+
         :param database: A database handle
         :param request: The SQL request to execute
         :param parameters: A tuple containing values for the bind
         parameters of the SQL request (if any)
         :return: A list containing the results of the SQL request
         """
-
         if not database:
             raise Exception("Invalid database handle")
 
@@ -104,16 +107,12 @@ class SqliteHelper(object):
 
 
 class ElementDAO(object):
-    """
-    This class is a static class that can manipulate Element objects,
-    inserting and removing them from a sqlite database.
-    """
+    """To manipulate Element objects, insert and remove them from a sqlite database."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the element table of the Sourcetrail database
-        if it doesn't exist.
+        """Create the element table of the Sourcetrail database if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -127,9 +126,8 @@ class ElementDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the element table of the Sourcetrail database
-        only if it exists.
+        """Delete the element table of the Sourcetrail database only if it exists.
+
         :param database: A database handle
         :return: None
         """
@@ -141,8 +139,8 @@ class ElementDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: Element) -> int:
-        """
-        Insert a new Element inside the element table.
+        """Insert a new Element inside the element table.
+
         :param database: A database handle
         :param obj: The object to insert
         :return: The id of the inserted element
@@ -152,16 +150,21 @@ class ElementDAO(object):
         # NULL and the database does the rest.
         # The 'obj' parameter is present to add some consistency with the
         # rest of the API and also for futur proof consideration.
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO element(id) VALUES (NULL);""",
         )
 
+        if res is None:
+            raise NumbatException("New element creation failed.")
+        else:
+            return res
+
     @staticmethod
     def delete(database: sqlite3.Connection, obj: Element) -> None:
-        """
-        Delete an Element from the element table.
+        """Delete an Element from the element table.
+
         :param database: A database handle
         :param obj: The object to delete
         :return: None
@@ -175,8 +178,8 @@ class ElementDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all Elements from the element table.
+        """Delete all Elements from the element table.
+
         :param database: A database handle
         :return: None
         """
@@ -188,8 +191,8 @@ class ElementDAO(object):
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> Element:
-        """
-        Return an element from the database with the matching id
+        """Return an element from the database with the matching id.
+
         :param database: A database handle
         :param elem_id: The id of the element to retrieve
         :return: A Element object that reflect the content inside
@@ -204,11 +207,15 @@ class ElementDAO(object):
 
         if len(out) == 1:
             return Element(*out[0])
+        elif len(out) == 0:
+            raise KeyError(f"{elem_id} doest not correspond to a registered id")
+        else:
+            raise LookupError(f"Several objects match id '{elem_id}")
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: Element) -> None:
-        """
-        Update an Element inside the element table.
+        """Update an Element inside the element table.
+
         :param database: A database handle
         :param obj: The Element object to update
         :return: None
@@ -219,8 +226,8 @@ class ElementDAO(object):
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[Element]:
-        """
-        Return the list of all the elements from the element table.
+        """Return the list of all the elements from the element table.
+
         :param database: A database handle
         :return: The list of Elements
         """
@@ -238,16 +245,12 @@ class ElementDAO(object):
 
 
 class ElementComponentDAO(object):
-    """
-    This class is a static class that can manipulate ElementComponent objects,
-    inserting and removing them from a sqlite database.
-    """
+    """To manipulate ElementComponent, insert and remove them from a sqlite db."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the element_component table of the Sourcetrail database
-        if it doesn't exist.
+        """Create the element_component table of the database if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -266,11 +269,11 @@ class ElementComponentDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the element_component table of the Sourcetrail database
-        only if it exists.
+        """Delete the element_component table of the Sourcetrail database if it exists.
+
         :param database: A database handle
-        :return: None
+        :return: Nonedatabase only if it exists.
+
         """
         SqliteHelper.exec(
             database,
@@ -280,13 +283,13 @@ class ElementComponentDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: ElementComponent) -> int:
-        """
-        Insert a new ElementComponent inside the element_component table.
+        """Insert a new ElementComponent inside the element_component table.
+
         :param database: A database handle
         :param obj: The object to insert
         :return: The id of the inserted element
         """
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO element_component(
@@ -294,11 +297,15 @@ class ElementComponentDAO(object):
             ) VALUES(NULL, ?, ?, ?);""",
             (obj.elem_id, obj.type.value, obj.data),
         )
+        if res is None:
+            raise NumbatException("New element component creation failed.")
+        else:
+            return res
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: ElementComponent) -> None:
-        """
-        Delete an ElementComponent from the element_component table.
+        """Delete an ElementComponent from the element_component table.
+
         :param database: A database handle
         :param obj: The object to delete
         :return: None
@@ -312,8 +319,8 @@ class ElementComponentDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all ElementComponents from the element_component table.
+        """Delete all ElementComponents from the element_component table.
+
         :param database: A database handle
         :return: None
         """
@@ -325,12 +332,11 @@ class ElementComponentDAO(object):
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> ElementComponent:
-        """
-        Return a ElementComponent from the database with the matching id
+        """Return a ElementComponent from the database with the matching id.
+
         :param database: A database handle
         :param elem_id: The id of the element_component to retrieve
-        :return: A ElementComponent object that reflect the content
-        inside the database
+        :return: A ElementComponent object that reflect the content inside the database
         """
         out = SqliteHelper.fetch(
             database,
@@ -342,11 +348,15 @@ class ElementComponentDAO(object):
         if len(out) == 1:
             id_, element_id, type_, data = out[0]
             return ElementComponent(id_, element_id, ElementComponentType(type_), data)
+        elif len(out) == 0:
+            raise KeyError(f"{elem_id} doest not correspond to a registered id")
+        else:
+            raise LookupError(f"Several objects match id '{elem_id}")
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: ElementComponent) -> None:
-        """
-        Update an ElementComponent inside the element_component table.
+        """Update an ElementComponent inside the element_component table.
+
         :param database: A database handle
         :param obj: The Element object to update
         :return: None
@@ -365,8 +375,8 @@ class ElementComponentDAO(object):
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[ElementComponent]:
-        """
-        Return the list of all the elements from the element_component table.
+        """Return the list of all the elements from the element_component table.
+
         :param database: A database handle
         :return: The list of ElementComponents
         """
@@ -379,22 +389,20 @@ class ElementComponentDAO(object):
         result = list()
         for row in rows:
             id_, element_id, type_, data = row
-            result.append(ElementComponent(id_, element_id, ElementComponentType(type_), data))
+            result.append(
+                ElementComponent(id_, element_id, ElementComponentType(type_), data)
+            )
 
         return result
 
 
 class EdgeDAO(object):
-    """
-    This class is a static class that can manipulate Edge objects,
-    inserting and removing them from a sqlite database.
-    """
+    """To manipulate Edge  objects, insert and remove them from a sqlite database."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the edge table of the Sourcetrail database
-        if it doesn't exist.
+        """Create the edge table of the Sourcetrail database if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -417,9 +425,8 @@ class EdgeDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the edge table of the Sourcetrail database
-        only if it exists.
+        """Delete the edge table of the Sourcetrail database only if it exists.
+
         :param database: A database handle
         :return: None
         """
@@ -431,13 +438,13 @@ class EdgeDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: Edge) -> int:
-        """
-        Insert a new Edge inside the edge table.
+        """Insert a new Edge inside the edge table.
+
         :param database: A database handle
         :param obj: The object to insert
         :return: The id of the inserted element
         """
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO edge(
@@ -445,11 +452,15 @@ class EdgeDAO(object):
             ) VALUES(?, ?, ?, ?, ?);""",
             (obj.id, obj.type.value, obj.src, obj.dst, obj.hover_display),
         )
+        if res is None:
+            raise NumbatException("New edge creation failed.")
+        else:
+            return res
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: Edge) -> None:
-        """
-        Delete an Edge from the edge table.
+        """Delete an Edge from the edge table.
+
         :param database: A database handle
         :param obj: The object to delete
         :return: None
@@ -463,8 +474,8 @@ class EdgeDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all Edges from the edge table.
+        """Delete all Edges from the edge table.
+
         :param database: A database handle
         :return: None
         """
@@ -476,8 +487,8 @@ class EdgeDAO(object):
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> Edge:
-        """
-        Return an Edge from the database with the matching id
+        """Return an Edge from the database with the matching id.
+
         :param database: A database handle
         :param elem_id: The id of the element to retrieve
         :return: A Edge object that reflect the content inside
@@ -486,18 +497,23 @@ class EdgeDAO(object):
         out = SqliteHelper.fetch(
             database,
             """
-            SELECT id, type, source_node_id, target_node_id, hover_display FROM edge WHERE id = ?;""",
+SELECT id, type, source_node_id, target_node_id, hover_display FROM edge WHERE id = ?;\
+""",
             (elem_id,),
         )
 
         if len(out) == 1:
             id_, type_, src, dst, hover_display = out[0]
             return Edge(id_, EdgeType(type_), src, dst, hover_display)
+        elif len(out) == 0:
+            raise KeyError(f"{elem_id} doest not correspond to a registered id")
+        else:
+            raise LookupError(f"Several objects match id '{elem_id}")
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: Edge) -> None:
-        """
-        Update an Edge inside the element table.
+        """Update an Edge inside the element table.
+
         :param database: A database handle
         :param obj: The Edge object to update
         :return: None
@@ -516,8 +532,8 @@ class EdgeDAO(object):
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[Edge]:
-        """
-        Return the list of all the elements from the edge table.
+        """Return the list of all the elements from the edge table.
+
         :param database: A database handle
         :return: The list of Edges
         """
@@ -536,8 +552,8 @@ class EdgeDAO(object):
 
     @staticmethod
     def set_color(database: sqlite3.Connection, id: int, new_color: str) -> None:
-        """
-        Set the color of an edge
+        """Set the color of an edge.
+
         :param database: A database handle
         :param id: Id of the edge to change
         :param new_color: RGB hex code or name of the edge's new color
@@ -555,16 +571,12 @@ class EdgeDAO(object):
 
 
 class NodeDAO(object):
-    """
-    This class is a static class that can manipulate Node objects,
-    inserting and removing them from a sqlite database.
-    """
+    """To manipulate Node  objects, insert and remove them from a sqlite database."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the node table of the Sourcetrail database
-        if it doesn't exist.
+        """Create the node table of the Sourcetrail database if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -586,9 +598,8 @@ class NodeDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the node table of the Sourcetrail database
-        only if it exists.
+        """Delete the node table of the Sourcetrail database only if it exists.
+
         :param database: A database handle
         :return: None
         """
@@ -600,13 +611,13 @@ class NodeDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: Node) -> int:
-        """
-        Insert a new Node inside the node table.
+        """Insert a new Node inside the node table.
+
         :param database: A database handle
         :param obj: The object to insert
         :return: The id of the inserted element
         """
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO node(
@@ -614,11 +625,15 @@ class NodeDAO(object):
             ) VALUES(?, ?, ?, ?);""",
             (obj.id, obj.type.value, obj.name, obj.hover_display),
         )
+        if res is None:
+            raise NumbatException("New node creation failed.")
+        else:
+            return res
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: Node) -> None:
-        """
-        Delete a Node from the node table.
+        """Delete a Node from the node table.
+
         :param database: A database handle
         :param obj: The object to delete
         :return: None
@@ -632,8 +647,8 @@ class NodeDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all Nodes from the node table.
+        """Delete all Nodes from the node table.
+
         :param database: A database handle
         :return: None
         """
@@ -645,8 +660,8 @@ class NodeDAO(object):
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> Node:
-        """
-        Return a Node from the database with the matching id
+        """Return a Node from the database with the matching id.
+
         :param database: A database handle
         :param elem_id: The id of the element to retrieve
         :return: A Node object that reflect the content inside
@@ -662,11 +677,15 @@ class NodeDAO(object):
         if len(out) == 1:
             id_, type_, serialized_name, hover_display = out[0]
             return Node(id_, NodeType(type_), serialized_name, hover_display)
+        elif len(out) == 0:
+            raise KeyError(f"{elem_id} doest not correspond to a registered id")
+        else:
+            raise LookupError(f"Several objects match id '{elem_id}")
 
     @staticmethod
     def get_by_name(database: sqlite3.Connection, name: str) -> Node:
-        """
-        Return a Node from the database with the matching serialized_name
+        """Return a Node from the database with the matching serialized_name.
+
         :param database: A database handle
         :param name: The serialized_name of the element to retrieve
         :return: A Node object that reflect the content inside
@@ -682,11 +701,15 @@ class NodeDAO(object):
         if len(out) == 1:
             id_, type_, serialized_name = out[0]
             return Node(id_, NodeType(type_), serialized_name)
+        elif len(out) == 0:
+            raise KeyError(f"{name} doest not correspond to a registered object")
+        else:
+            raise LookupError(f"Several objects match name '{name}")
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: Node) -> None:
-        """
-        Update a Node inside the node table.
+        """Update a Node inside the node table.
+
         :param database: A database handle
         :param obj: The Node object to update
         :return: None
@@ -704,8 +727,8 @@ class NodeDAO(object):
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[Node]:
-        """
-        Return the list of all the elements from the node table.
+        """Return the list of all the elements from the node table.
+
         :param database: A database handle
         :return: The list of Nodes
         """
@@ -724,8 +747,8 @@ class NodeDAO(object):
 
     @staticmethod
     def set_color(database: sqlite3.Connection, id: int, new_color: str) -> None:
-        """
-        Set the color of a node
+        """Set the color of a node.
+
         :param database: A database handle
         :param id: Id of the node to modify
         :param new_color: RGB hex code or name of the node's new color
@@ -742,12 +765,14 @@ class NodeDAO(object):
         )
 
     @staticmethod
-    def set_custom_command(database: sqlite3.Connection, id: int, custom_command: tuple) -> None:
-        """
-        Set a custom command for a node in its context menu
+    def set_custom_command(
+        database: sqlite3.Connection, id: int, custom_command: tuple
+    ) -> None:
+        """Set a custom command for a node in its context menu.
+
         :param database: A database handle
         :param id: Id of the node to modify
-        :param custom_command: The command to execute (including arguments) and its description
+        :param custom_command: The command to execute (with args) and its description
         :return: None
         """
         SqliteHelper.exec(
@@ -763,14 +788,12 @@ class NodeDAO(object):
 
 
 class NodeTypeDAO(object):
-    """
-    Handle Sourcetrail's internal node types.
-    """
+    """Handle Sourcetrail's internal node types."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the node type table if it doesn't exist.
+        """Create the node type table if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -788,8 +811,8 @@ class NodeTypeDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the table.
+        """Delete the table.
+
         :param database: A database handle
         :return: None
         """
@@ -801,8 +824,8 @@ class NodeTypeDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all entries from the node_type table, and resets them to their default values.
+        """Delete all entries from the node_type table, reset them to default values.
+
         :param database: A database handle
         :return: None
         """
@@ -815,15 +838,14 @@ class NodeTypeDAO(object):
 
     @staticmethod
     def init(database: sqlite3.Connection) -> None:
-        """
-        Load the default values for each node type.
+        """Load the default values for each node type.
+
         :param database: A database handle
         :return: None
         """
         SqliteHelper.exec(
             database,
-            """
-        INSERT OR IGNORE INTO node_type(id,graph_display,hover_display) VALUES
+            """INSERT OR IGNORE INTO node_type(id,graph_display,hover_display) VALUES
             (1, 'Symbols', 'symbol'),
             (2, 'Types', 'type'),
             (4, '', 'built-in type'),
@@ -848,27 +870,31 @@ class NodeTypeDAO(object):
         )
 
     @staticmethod
-    def get_by_id(database: sqlite3.Connection, id: NodeType) -> NodeDisplay:
-        """
-        Get an element from the database with the specified id.
+    def get_by_id(database: sqlite3.Connection, _id: NodeType) -> NodeDisplay:
+        """Get an element from the database with the specified id.
+
         :param database: A database handle
-        :param id: the id of the object to return
+        :param _id: the id of the object to return
         :return: The object with the specified id.
         """
         out = SqliteHelper.fetch(
             database,
             """
                            SELECT * FROM node_type WHERE id=? LIMIT 1;""",
-            (id.value,),
+            (_id.value,),
         )
         if len(out) == 1:
             id, graph_display, hover_display = out[0]
             return NodeDisplay(id, graph_display, hover_display)
+        elif len(out) == 0:
+            raise KeyError(f"{_id.value} doest not correspond to a registered id")
+        else:
+            raise LookupError(f"Several objects match id '{_id.value}")
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: NodeDisplay) -> None:
-        """
-        Change the display text of an internal node type.
+        """Change the display text of an internal node type.
+
         :param database: A database handle
         :param obj: the type to change
         :return: None
@@ -886,16 +912,12 @@ class NodeTypeDAO(object):
 
 
 class SymbolDAO(object):
-    """
-    This class is a static class that can manipulate Symbol objects,
-    inserting and removing them from a sqlite database.
-    """
+    """To manipulate Symbol  objects, insert and remove them from a sqlite database."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the symbol table of the Sourcetrail database
-        if it doesn't exist.
+        """Create the symbol table of the Sourcetrail database if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -912,9 +934,8 @@ class SymbolDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the symbol table of the Sourcetrail database
-        only if it exists.
+        """Delete the symbol table of the Sourcetrail database only if it exists.
+
         :param database: A database handle
         :return: None
         """
@@ -926,13 +947,13 @@ class SymbolDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: Symbol) -> int:
-        """
-        Insert a new Symbol inside the symbol table.
+        """Insert a new Symbol inside the symbol table.
+
         :param database: A database handle
         :param obj: The object to insert
         :return: The id of the inserted symbol
         """
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO symbol(
@@ -940,11 +961,15 @@ class SymbolDAO(object):
             ) VALUES(?, ?);""",
             (obj.id, obj.definition_kind.value),
         )
+        if res is None:
+            raise NumbatException("New symbol creation failed.")
+        else:
+            return res
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: Symbol) -> None:
-        """
-        Delete a Symbol from the symbol table.
+        """Delete a Symbol from the symbol table.
+
         :param database: A database handle
         :param obj: The object to delete
         :return: None
@@ -958,8 +983,8 @@ class SymbolDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all Symbols from the symbol table.
+        """Delete all Symbols from the symbol table.
+
         :param database: A database handle
         :return: None
         """
@@ -971,12 +996,11 @@ class SymbolDAO(object):
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> Symbol:
-        """
-        Return a symbol from the database with the matching id
+        """Return a symbol from the database with the matching id.
+
         :param database: A database handle
         :param elem_id: The id of the symbol to retrieve
-        :return: A Symbol object that reflect the content inside
-        the database
+        :return: A Symbol object that reflect the content inside the database
         """
         out = SqliteHelper.fetch(
             database,
@@ -988,11 +1012,15 @@ class SymbolDAO(object):
         if len(out) == 1:
             id_, type_ = out[0]
             return Symbol(id_, SymbolType(type_))
+        elif len(out) == 0:
+            raise KeyError(f"{elem_id} doest not correspond to a registered id")
+        else:
+            raise LookupError(f"Several objects match id '{elem_id}")
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: Symbol) -> None:
-        """
-        Update a Symbol inside the symbol table.
+        """Update a Symbol inside the symbol table.
+
         :param database: A database handle
         :param obj: The Symbol object to update
         :return: None
@@ -1009,8 +1037,8 @@ class SymbolDAO(object):
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[Symbol]:
-        """
-        Return the list of all the symbols from the symbol table.
+        """Return the list of all the symbols from the symbol table.
+
         :param database: A database handle
         :return: The list of Symbols
         """
@@ -1029,16 +1057,12 @@ class SymbolDAO(object):
 
 
 class FileDAO(object):
-    """
-    This class is a static class that can manipulate File objects,
-    inserting and removing them from a sqlite database.
-    """
+    """To manipulate File  objects, insert and remove them from a sqlite database."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the file table of the Sourcetrail database
-        if it doesn't exist.
+        """Create the file table of the Sourcetrail database if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -1060,9 +1084,8 @@ class FileDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the file table of the Sourcetrail database
-        only if it exists.
+        """Delete the file table of the Sourcetrail database only if it exists.
+
         :param database: A database handle
         :return: None
         """
@@ -1074,25 +1097,37 @@ class FileDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: File) -> int:
-        """
-        Insert a new File inside the file table.
+        """Insert a new File inside the file table.
+
         :param database: A database handle
         :param obj: The object to insert
         :return: The id of the inserted file
         """
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO file(
                 id, path, language, modification_time, indexed, complete, line_count 
             ) VALUES(?, ?, ?, ?, ?, ?, ?);""",
-            (obj.id, obj.path, obj.language, obj.modification_time, obj.indexed, obj.complete, obj.line_count),
+            (
+                obj.id,
+                obj.path,
+                obj.language,
+                obj.modification_time,
+                obj.indexed,
+                obj.complete,
+                obj.line_count,
+            ),
         )
+        if res is None:
+            raise NumbatException("New file creation failed.")
+        else:
+            return res
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: File) -> None:
-        """
-        Delete a File from the file table.
+        """Delete a File from the file table.
+
         :param database: A database handle
         :param obj: The object to delete
         :return: None
@@ -1106,8 +1141,8 @@ class FileDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all Files from the file table.
+        """Delete all Files from the file table.
+
         :param database: A database handle
         :return: None
         """
@@ -1119,8 +1154,8 @@ class FileDAO(object):
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> File:
-        """
-        Return a file from the database with the matching id
+        """Return a file from the database with the matching id.
+
         :param database: A database handle
         :param elem_id: The id of the file to retrieve
         :return: A File object that reflect the content inside
@@ -1135,11 +1170,15 @@ class FileDAO(object):
 
         if len(out) == 1:
             return File(*out[0])
+        elif len(out) == 0:
+            raise KeyError(f"{elem_id} doest not correspond to a registered id")
+        else:
+            raise LookupError(f"Several objects match id '{elem_id}")
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: File) -> None:
-        """
-        Update a File inside the file table.
+        """Update a File inside the file table.
+
         :param database: A database handle
         :param obj: The File object to update
         :return: None
@@ -1156,13 +1195,21 @@ class FileDAO(object):
                 line_count = ? 
             WHERE
                 id = ?;""",
-            (obj.path, obj.language, obj.modification_time, obj.indexed, obj.complete, obj.line_count, obj.id),
+            (
+                obj.path,
+                obj.language,
+                obj.modification_time,
+                obj.indexed,
+                obj.complete,
+                obj.line_count,
+                obj.id,
+            ),
         )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[File]:
-        """
-        Return the list of all the files from the file table.
+        """Return the list of all the files from the file table.
+
         :param database: A database handle
         :return: The list of Files
         """
@@ -1180,16 +1227,12 @@ class FileDAO(object):
 
 
 class FileContentDAO(object):
-    """
-    This class is a static class that can manipulate FileContent objects,
-    inserting and removing them from a sqlite database.
-    """
+    """To manipulate FileContent  objects, insert and remove them from a sqlite db."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the filecontent table of the Sourcetrail database
-        if it doesn't exist.
+        """Create the filecontent table of the Sourcetrail database if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -1206,9 +1249,8 @@ class FileContentDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the filecontent table of the Sourcetrail database
-        only if it exists.
+        """Delete the filecontent table of the Sourcetrail database only if it exists.
+
         :param database: A database handle
         :return: None
         """
@@ -1220,13 +1262,13 @@ class FileContentDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: FileContent) -> int:
-        """
-        Insert a new FileContent inside the filecontent table.
+        """Insert a new FileContent inside the filecontent table.
+
         :param database: A database handle
         :param obj: The object to insert
         :return: The id of the inserted filecontent
         """
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO filecontent(
@@ -1234,11 +1276,15 @@ class FileContentDAO(object):
             ) VALUES(?, ?);""",
             (obj.id, obj.content),
         )
+        if res is None:
+            raise NumbatException("New filecontent creation failed.")
+        else:
+            return res
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: FileContent) -> None:
-        """
-        Delete an FileContent from the filecontent table.
+        """Delete an FileContent from the filecontent table.
+
         :param database: A database handle
         :param obj: The object to delete
         :return: None
@@ -1252,8 +1298,8 @@ class FileContentDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all FileContents from the filecontent table.
+        """Delete all FileContents from the filecontent table.
+
         :param database: A database handle
         :return: None
         """
@@ -1265,8 +1311,8 @@ class FileContentDAO(object):
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> FileContent:
-        """
-        Return a filecontent from the database with the matching id
+        """Return a filecontent from the database with the matching id.
+
         :param database: A database handle
         :param elem_id: The id of the filecontent to retrieve
         :return: A FileContent object that reflect the content inside
@@ -1281,11 +1327,15 @@ class FileContentDAO(object):
 
         if len(out) == 1:
             return FileContent(*out[0])
+        elif len(out) == 0:
+            raise KeyError(f"{elem_id} doest not correspond to a registered id")
+        else:
+            raise LookupError(f"Several objects match id '{elem_id}")
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: FileContent) -> None:
-        """
-        Update an FileContent inside the filecontent table.
+        """Update an FileContent inside the filecontent table.
+
         :param database: A database handle
         :param obj: The FileContent object to update
         :return: None
@@ -1302,8 +1352,8 @@ class FileContentDAO(object):
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[FileContent]:
-        """
-        Return the list of all the filecontents from the filecontent table.
+        """Return the list of all the filecontents from the filecontent table.
+
         :param database: A database handle
         :return: The list of FileContents
         """
@@ -1321,15 +1371,11 @@ class FileContentDAO(object):
 
 
 class NodeFileDAO(object):
-    """
-    This class is a static class that can manipulate NodeFile objects,
-    inserting and removing them from a sqlite database.
-    """
+    """To manipulate NodeFile  objects, insert and remove them from a sqlite db."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the node_file table of the Sourcetrail database if it doesn't exist.
+        """Create the node_file table of the Sourcetrail database if it doesn't exist.
 
         :param database: A database handle
         :return: None
@@ -1348,8 +1394,7 @@ class NodeFileDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the node_file table of the Sourcetrail database if it exists.
+        """Delete the node_file table of the Sourcetrail database if it exists.
 
         :param database: A database handle
         :return: None
@@ -1362,13 +1407,13 @@ class NodeFileDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: NodeFile) -> int:
-        """
-        Insert a new NodeFile inside the node_file table.
+        """Insert a new NodeFile inside the node_file table.
+
         :param database: A database handle
         :param obj: The object to insert
         :return: The id of the inserted node_file
         """
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO node_file(
@@ -1376,11 +1421,15 @@ class NodeFileDAO(object):
             ) VALUES(?, ?, ?);""",
             (obj.id, obj.file_name, int(obj.display_content)),
         )
+        if res is None:
+            raise NumbatException("New node file creation failed.")
+        else:
+            return res
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: NodeFile) -> None:
-        """
-        Delete an NodeFile from the node_file table.
+        """Delete an NodeFile from the node_file table.
+
         :param database: A database handle
         :param obj: The object to delete
         :return: None
@@ -1394,8 +1443,8 @@ class NodeFileDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all NodeFiles from the node_file table.
+        """Delete all NodeFiles from the node_file table.
+
         :param database: A database handle
         :return: None
         """
@@ -1407,16 +1456,12 @@ class NodeFileDAO(object):
 
 
 class LocalSymbolDAO(object):
-    """
-    This class is a static class that can manipulate LocalSymbol objects,
-    inserting and removing them from a sqlite database.
-    """
+    """To manipulate LocalSymbol  objects, insert and remove them from a sqlite db."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the local_symbol table of the Sourcetrail database
-        if it doesn't exist.
+        """Create the local_symbol table of the Sourcetrail db if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -1433,9 +1478,8 @@ class LocalSymbolDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the local_symbol table of the Sourcetrail database
-        only if it exists.
+        """Delete the local_symbol table of the Sourcetrail database only if it exists.
+
         :param database: A database handle
         :return: None
         """
@@ -1447,13 +1491,13 @@ class LocalSymbolDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: LocalSymbol) -> int:
-        """
-        Insert a new LocalSymbol inside the local_symbol table.
+        """Insert a new LocalSymbol inside the local_symbol table.
+
         :param database: A database handle
         :param obj: The object to insert
         :return: The id of the inserted local_symbol
         """
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO local_symbol(
@@ -1461,11 +1505,15 @@ class LocalSymbolDAO(object):
             ) VALUES(?, ?);""",
             (obj.id, obj.name),
         )
+        if res is None:
+            raise NumbatException("New local symbol creation failed.")
+        else:
+            return res
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: LocalSymbol) -> None:
-        """
-        Delete an LocalSymbol from the local_symbol table.
+        """Delete an LocalSymbol from the local_symbol table.
+
         :param database: A database handle
         :param obj: The object to delete
         :return: None
@@ -1479,8 +1527,8 @@ class LocalSymbolDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all LocalSymbols from the local_symbol table.
+        """Delete all LocalSymbols from the local_symbol table.
+
         :param database: A database handle
         :return: None
         """
@@ -1492,8 +1540,8 @@ class LocalSymbolDAO(object):
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> LocalSymbol:
-        """
-        Return a local_symbol from the database with the matching id
+        """Return a local_symbol from the database with the matching id.
+
         :param database: A database handle
         :param elem_id: The id of the local_symbol to retrieve
         :return: A LocalSymbol object that reflect the content inside
@@ -1508,11 +1556,15 @@ class LocalSymbolDAO(object):
 
         if len(out) == 1:
             return LocalSymbol(*out[0])
+        elif len(out) == 0:
+            raise KeyError(f"{elem_id} doest not correspond to a registered id")
+        else:
+            raise LookupError(f"Several objects match id '{elem_id}")
 
     @staticmethod
     def get_from_name(database: sqlite3.Connection, name: str) -> LocalSymbol:
-        """
-        Return a local_symbol from the database with the matching name
+        """Return a local_symbol from the database with the matching name.
+
         :param database: A database handle
         :param name: The name of the local_symbol to retrieve
         :return: A LocalSymbol object that reflect the content inside
@@ -1527,11 +1579,15 @@ class LocalSymbolDAO(object):
 
         if len(out) == 1:
             return LocalSymbol(*out[0])
+        elif len(out) == 0:
+            raise KeyError(f"{name} doest not correspond to a registered object")
+        else:
+            raise LookupError(f"Several objects match name '{name}")
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: LocalSymbol) -> None:
-        """
-        Update an LocalSymbol inside the local_symbol table.
+        """Update an LocalSymbol inside the local_symbol table.
+
         :param database: A database handle
         :param obj: The LocalSymbol object to update
         :return: None
@@ -1548,8 +1604,8 @@ class LocalSymbolDAO(object):
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[LocalSymbol]:
-        """
-        Return the list of all the local_symbols from the local_symbol table.
+        """Return the list of all the local_symbols from the local_symbol table.
+
         :param database: A database handle
         :return: The list of LocalSymbols
         """
@@ -1567,16 +1623,12 @@ class LocalSymbolDAO(object):
 
 
 class SourceLocationDAO(object):
-    """
-    This class is a static class that can manipulate SourceLocation objects,
-    inserting and removing them from a sqlite database.
-    """
+    """To manipulate SourceLocation objects, insert and remove them from a sqlite db."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the source_location table of the Sourcetrail database
-        if it doesn't exist.
+        """Create the source_location table of the Sourcetrail db if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -1598,9 +1650,8 @@ class SourceLocationDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the source_location table of the Sourcetrail database
-        only if it exists.
+        """Delete the source_location table of the Sourcetrail db only if it exists.
+
         :param database: A database handle
         :return: None
         """
@@ -1612,25 +1663,36 @@ class SourceLocationDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: SourceLocation) -> int:
-        """
-        Insert a new SourceLocation inside the source_location table.
+        """Insert a new SourceLocation inside the source_location table.
+
         :param database: A database handle
         :param obj: The object to insert
         :return: The id of the inserted source_location
         """
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO source_location(
                 id, file_node_id, start_line, start_column, end_line, end_column, type 
             ) VALUES(NULL, ?, ?, ?, ?, ?, ?);""",
-            (obj.file_node_id, obj.start_line, obj.start_column, obj.end_line, obj.end_column, obj.type.value),
+            (
+                obj.file_node_id,
+                obj.start_line,
+                obj.start_column,
+                obj.end_line,
+                obj.end_column,
+                obj.type.value,
+            ),
         )
+        if res is None:
+            raise NumbatException("New source location creation failed.")
+        else:
+            return res
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: SourceLocation) -> None:
-        """
-        Delete an SourceLocation from the source_location table.
+        """Delete an SourceLocation from the source_location table.
+
         :param database: A database handle
         :param obj: The object to delete
         :return: None
@@ -1644,8 +1706,8 @@ class SourceLocationDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all SourceLocations from the source_location table.
+        """Delete all SourceLocations from the source_location table.
+
         :param database: A database handle
         :return: None
         """
@@ -1657,8 +1719,8 @@ class SourceLocationDAO(object):
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> SourceLocation:
-        """
-        Return a source_location from the database with the matching id
+        """Return a source_location from the database with the matching id.
+
         :param database: A database handle
         :param elem_id: The id of the source_location to retrieve
         :return: A SourceLocation object that reflect the content inside
@@ -1674,11 +1736,15 @@ class SourceLocationDAO(object):
         if len(out) == 1:
             id_, fid, sl, sc, el, ec, type_ = out[0]
             return SourceLocation(id_, fid, sl, sc, el, ec, SourceLocationType(type_))
+        elif len(out) == 0:
+            raise KeyError(f"{elem_id} doest not correspond to a registered id")
+        else:
+            raise LookupError(f"Several objects match id '{elem_id}")
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: SourceLocation) -> None:
-        """
-        Update an SourceLocation inside the source_location table.
+        """Update an SourceLocation inside the source_location table.
+
         :param database: A database handle
         :param obj: The SourceLocation object to update
         :return: None
@@ -1695,13 +1761,21 @@ class SourceLocationDAO(object):
                 type = ? 
             WHERE
                 id = ?;""",
-            (obj.file_node_id, obj.start_line, obj.start_column, obj.end_line, obj.end_column, obj.type.value, obj.id),
+            (
+                obj.file_node_id,
+                obj.start_line,
+                obj.start_column,
+                obj.end_line,
+                obj.end_column,
+                obj.type.value,
+                obj.id,
+            ),
         )
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[SourceLocation]:
-        """
-        Return the list of all the source_locations from the source_location table.
+        """Return the list of all the source_locations from the source_location table.
+
         :param database: A database handle
         :return: The list of SourceLocations
         """
@@ -1714,22 +1788,20 @@ class SourceLocationDAO(object):
         result = list()
         for row in rows:
             id_, fid, sl, sc, el, ec, type_ = row
-            result.append(SourceLocation(id_, fid, sl, sc, el, ec, SourceLocationType(type_)))
+            result.append(
+                SourceLocation(id_, fid, sl, sc, el, ec, SourceLocationType(type_))
+            )
 
         return result
 
 
 class OccurrenceDAO(object):
-    """
-    This class is a static class that can manipulate Occurrence objects,
-    inserting and removing them from a sqlite database.
-    """
+    """To manipulate Occurrence  objects, insert and remove them from a sqlite db."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the occurrence table of the Sourcetrail database
-        if it doesn't exist.
+        """Create the occurrence table of the Sourcetrail database if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -1748,9 +1820,8 @@ class OccurrenceDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the occurrence table of the Sourcetrail database
-        only if it exists.
+        """Delete the occurrence table of the Sourcetrail database only if it exists.
+
         :param database: A database handle
         :return: None
         """
@@ -1762,13 +1833,13 @@ class OccurrenceDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: Occurrence) -> int:
-        """
-        Insert a new Occurrence inside the occurrence table.
+        """Insert a new Occurrence inside the occurrence table.
+
         :param database: A database handle
         :param obj: The object to insert
         :return: The id of the inserted occurrence
         """
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO occurrence(
@@ -1776,11 +1847,15 @@ class OccurrenceDAO(object):
             ) VALUES(?, ?);""",
             (obj.element_id, obj.source_location_id),
         )
+        if res is None:
+            raise NumbatException("New occurence creation failed.")
+        else:
+            return res
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: Occurrence) -> None:
-        """
-        Delete an Occurrence from the occurrence table.
+        """Delete an Occurrence from the occurrence table.
+
         :param database: A database handle
         :param obj: The object to delete
         :return: None
@@ -1794,8 +1869,8 @@ class OccurrenceDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all Occurrences from the occurrence table.
+        """Delete all Occurrences from the occurrence table.
+
         :param database: A database handle
         :return: None
         """
@@ -1807,8 +1882,8 @@ class OccurrenceDAO(object):
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> Occurrence:
-        """
-        Return an occurrence from the database with the matching id
+        """Return an occurrence from the database with the matching id.
+
         :param database: A database handle
         :param elem_id: The id of the occurrence to retrieve
         :return: A Occurrence object that reflect the content inside
@@ -1823,11 +1898,15 @@ class OccurrenceDAO(object):
 
         if len(out) == 1:
             return Occurrence(*out[0])
+        elif len(out) == 0:
+            raise KeyError(f"{elem_id} doest not correspond to a registered id")
+        else:
+            raise LookupError(f"Several objects match id '{elem_id}")
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: Occurrence) -> None:
-        """
-        Update an Occurrence inside the occurrence table.
+        """Update an Occurrence inside the occurrence table.
+
         :param database: A database handle
         :param obj: The Occurrence object to update
         :return: None
@@ -1844,8 +1923,8 @@ class OccurrenceDAO(object):
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[Occurrence]:
-        """
-        Return the list of all the occurrences from the occurrence table.
+        """Return the list of all the occurrences from the occurrence table.
+
         :param database: A database handle
         :return: The list of Occurrences
         """
@@ -1863,16 +1942,12 @@ class OccurrenceDAO(object):
 
 
 class ComponentAccessDAO(object):
-    """
-    This class is a static class that can manipulate ComponentAccess objects,
-    inserting and removing them from a sqlite database.
-    """
+    """To manipulate ComponentAccess objects, insert and remove them from  sqlite db."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the component_access table of the Sourcetrail database
-        if it doesn't exist.
+        """Create the component_access table of the Sourcetrail db if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -1889,9 +1964,8 @@ class ComponentAccessDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the component_access table of the Sourcetrail database
-        only if it exists.
+        """Delete the component_access table of the Sourcetrail db only if it exists.
+
         :param database: A database handle
         :return: None
         """
@@ -1903,13 +1977,13 @@ class ComponentAccessDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: ComponentAccess) -> int:
-        """
-        Insert a new ComponentAccess inside the component_access table.
+        """Insert a new ComponentAccess inside the component_access table.
+
         :param database: A database handle
         :param obj: The object to insert
         :return: The id of the inserted component_access
         """
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO component_access(
@@ -1917,11 +1991,15 @@ class ComponentAccessDAO(object):
             ) VALUES(?, ?);""",
             (obj.node_id, obj.type.value),
         )
+        if res is None:
+            raise NumbatException("New component access creation failed.")
+        else:
+            return res
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: ComponentAccess) -> None:
-        """
-        Delete an ComponentAccess from the component_access table.
+        """Delete an ComponentAccess from the component_access table.
+
         :param database: A database handle
         :param obj: The object to delete
         :return: None
@@ -1935,8 +2013,8 @@ class ComponentAccessDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all ComponentAccess from the component_access table.
+        """Delete all ComponentAccess from the component_access table.
+
         :param database: A database handle
         :return: None
         """
@@ -1948,8 +2026,8 @@ class ComponentAccessDAO(object):
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> ComponentAccess:
-        """
-        Return a component_access from the database with the matching id
+        """Return a component_access from the database with the matching id.
+
         :param database: A database handle
         :param elem_id: The id of the component_access to retrieve
         :return: A ComponentAccess object that reflect the content inside
@@ -1965,11 +2043,15 @@ class ComponentAccessDAO(object):
         if len(out) == 1:
             node_id, type_ = out[0]
             return ComponentAccess(node_id, ComponentAccessType(type_))
+        elif len(out) == 0:
+            raise KeyError(f"{elem_id} doest not correspond to a registered id")
+        else:
+            raise LookupError(f"Several objects match id '{elem_id}")
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: ComponentAccess) -> None:
-        """
-        Update an ComponentAccess inside the component_access table.
+        """Update an ComponentAccess inside the component_access table.
+
         :param database: A database handle
         :param obj: The ComponentAccess object to update
         :return: None
@@ -1986,8 +2068,8 @@ class ComponentAccessDAO(object):
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[ComponentAccess]:
-        """
-        Return the list of all the component_access from the component_access table.
+        """Return the list of all the component_access from the component_access table.
+
         :param database: A database handle
         :return: The list of ComponentAccess
         """
@@ -2006,16 +2088,12 @@ class ComponentAccessDAO(object):
 
 
 class ErrorDAO(object):
-    """
-    This class is a static class that can manipulate Error objects,
-    inserting and removing them from a sqlite database.
-    """
+    """To manipulate Error  objects, insert and remove them from a sqlite database."""
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the error table of the Sourcetrail database
-        if it doesn't exist.
+        """Create the error table of the Sourcetrail database if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -2035,9 +2113,8 @@ class ErrorDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the error table of the Sourcetrail database
-        only if it exists.
+        """Delete the error table of the Sourcetrail database only if it exists.
+
         :param database: A database handle
         :return: None
         """
@@ -2049,13 +2126,13 @@ class ErrorDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, obj: Error) -> int:
-        """
-        Insert a new Error inside the error table.
+        """Insert a new Error inside the error table.
+
         :param database: A database handle
         :param obj: The object to insert
         :return: The id of the inserted error
         """
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO error(
@@ -2063,11 +2140,15 @@ class ErrorDAO(object):
             ) VALUES(?, ?, ?, ?, ?);""",
             (obj.id, obj.message, obj.fatal, obj.indexed, obj.translation_unit),
         )
+        if res is None:
+            raise NumbatException("New error creation failed.")
+        else:
+            return res
 
     @staticmethod
     def delete(database: sqlite3.Connection, obj: Error) -> None:
-        """
-        Delete an Error from the error table.
+        """Delete an Error from the error table.
+
         :param database: A database handle
         :param obj: The object to delete
         :return: None
@@ -2081,8 +2162,8 @@ class ErrorDAO(object):
 
     @staticmethod
     def get(database: sqlite3.Connection, elem_id: int) -> Error:
-        """
-        Return an error from the database with the matching id
+        """Return an error from the database with the matching id.
+
         :param database: A database handle
         :param elem_id: The id of the error to retrieve
         :return: A Error object that reflect the content inside
@@ -2097,11 +2178,15 @@ class ErrorDAO(object):
 
         if len(out) == 1:
             return Error(*out[0])
+        elif len(out) == 0:
+            raise KeyError(f"{elem_id} doest not correspond to a registered id")
+        else:
+            raise LookupError(f"Several objects match id '{elem_id}")
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all Errors from the error table.
+        """Delete all Errors from the error table.
+
         :param database: A database handle
         :return: None
         """
@@ -2113,8 +2198,8 @@ class ErrorDAO(object):
 
     @staticmethod
     def update(database: sqlite3.Connection, obj: Error) -> None:
-        """
-        Update an Error inside the error table.
+        """Update an Error inside the error table.
+
         :param database: A database handle
         :param obj: The Error object to update
         :return: None
@@ -2134,8 +2219,8 @@ class ErrorDAO(object):
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[Error]:
-        """
-        Return the list of all the errors from the error table.
+        """Return the list of all the errors from the error table.
+
         :param database: A database handle
         :return: The list of Errors
         """
@@ -2153,17 +2238,15 @@ class ErrorDAO(object):
 
 
 class MetaDAO(object):
-    """
-    This class is a static class that can manipulate Meta information,
-    inserting and removing them from a sqlite database. There is no
-    Meta object but a simple key, value pair can be used.
+    """To manipulate Meta information, insert and remove them from a sqlite database.
+
+    There is no Meta object but a simple key, value pair can be used.
     """
 
     @staticmethod
     def create_table(database: sqlite3.Connection) -> None:
-        """
-        Create the meta table of the Sourcetrail database
-        if it doesn't exist.
+        """Create the meta table of the Sourcetrail database if it doesn't exist.
+
         :param database: A database handle
         :return: None
         """
@@ -2180,9 +2263,8 @@ class MetaDAO(object):
 
     @staticmethod
     def delete_table(database: sqlite3.Connection) -> None:
-        """
-        Delete the meta table of the Sourcetrail database
-        only if it exists.
+        """Delete the meta table of the Sourcetrail database only if it exists.
+
         :param database: A database handle
         :return: None
         """
@@ -2194,14 +2276,14 @@ class MetaDAO(object):
 
     @staticmethod
     def new(database: sqlite3.Connection, key: str, value: str) -> int:
-        """
-        Insert a new Meta inside the meta table.
+        """Insert a new Meta inside the meta table.
+
         :param database: A database handle
         :param key: The key to insert
         :param value: The value to insert
         :return: The id of the inserted meta
         """
-        return SqliteHelper.exec(
+        res = SqliteHelper.exec(
             database,
             """
             INSERT INTO meta(
@@ -2209,11 +2291,15 @@ class MetaDAO(object):
             ) VALUES(NULL, ?, ?);""",
             (key, value),
         )
+        if res is None:
+            raise NumbatException("New meta creation failed.")
+        else:
+            return res
 
     @staticmethod
     def delete(database: sqlite3.Connection, id_: int) -> None:
-        """
-        Delete a Meta from the meta table.
+        """Delete a Meta from the meta table.
+
         :param database: A database handle
         :param id_: The identifier of the object to delete
         :return: None
@@ -2227,8 +2313,8 @@ class MetaDAO(object):
 
     @staticmethod
     def get(database: sqlite3.Connection, id_: int) -> tuple[int, str, str]:
-        """
-        Return a meta from the database with the matching id
+        """Return a meta from the database with the matching id.
+
         :param database: A database handle
         :param id_: The id of the meta to retrieve
         :return: A Meta object that reflect the content inside
@@ -2244,8 +2330,8 @@ class MetaDAO(object):
 
     @staticmethod
     def clear(database: sqlite3.Connection) -> None:
-        """
-        Delete all Metas from the meta table.
+        """Delete all Metas from the meta table.
+
         :param database: A database handle
         :return: None
         """
@@ -2257,8 +2343,8 @@ class MetaDAO(object):
 
     @staticmethod
     def update(database: sqlite3.Connection, id_: int, key: str, value: str) -> None:
-        """
-        Update a Meta inside the meta table.
+        """Update a Meta inside the meta table.
+
         :param database: A database handle
         :param id_: The id of the meta to update
         :param key: The key to update
@@ -2278,8 +2364,8 @@ class MetaDAO(object):
 
     @staticmethod
     def list(database: sqlite3.Connection) -> list[tuple[int, str, str]]:
-        """
-        Return the list of all the metas from the meta table.
+        """Return the list of all the metas from the meta table.
+
         :param database: A database handle
         :return: The list of Metas
         """

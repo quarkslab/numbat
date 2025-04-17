@@ -1,3 +1,5 @@
+"""Numbat: a library to manipulate and create Sourcetrail/NumbatUI databases."""
+
 # -*- coding: utf-8 -*-
 
 #  Copyright 2023 Quarkslab
@@ -15,3 +17,6 @@
 #  limitations under the License.
 
 from .api import SourcetrailDB
+
+__all__ = ["SourcetrailDB"]
+__version__ = "0.2.3"

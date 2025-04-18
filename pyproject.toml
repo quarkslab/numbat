@@ -65,6 +65,12 @@ typechecking = ['mypy']
 [tool.setuptools.dynamic]
 version = {attr = "numbat.__version__"} 
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["py.typed"]
+
 [tool.ruff]
 # Same as Black.
 line-length = 88

@@ -1,3 +1,14 @@
+## v0.2.3—Typing Support (PEP 561)
+### Features
+- Add packaging type information.
+- Add linter and formatter info.
+
+### Fixes
+- Various little fixes following linter application.
+
+**Full Changelog**: [https://github.com/quarkslab/numbat/compare/v0.2.2...v0.2.3](https://github.com/quarkslab/numbat/compare/v0.2.2...v0.2.3)
+
+
 ## v0.2.2—Graph Customization Features
 ### Features
 - Class member publicity (internal, private, public) could now be set with the `SourcetrailDB.record_{public, default, private}_access` methods.

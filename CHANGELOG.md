@@ -1,3 +1,13 @@
+## v0.2.4—Fixes
+### Features
+N/A
+
+### Fixes
+- Internal get catch errors when needed.
+- Detail errors to improve debug experience.
+
+**Full Changelog**: [https://github.com/quarkslab/numbat/compare/v0.2.3...v0.2.4](https://github.com/quarkslab/numbat/compare/v0.2.3...v0.2.4)
+
 ## v0.2.3—Typing Support (PEP 561)
 ### Features
 - Add packaging type information.

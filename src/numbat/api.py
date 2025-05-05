@@ -364,8 +364,8 @@ class SourcetrailDB:
         """
         try:
             node = NodeDAO.get(self.database, id_)
-        except KeyError:
-            return
+        except KeyError as e:
+            raise KeyError(f"Node with id {id_} does not exist in DB") from e
         if node:
             node.type = type_
             NodeDAO.update(self.database, node)
@@ -1669,7 +1669,10 @@ class SourcetrailDB:
         :param language: A string that indicate the programming language of the file
         :return: None
         """
-        file = FileDAO.get(self.database, id_)
+        try:
+            file = FileDAO.get(self.database, id_)
+        except KeyError as e:
+            raise KeyError(f"File with id {id_} does not exist in DB") from e
         if file:
             file.language = language
             FileDAO.update(self.database, file)

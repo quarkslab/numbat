@@ -19,8 +19,7 @@
 
 import sqlite3
 
-from numbat.exceptions import NumbatException
-
+from .exceptions import NumbatException
 from .types import (
     ComponentAccess,
     ComponentAccessType,

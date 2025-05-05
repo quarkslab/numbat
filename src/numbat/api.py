@@ -345,7 +345,10 @@ class SourcetrailDB:
                  does not exist.
         """
         serialized_name = hierarchy.serialize_name()
-        node = NodeDAO.get_by_name(self.database, serialized_name)
+        try:
+            node = NodeDAO.get_by_name(self.database, serialized_name)
+        except KeyError:
+            return None
         if node:
             return node.id
         return None
@@ -359,7 +362,10 @@ class SourcetrailDB:
         :param type_: The new type for the symbol
         :return: None
         """
-        node = NodeDAO.get(self.database, id_)
+        try:
+            node = NodeDAO.get(self.database, id_)
+        except KeyError:
+            return
         if node:
             node.type = type_
             NodeDAO.update(self.database, node)
@@ -371,7 +377,10 @@ class SourcetrailDB:
         :param kind: The new type for the symbol
         :return: None
         """
-        symb = SymbolDAO.get(self.database, id_)
+        try:
+            symb = SymbolDAO.get(self.database, id_)
+        except KeyError:
+            symb = None
         if symb:
             if symb.definition_kind != kind:
                 symb.definition_kind = kind
@@ -417,7 +426,10 @@ class SourcetrailDB:
         """
         name_element = NameElement(prefix, name, postfix)
         if parent_id:
-            node = NodeDAO.get(self.database, parent_id)
+            try:
+                node = NodeDAO.get(self.database, parent_id)
+            except KeyError:
+                node = None
             if not node:
                 return None
             hierarchy = NameHierarchy.deserialize_name(node.name)
@@ -1847,7 +1859,10 @@ class SourcetrailDB:
         :return: The identifier of the new local symbol
         """
         # Check that the symbol does not already exist
-        local = LocalSymbolDAO.get_from_name(self.database, name)
+        try:
+            local = LocalSymbolDAO.get_from_name(self.database, name)
+        except KeyError:
+            local = None
         if not local:
             # Insert a new local symbol
             elem = Element()

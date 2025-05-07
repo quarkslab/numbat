@@ -1295,7 +1295,7 @@ class SourcetrailDB:
         :param description: Description of the command
         :return: None
         """
-        if type(command) is list:
+        if not isinstance(command, list):
             raise TypeError(
                 "Custom command must be a list containing its argument vector"
             )

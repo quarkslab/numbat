@@ -1,3 +1,13 @@
+## v0.2.5—Improve Exceptions
+### Features
+A new exception has been implemented (`DBException`) to abstract the underlying DB and its particular exceptions. User will only need to catch
+this exception to catch all the DB related exceptions.
+
+### Fixes
+- Fix custom command addition.
+
+**Full Changelog**: [https://github.com/quarkslab/numbat/compare/v0.2.4...v0.2.5](https://github.com/quarkslab/numbat/compare/v0.2.4...v0.2.5)
+
 ## v0.2.4—Fixes
 ### Features
 N/A

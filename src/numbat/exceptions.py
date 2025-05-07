@@ -23,6 +23,10 @@ class NumbatException(Exception):
     pass
 
 
+class DBException(NumbatException):  # noqa: D101
+    pass
+
+
 class SerializeException(NumbatException):  # noqa: D101
     pass
 

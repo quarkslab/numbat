@@ -19,7 +19,7 @@
 
 import sqlite3
 
-from .exceptions import NumbatException
+from .exceptions import DBException, NumbatException
 from .types import (
     ComponentAccess,
     ComponentAccessType,
@@ -60,7 +60,11 @@ class SqliteHelper(object):
         :return: A connection handle that can be used for future
         operation on the database
         """
-        return sqlite3.connect(path)
+        try:
+            res = sqlite3.connect(path)
+        except sqlite3.Error as e:
+            raise DBException(f"Error while connecting to DB: {e}") from e
+        return res
 
     @staticmethod
     def exec(
@@ -75,11 +79,14 @@ class SqliteHelper(object):
         :return: The id of the last modified row (useful in case insertion)
         """
         if not database:
-            raise Exception("Invalid database handle")
+            raise DBException("Invalid database handle")
 
-        cur = database.cursor()
-        cur.execute(request, parameters)
-        cur.close()
+        try:
+            cur = database.cursor()
+            cur.execute(request, parameters)
+            cur.close()
+        except sqlite3.Error as e:
+            raise DBException(f"Error while excuting request to DB: {e}") from e
         return cur.lastrowid
 
     @staticmethod
@@ -97,10 +104,15 @@ class SqliteHelper(object):
         if not database:
             raise Exception("Invalid database handle")
 
-        cur = database.cursor()
-        cur.execute(request, parameters)
-        result = cur.fetchall()
-        cur.close()
+        try:
+            cur = database.cursor()
+            cur.execute(request, parameters)
+            result = cur.fetchall()
+            cur.close()
+        except sqlite3.Error as e:
+            raise DBException(
+                f"Error while excuting a request to DB and fetching result: {e}"
+            ) from e
 
         return result
 

@@ -194,7 +194,6 @@ class SourcetrailDB:
             # Create project directory
             obj.project_dir = obj.path.parent
             obj.files_directory = Path(str(obj.path.stem) + cls.SOURCETRAIL_PROJECT_DIR)
-            Path(obj.project_dir, obj.files_directory).mkdir(mode=0o755, exist_ok=True)
             # Commit change to the database so we don't ended up with a half setup DB if
             # an exceptions is raised before the next commit
             obj.commit()
@@ -1323,6 +1322,10 @@ class SourcetrailDB:
                     break
                 sha256.update(data)
         hash = sha256.hexdigest()
+
+        if not self.files_directory.exists():  # Create directory on first write
+            self.files_directory.mkdir(mode=0o755, exist_ok=True)
+
         file_path = f"{self.files_directory}/{hash}"
         dest = f"{self.project_dir}/{file_path}"
 

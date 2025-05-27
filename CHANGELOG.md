@@ -1,3 +1,13 @@
+## v0.2.6—Add Options in File Operation
+### Features
+User can now specify the name under which a file is recorded in db (`SourcetrailDB.record_file`)
+
+### Fixes
+- File directory (for side loaded files) is only created when required not automatically at the init of the DB.
+
+**Full Changelog**: [https://github.com/quarkslab/numbat/compare/v0.2.5...v0.2.6](https://github.com/quarkslab/numbat/compare/v0.2.5...v0.2.6)
+
+
 ## v0.2.5—Improve Exceptions
 ### Features
 A new exception has been implemented (`DBException`) to abstract the underlying DB and its particular exceptions. User will only need to catch

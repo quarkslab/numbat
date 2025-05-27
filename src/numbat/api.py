@@ -278,9 +278,7 @@ class SourcetrailDB:
     #                        GENERAL SYMBOLS OPERATIONS                                #
     ####################################################################################
 
-    def __add_if_not_existing(
-        self, name: str, type_: NodeType, hover_display: str
-    ) -> int:
+    def __add_if_not_existing(self, name: str, type_: NodeType, hover_display: str) -> int:
         """Create a new node if it does not already exist.
 
         :warning: This is not the same behavior as SourcetrailDB
@@ -329,9 +327,7 @@ class SourcetrailDB:
                 elem = Element()
                 elem.id = ElementDAO.new(self.database, elem)
 
-                EdgeDAO.new(
-                    self.database, Edge(elem.id, EdgeType.MEMBER, parent, child)
-                )
+                EdgeDAO.new(self.database, Edge(elem.id, EdgeType.MEMBER, parent, child))
 
                 # Return the id of the last inserted elements
         return ids[-1]
@@ -435,9 +431,7 @@ class SourcetrailDB:
             hierarchy.extend(name_element)
             obj_id = self._record_symbol(hierarchy, hover_display)
         else:
-            obj_id = self._record_symbol(
-                NameHierarchy(delimiter, [name_element]), hover_display
-            )
+            obj_id = self._record_symbol(NameHierarchy(delimiter, [name_element]), hover_display)
 
         if obj_id:
             self._record_symbol_kind(obj_id, type_)
@@ -1106,9 +1100,7 @@ class SourcetrailDB:
             hover_display,
         )
 
-    def _record_access_specifier(
-        self, symbol_id: int, access: ComponentAccessType
-    ) -> None:
+    def _record_access_specifier(self, symbol_id: int, access: ComponentAccessType) -> None:
         """Record an access specifier for a symbol.
 
         For example, if the symbol is a public one in the class.
@@ -1237,16 +1229,10 @@ class SourcetrailDB:
         node_type = self.__str_to_node_type(type_to_change)
         if node_type != "":
             if graph_display == "":
-                graph_display = NodeTypeDAO.get_by_id(
-                    self.database, node_type
-                ).graph_display
+                graph_display = NodeTypeDAO.get_by_id(self.database, node_type).graph_display
             if hover_display == "":
-                hover_display = NodeTypeDAO.get_by_id(
-                    self.database, node_type
-                ).hover_display
-            NodeTypeDAO.update(
-                self.database, NodeDisplay(node_type, graph_display, hover_display)
-            )
+                hover_display = NodeTypeDAO.get_by_id(self.database, node_type).hover_display
+            NodeTypeDAO.update(self.database, NodeDisplay(node_type, graph_display, hover_display))
 
     def change_node_color(
         self,
@@ -1271,9 +1257,7 @@ class SourcetrailDB:
         NodeDAO.set_color(
             self.database,
             node_id,
-            " ".join(
-                [fill_color, border_color, text_color, icon_color, hatching_color]
-            ),
+            " ".join([fill_color, border_color, text_color, icon_color, hatching_color]),
         )
 
     def change_edge_color(self, edge_id: int, color: str) -> None:
@@ -1295,16 +1279,10 @@ class SourcetrailDB:
         :return: None
         """
         if not isinstance(command, list):
-            raise TypeError(
-                "Custom command must be a list containing its argument vector"
-            )
-        NodeDAO.set_custom_command(
-            self.database, node_id, ("\t".join(command), description)
-        )
+            raise TypeError("Custom command must be a list containing its argument vector")
+        NodeDAO.set_custom_command(self.database, node_id, ("\t".join(command), description))
 
-    def associate_file_to_node(
-        self, node_id: int, file: Path, display_content: bool
-    ) -> None:
+    def associate_file_to_node(self, node_id: int, file: Path, display_content: bool) -> None:
         """Copy a file to the project directory and link it to a node.
 
         :param node_id: Id of the node to link
@@ -1354,15 +1332,11 @@ class SourcetrailDB:
         elem = Element()
         elem.id = ElementDAO.new(self.database, elem)
 
-        EdgeDAO.new(
-            self.database, Edge(elem.id, type_, source_id, dest_id, hover_display)
-        )
+        EdgeDAO.new(self.database, Edge(elem.id, type_, source_id, dest_id, hover_display))
 
         return elem.id
 
-    def record_ref_member(
-        self, source_id: int, dest_id: int, hover_display: str = ""
-    ) -> int:
+    def record_ref_member(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """Add a member reference (aka an edge) between two elements.
 
         :param source_id: The source identifier
@@ -1370,13 +1344,9 @@ class SourcetrailDB:
         :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(
-            source_id, dest_id, EdgeType.MEMBER, hover_display
-        )
+        return self._record_reference(source_id, dest_id, EdgeType.MEMBER, hover_display)
 
-    def record_ref_type_usage(
-        self, source_id: int, dest_id: int, hover_display: str = ""
-    ) -> int:
+    def record_ref_type_usage(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """Add a TYPE_USAGE reference (aka an edge) between two elements.
 
         :param source_id: The source identifier
@@ -1384,13 +1354,9 @@ class SourcetrailDB:
         :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(
-            source_id, dest_id, EdgeType.TYPE_USAGE, hover_display
-        )
+        return self._record_reference(source_id, dest_id, EdgeType.TYPE_USAGE, hover_display)
 
-    def record_ref_usage(
-        self, source_id: int, dest_id: int, hover_display: str = ""
-    ) -> int:
+    def record_ref_usage(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """Add a USAGE reference (aka an edge) between two elements.
 
         :param source_id: The source identifier
@@ -1400,9 +1366,7 @@ class SourcetrailDB:
         """
         return self._record_reference(source_id, dest_id, EdgeType.USAGE, hover_display)
 
-    def record_ref_call(
-        self, source_id: int, dest_id: int, hover_display: str = ""
-    ) -> int:
+    def record_ref_call(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """Add a CALL reference (aka an edge) between two elements.
 
         :param source_id: The source identifier
@@ -1412,9 +1376,7 @@ class SourcetrailDB:
         """
         return self._record_reference(source_id, dest_id, EdgeType.CALL, hover_display)
 
-    def record_ref_inheritance(
-        self, source_id: int, dest_id: int, hover_display: str = ""
-    ) -> int:
+    def record_ref_inheritance(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """Add an INHERITANCE reference (aka an edge) between two elements.
 
         :param source_id: The source identifier
@@ -1422,13 +1384,9 @@ class SourcetrailDB:
         :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(
-            source_id, dest_id, EdgeType.INHERITANCE, hover_display
-        )
+        return self._record_reference(source_id, dest_id, EdgeType.INHERITANCE, hover_display)
 
-    def record_ref_override(
-        self, source_id: int, dest_id: int, hover_display: str = ""
-    ) -> int:
+    def record_ref_override(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """Add an OVERRIDE reference (aka an edge) between two elements.
 
         :param source_id: The source identifier
@@ -1436,9 +1394,7 @@ class SourcetrailDB:
         :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(
-            source_id, dest_id, EdgeType.OVERRIDE, hover_display
-        )
+        return self._record_reference(source_id, dest_id, EdgeType.OVERRIDE, hover_display)
 
     def record_ref_type_argument(
         self, source_id: int, dest_id: int, hover_display: str = ""
@@ -1450,9 +1406,7 @@ class SourcetrailDB:
         :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(
-            source_id, dest_id, EdgeType.TYPE_ARGUMENT, hover_display
-        )
+        return self._record_reference(source_id, dest_id, EdgeType.TYPE_ARGUMENT, hover_display)
 
     def record_ref_template_specialization(
         self, source_id: int, dest_id: int, hover_display: str = ""
@@ -1468,9 +1422,7 @@ class SourcetrailDB:
             source_id, dest_id, EdgeType.TEMPLATE_SPECIALIZATION, hover_display
         )
 
-    def record_ref_include(
-        self, source_id: int, dest_id: int, hover_display: str = ""
-    ) -> int:
+    def record_ref_include(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """Add an INCLUDE reference (aka an edge) between two elements.
 
         :param source_id: The source identifier
@@ -1478,13 +1430,9 @@ class SourcetrailDB:
         :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(
-            source_id, dest_id, EdgeType.INCLUDE, hover_display
-        )
+        return self._record_reference(source_id, dest_id, EdgeType.INCLUDE, hover_display)
 
-    def record_ref_import(
-        self, source_id: int, dest_id: int, hover_display: str = ""
-    ) -> int:
+    def record_ref_import(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """Add an import reference (aka an edge) between two elements.
 
         :param source_id: The source identifier (who imports)
@@ -1492,9 +1440,7 @@ class SourcetrailDB:
         :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(
-            source_id, dest_id, EdgeType.IMPORT, hover_display
-        )
+        return self._record_reference(source_id, dest_id, EdgeType.IMPORT, hover_display)
 
     def record_ref_bundled_edges(
         self, source_id: int, dest_id: int, hover_display: str = ""
@@ -1506,13 +1452,9 @@ class SourcetrailDB:
         :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(
-            source_id, dest_id, EdgeType.BUNDLED_EDGES, hover_display
-        )
+        return self._record_reference(source_id, dest_id, EdgeType.BUNDLED_EDGES, hover_display)
 
-    def record_ref_macro_usage(
-        self, source_id: int, dest_id: int, hover_display: str = ""
-    ) -> int:
+    def record_ref_macro_usage(self, source_id: int, dest_id: int, hover_display: str = "") -> int:
         """Add a MACRO_USAGE reference (aka an edge) between two elements.
 
         :param source_id: The source identifier
@@ -1520,9 +1462,7 @@ class SourcetrailDB:
         :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(
-            source_id, dest_id, EdgeType.MACRO_USAGE, hover_display
-        )
+        return self._record_reference(source_id, dest_id, EdgeType.MACRO_USAGE, hover_display)
 
     def record_ref_annotation_usage(
         self, source_id: int, dest_id: int, hover_display: str = ""
@@ -1534,9 +1474,7 @@ class SourcetrailDB:
         :param hover_display: The display text when hovering over the edge
         :return: the reference id
         """
-        return self._record_reference(
-            source_id, dest_id, EdgeType.ANNOTATION_USAGE, hover_display
-        )
+        return self._record_reference(source_id, dest_id, EdgeType.ANNOTATION_USAGE, hover_display)
 
     def record_reference_to_unsolved_symbol(
         self,
@@ -1610,11 +1548,12 @@ class SourcetrailDB:
     ####################################################################################
 
     def record_file(
-        self, path: Path, indexed: bool = True, hover_display: str = ""
+        self, path: Path, name: str = "", indexed: bool = True, hover_display: str = ""
     ) -> int:
         """Record a source file in the database.
 
         :param path: The path to the existing source file
+        :param name: the name under which the file is recorded, else it will be the path
         :param indexed: A boolean that indicates if the source file
                         was indexed by the parser
         :param hover_display: The display text when hovering over the node
@@ -1623,10 +1562,12 @@ class SourcetrailDB:
         if not path.exists() or not path.is_file():
             raise FileNotFoundError()
 
+        if not name:
+            name = str(path.absolute())
         # Create a new name hierarchy
         hierarchy = NameHierarchy(
             NameHierarchy.NAME_DELIMITER_FILE,
-            [NameElement("", str(path.absolute()), "")],
+            [NameElement("", name, "")],
         )
 
         # Retrieve the modification date in the correct format
@@ -1649,7 +1590,7 @@ class SourcetrailDB:
             self.database,
             File(
                 elem_id,
-                str(path.absolute()),
+                name,
                 "",  # Empty language identifier for now
                 modification_time,
                 indexed,
@@ -1704,9 +1645,7 @@ class SourcetrailDB:
         # First add a new source location entry
         loc_id = SourceLocationDAO.new(
             self.database,
-            SourceLocation(
-                0, file_id, start_line, start_column, end_line, end_column, type_
-            ),
+            SourceLocation(0, file_id, start_line, start_column, end_line, end_column, type_),
         )
 
         # Now add an occurrence that refer to this location

@@ -1109,7 +1109,7 @@ class SourcetrailDB:
         :param access: The access specifier to set (cf. ComponentAccessType)
         :return: None
         """
-        ComponentAccessDAO.new(
+        ComponentAccessDAO.new_or_update(
             self.database, ComponentAccess(symbol_id, ComponentAccessType(access))
         )
 

@@ -2008,6 +2008,30 @@ class ComponentAccessDAO(object):
             return res
 
     @staticmethod
+    def new_or_update(database: sqlite3.Connection, obj: ComponentAccess) -> int:
+        """Insert a new ComponentAccess or update an existing record 
+           inside the component_access table.
+
+        :param database: A database handle
+        :param obj: The object to insert or update
+        :return: The id of the inserted/updated component_access
+        """
+        res = SqliteHelper.exec(
+            database,
+            """
+            INSERT INTO component_access(node_id, type)
+            VALUES(?, ?)
+            ON CONFLICT(node_id) DO UPDATE SET
+                type = excluded.type;
+            """,
+            (obj.node_id, obj.type.value),
+        )
+        # If SqliteHelper.exec returns None on success, keep behavior consistent with your helpers.
+        if res is None:
+            raise NumbatException("New component access creation failed.")
+        return res
+
+    @staticmethod
     def delete(database: sqlite3.Connection, obj: ComponentAccess) -> None:
         """Delete an ComponentAccess from the component_access table.
 

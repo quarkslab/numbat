@@ -551,13 +551,13 @@ SELECT id, type, source_node_id, target_node_id, hover_display FROM edge WHERE i
         rows = SqliteHelper.fetch(
             database,
             """
-            SELECT * FROM edge;""",
+            SELECT id, type, source_node_id, target_node_id, hover_display FROM edge;""",
         )
 
         result = list()
         for row in rows:
-            id_, type_, src, dst = row
-            result.append(Edge(id_, EdgeType(type_), src, dst))
+            id_, type_, src, dst, hover_display = row
+            result.append(Edge(id_, EdgeType(type_), src, dst, hover_display))
 
         return result
 
@@ -705,13 +705,14 @@ class NodeDAO(object):
         out = SqliteHelper.fetch(
             database,
             """
-            SELECT * FROM node WHERE serialized_name = ? LIMIT 1;""",
+            SELECT id, type, serialized_name, hover_display FROM node
+            WHERE serialized_name = ? LIMIT 1;""",
             (name,),
         )
 
         if len(out) == 1:
-            id_, type_, serialized_name = out[0]
-            return Node(id_, NodeType(type_), serialized_name)
+            id_, type_, serialized_name, hover_display = out[0]
+            return Node(id_, NodeType(type_), serialized_name, hover_display)
         elif len(out) == 0:
             raise KeyError(f"{name} doest not correspond to a registered object")
         else:
@@ -746,13 +747,13 @@ class NodeDAO(object):
         rows = SqliteHelper.fetch(
             database,
             """
-            SELECT * FROM node;""",
+            SELECT id, type, serialized_name, hover_display FROM node;""",
         )
 
         result = list()
         for row in rows:
-            id_, type_, serialized_name = row
-            result.append(Node(id_, NodeType(type_), serialized_name))
+            id_, type_, serialized_name, hover_display = row
+            result.append(Node(id_, NodeType(type_), serialized_name, hover_display))
 
         return result
 

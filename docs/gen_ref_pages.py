@@ -1,8 +1,11 @@
 """Generate the code reference pages and navigation."""
 
+import json
 from pathlib import Path
 
 import mkdocs_gen_files
+
+from numbat.model import json_schema
 
 nav = mkdocs_gen_files.Nav()
 
@@ -26,3 +29,7 @@ for path in filter(lambda p: p.name not in excluded,
         fd.write(f"::: {ident}")
 
     mkdocs_gen_files.set_edit_path(full_doc_path, path)
+
+# Publish the JSON Schema of graph files (numbat.model.SCHEMA_URL)
+with mkdocs_gen_files.open("graph.schema.json", "w") as fd:
+    json.dump(json_schema(), fd, indent=2)

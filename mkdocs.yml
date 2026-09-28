@@ -38,6 +38,8 @@ nav:
   - Home: index.md
   - Tutorial: tutorial.md
   - Customization: customization.md
+  - Graph Files: graph_files.md
+  - Agent Skill: agent_skill.md
   - Public API Reference: public_api.md
   - Numbat Internal Dev: intern_dev/numbat/
   - Changelog: changelog.md

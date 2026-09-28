@@ -1,0 +1,79 @@
+{
+  "$schema": "https://quarkslab.github.io/numbat/graph.schema.json",
+  "format_version": 1,
+  "delimiter": ".",
+  "node_types": {
+    "class": {"graph_display": "Classes", "hover_display": "python class"},
+    "file": {"hover_display": "python file"}
+  },
+  "files": [
+    {
+      "id": "file.py",
+      "name": "file.py",
+      "language": "python",
+      "content": "\"Example of Python file we would like to index\"\nclass MyType:\n\n    my_member = True\n\n    def my_method(self):\n        return self.my_member\n",
+      "color": {"fill": "#DEB887", "border": "#B0C4DE", "text": "brown"},
+      "command": {"argv": ["open", "file.py"], "description": "Open in external window"},
+      "errors": [{"message": "missing type annotations", "start_line": 6, "start_column": 5, "end_line": 6, "end_column": 24}]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "MyType",
+      "kind": "class",
+      "name": "MyType",
+      "prefix": "class",
+      "postfix": "():",
+      "hover": "example class used for demonstration",
+      "attached_file": {"content": "Documentation of MyType\n"},
+      "locations": [
+        {"file": "file.py", "start_line": 2, "start_column": 7, "end_line": 2, "end_column": 12},
+        {"file": "file.py", "type": "scope", "start_line": 2, "start_column": 1, "end_line": 7, "end_column": 1}
+      ],
+      "children": [
+        {
+          "id": "MyType.my_member",
+          "kind": "field",
+          "name": "my_member",
+          "access": "private",
+          "locations": [{"file": "file.py", "start_line": 4, "start_column": 5, "end_line": 4, "end_column": 13}]
+        },
+        {
+          "id": "MyType.my_method",
+          "kind": "method",
+          "name": "my_method",
+          "access": "public",
+          "color": {"fill": "lightgreen"},
+          "locations": [
+            {"file": "file.py", "start_line": 6, "start_column": 9, "end_line": 6, "end_column": 17},
+            {"file": "file.py", "type": "scope", "start_line": 6, "start_column": 1, "end_line": 7, "end_column": 1}
+          ]
+        }
+      ]
+    },
+    {"id": "object", "kind": "builtin_type", "name": "object", "indexed": false}
+  ],
+  "edges": [
+    {
+      "kind": "usage",
+      "source": "MyType.my_method",
+      "target": "MyType.my_member",
+      "hover": "reads the member",
+      "color": "green",
+      "locations": [{"file": "file.py", "start_line": 7, "start_column": 21, "end_line": 7, "end_column": 29}]
+    },
+    {"kind": "inheritance", "source": "MyType", "target": "object", "ambiguous": true},
+    {
+      "kind": "call",
+      "source": "MyType.my_method",
+      "unsolved": true,
+      "locations": [{"file": "file.py", "start_line": 7, "start_column": 16, "end_line": 7, "end_column": 19}]
+    }
+  ],
+  "local_symbols": [
+    {"name": "my_method.self", "locations": [
+      {"file": "file.py", "start_line": 6, "start_column": 19, "end_line": 6, "end_column": 22},
+      {"file": "file.py", "start_line": 7, "start_column": 16, "end_line": 7, "end_column": 19}
+    ]}
+  ]
+}

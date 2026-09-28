@@ -1,0 +1,12 @@
+{
+  "name": "numbat",
+  "version": "0.3.0",
+  "description": "Turn any graph-shaped data (nested entities + relationships) into a NumbatUI database with Numbat.",
+  "author": {
+    "name": "Quarkslab"
+  },
+  "homepage": "https://quarkslab.github.io/numbat/",
+  "repository": "https://github.com/quarkslab/numbat",
+  "license": "Apache-2.0",
+  "keywords": ["numbat", "numbatui", "sourcetrail", "graph", "visualization"]
+}

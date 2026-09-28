@@ -39,6 +39,9 @@ classifiers = [
 ]
 dynamic = ['version']
 
+[project.scripts]
+numbat = "numbat.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/quarkslab/numbat"
 Source = "https://github.com/quarkslab/numbat"
@@ -69,7 +72,7 @@ version = {attr = "numbat.__version__"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-"*" = ["py.typed"]
+"*" = ["py.typed", "graph_guide.md"]
 
 [tool.ruff]
 # Same as Black.

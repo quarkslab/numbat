@@ -1,3 +1,18 @@
+## v0.3.0 Graph Files models and CLI
+### Features
+- Declarative data model (`numbat.model`) describing a whole graph (nested nodes, edges, files, locations, colors, custom commands, ...) as JSON, with its JSON Schema.
+- Loader (`numbat.loader`) validating a graph and recording it into a database.
+- `numbat` command line tool: `load`, `validate`, `schema` and `guide` (documentation of the format for LLMs).
+- `SourcetrailDB.record_file_content` and `SourcetrailDB.associate_file_content_to_node` to record files from their content.
+- `SourcetrailDB.set_node_type` accepts a `NodeType`.
+- `build-graph` agent skill (`skills/build-graph`, Agent Skills format) and Claude Code plugin manifest, teaching agents to model any graph-shaped data as a Numbat graph file.
+
+### Fixes
+- `NodeDAO.get_by_name`, `NodeDAO.list` and `EdgeDAO.list` failed on non-empty tables.
+- Opening an existing database duplicated nodes recorded again (name cache not rebuilt), and `clear` did not reset the name cache.
+- Sideloaded files directory was created relative to the working directory instead of the project directory.
+- `set_node_type` can now set an empty `graph_display` (`None` keeps the current value). **Breaking:** passing `""` used to mean "keep the current value".
+
 ## v0.2.6—Add Options in File Operation
 ### Features
 User can now specify the name under which a file is recorded in db (`SourcetrailDB.record_file`)

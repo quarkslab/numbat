@@ -17,6 +17,7 @@
 """Public API of Numbat. Allow to create and manipulate Sourcetrail DB."""
 
 import hashlib
+import io
 import logging
 import os
 import shutil
@@ -163,6 +164,8 @@ class SourcetrailDB:
             raise NumbatException(*e.args) from e
 
         obj = SourcetrailDB(database, path)
+        # Rebuild the name cache so that new records are merged with existing nodes
+        obj.name_cache = {node.name: node.id for node in NodeDAO.list(obj.database)}
 
         return obj
 
@@ -259,6 +262,7 @@ class SourcetrailDB:
         OccurrenceDAO.clear(self.database)
         ComponentAccessDAO.clear(self.database)
         ErrorDAO.clear(self.database)
+        self.name_cache.clear()
 
     def close(self) -> None:
         """Close a sourcetrail database.
@@ -1214,7 +1218,10 @@ class SourcetrailDB:
         raise KeyError(f"{s} is not a Node Type")
 
     def set_node_type(
-        self, type_to_change: str, graph_display: str = "", hover_display: str = ""
+        self,
+        type_to_change: str | NodeType,
+        graph_display: str | None = None,
+        hover_display: str | None = None,
     ) -> None:
         """Change the display text of a node type.
 
@@ -1222,17 +1229,22 @@ class SourcetrailDB:
         `enum constant` `field` `file` `function` `global variable`
         `interface` `macro` `method` `module` `namespace` `package` `struct` `symbol`
         `type` `type parameter` `typedef` `union`
-        :param type_to_change: The node type to update
-        :param graph_display: The display text in the Sourcetrail graph
-        :param hover_display: The display text when hovering over a node
+        :param type_to_change: The node type to update (name or NodeType)
+        :param graph_display: The display text in the Sourcetrail graph (None keeps the
+        current value, an empty string hides the type from the overview)
+        :param hover_display: The display text when hovering over a node (None keeps the
+        current value)
         """
-        node_type = self.__str_to_node_type(type_to_change)
-        if node_type != "":
-            if graph_display == "":
-                graph_display = NodeTypeDAO.get_by_id(self.database, node_type).graph_display
-            if hover_display == "":
-                hover_display = NodeTypeDAO.get_by_id(self.database, node_type).hover_display
-            NodeTypeDAO.update(self.database, NodeDisplay(node_type, graph_display, hover_display))
+        if isinstance(type_to_change, NodeType):
+            node_type = type_to_change
+        else:
+            node_type = self.__str_to_node_type(type_to_change)
+        current = NodeTypeDAO.get_by_id(self.database, node_type)
+        if graph_display is None:
+            graph_display = current.graph_display
+        if hover_display is None:
+            hover_display = current.hover_display
+        NodeTypeDAO.update(self.database, NodeDisplay(node_type, graph_display, hover_display))
 
     def change_node_color(
         self,
@@ -1299,19 +1311,46 @@ class SourcetrailDB:
                 if not data:
                     break
                 sha256.update(data)
-        hash = sha256.hexdigest()
 
-        if not self.files_directory.exists():  # Create directory on first write
-            self.files_directory.mkdir(mode=0o755, exist_ok=True)
-
-        file_path = f"{self.files_directory}/{hash}"
-        dest = f"{self.project_dir}/{file_path}"
-
+        file_path, dest = self.__node_file_destination(sha256.hexdigest())
         # copy file if not exists
-        if not Path(dest).exists():
+        if not dest.exists():
             shutil.copy2(file, dest)
         # associate node and file
         NodeFileDAO.new(self.database, NodeFile(node_id, file_path, display_content))
+
+    def associate_file_content_to_node(
+        self, node_id: int, content: str | bytes, display_content: bool
+    ) -> None:
+        """Write some content in the project directory and link it to a node.
+
+        Same as `associate_file_to_node` but the content is provided directly
+        instead of being read from an existing file.
+
+        :param node_id: Id of the node to link
+        :param content: Content of the file to link (str are encoded in UTF-8)
+        :param display_content: Whether the file content should be displayed or not
+        :return: None
+        """
+        data = content.encode("utf-8") if isinstance(content, str) else content
+
+        file_path, dest = self.__node_file_destination(hashlib.sha256(data).hexdigest())
+        # write file if not exists
+        if not dest.exists():
+            dest.write_bytes(data)
+        # associate node and file
+        NodeFileDAO.new(self.database, NodeFile(node_id, file_path, display_content))
+
+    def __node_file_destination(self, hash: str) -> tuple[str, Path]:
+        """Return where a sideloaded file must be stored, create directory if needed.
+
+        :param hash: The hash of the file content, used as file name
+        :return: The path relative to the project directory and the absolute path
+        """
+        directory = self.project_dir / self.files_directory
+        if not directory.exists():  # Create directory on first write
+            directory.mkdir(mode=0o755, exist_ok=True)
+        return f"{self.files_directory}/{hash}", directory / hash
 
     ####################################################################################
     #                               REFERENCES                                         #
@@ -1564,11 +1603,6 @@ class SourcetrailDB:
 
         if not name:
             name = str(path.absolute())
-        # Create a new name hierarchy
-        hierarchy = NameHierarchy(
-            NameHierarchy.NAME_DELIMITER_FILE,
-            [NameElement("", name, "")],
-        )
 
         # Retrieve the modification date in the correct format
         modification_time = datetime.fromtimestamp(os.path.getmtime(path)).strftime(
@@ -1576,9 +1610,45 @@ class SourcetrailDB:
         )
 
         # Read the file
-        lines = []
-        if indexed:
-            lines = open(path, "r").readlines()
+        content = path.read_text() if indexed else ""
+
+        return self.record_file_content(
+            name, content, indexed, hover_display, modification_time
+        )
+
+    def record_file_content(
+        self,
+        name: str,
+        content: str,
+        indexed: bool = True,
+        hover_display: str = "",
+        modification_time: str | None = None,
+    ) -> int:
+        """Record a source file in the database from its content.
+
+        Same as `record_file` but the content is provided directly instead
+        of being read from an existing file.
+
+        :param name: the name (usually a path) under which the file is recorded
+        :param content: The content of the file
+        :param indexed: A boolean that indicates if the source file
+                        was indexed by the parser
+        :param hover_display: The display text when hovering over the node
+        :param modification_time: Modification date (format `%Y-%m-%d %H:%M:%S`),
+                                  defaults to now
+        :return: The identifier of the inserted file
+        """
+        if modification_time is None:
+            modification_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # Create a new name hierarchy
+        hierarchy = NameHierarchy(
+            NameHierarchy.NAME_DELIMITER_FILE,
+            [NameElement("", name, "")],
+        )
+
+        # Split lines the same way a file read would do (only on '\n')
+        lines = io.StringIO(content).readlines() if indexed else []
 
         # Insert a new node
         elem_id = self.__add_if_not_existing(
